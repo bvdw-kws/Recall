@@ -10,7 +10,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Input/RecallInputQueueInterface.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 
 #include "RecallInputQueueSubsystem.generated.h"
 

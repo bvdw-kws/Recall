@@ -10,7 +10,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
 #include "System/Random/RecallRandomNumberInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 
 #include "RecallRandomNumberSubsystem.generated.h"
 

@@ -8,7 +8,7 @@
 
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "System/RecallStreamingTypes.h"
 
 #include "RecallEntityStreamingSubsystem.generated.h"

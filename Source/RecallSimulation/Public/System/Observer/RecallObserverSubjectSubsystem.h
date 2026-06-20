@@ -9,7 +9,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Observer/RecallObserverSubjectInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "RecallObserverSubjectTypes.h"
 
 #include "RecallObserverSubjectSubsystem.generated.h"

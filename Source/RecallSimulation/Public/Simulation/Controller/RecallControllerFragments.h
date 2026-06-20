@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "MassEntityElementTypes.h"
+#include "Mass/EntityElementTypes.h"
 #include "MassEntityHandle.h"
 
 #include "RecallControllerFragments.generated.h"

@@ -9,7 +9,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "Physics/RecallPhysicsBodyHandle.h"
 #include "Physics/RecallPhysicsConstrainHandle.h"
 #include "Physics/RecallPhysicsHitEvent.h"

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "MassEntityElementTypes.h"
+#include "Mass/EntityElementTypes.h"
 #include "Physics/Character/RecallPhysicsCharacterShapeTypes.h"
 #include "Physics/Character/RecallPhysicsCharacterTypes.h"
 #include "Physics/RecallPhysicsTypes.h"

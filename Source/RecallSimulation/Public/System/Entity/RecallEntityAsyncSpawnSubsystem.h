@@ -10,7 +10,7 @@
 #include "MassEntityManager.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "RecallEntityAsyncSpawnTypes.h"
 
 #include "RecallEntityAsyncSpawnSubsystem.generated.h"

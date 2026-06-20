@@ -10,7 +10,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
 #include "System/Desync/RecallDesyncLogInterface.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "Engine/World.h"
 #include "Containers/RingBuffer.h"
 
