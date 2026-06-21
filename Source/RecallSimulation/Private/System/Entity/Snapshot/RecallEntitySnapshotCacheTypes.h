@@ -8,7 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "MassArchetypeTypes.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 
 #define WITH_RECALL_ENTITY_SNAPSHOT_DEBUG ((UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT) && 0)
 

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "StructUtils/InstancedStruct.h"
 
 #include "RecallEntityAsyncSpawnTypes.generated.h"

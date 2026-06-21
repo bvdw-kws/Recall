@@ -16,7 +16,7 @@
 #include "Physics/RecallPhysicsTypes.h"
 #include "Physics/RecallPhysicsShapeTypes.h"
 #include "StructUtils/InstancedStruct.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 
 #include "RecallPhysicsSubsystem.generated.h"
 

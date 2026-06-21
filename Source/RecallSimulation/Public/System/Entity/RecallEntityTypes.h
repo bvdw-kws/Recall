@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "System/Player/RecallPlayerQueueTypes.h"
 
 #include "RecallEntityTypes.generated.h"

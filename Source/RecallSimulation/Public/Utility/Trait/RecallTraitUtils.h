@@ -9,7 +9,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "VisualLogger/VisualLogger.h"
-#include "StructView.h"
+#include "StructUtils/StructView.h"
 
 RECALLSIMULATION_API DECLARE_LOG_CATEGORY_EXTERN(LogRecallTrait, Log, All);
 

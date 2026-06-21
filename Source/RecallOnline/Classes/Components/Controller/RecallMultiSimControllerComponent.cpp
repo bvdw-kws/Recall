@@ -7,11 +7,11 @@
 
 #include "RecallMultiSimControllerComponent.h"
 
+#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "RecallFrontendUtils.h"
 #include "Online/Base/RecallPlayerControllerBase.h"
 #include "Online/RecallGameMode.h"
-#include "Player/MultiWorldLocalPlayer.h"
+#include "RecallFrontendUtils.h"
 #include "System/Snapshot/RecallSnapshotInterface.h"
 #include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Player/RecallPlayerUtils.h"
@@ -59,22 +59,12 @@ void URecallMultiSimControllerComponent::GoToWorld(int32 WorldIndex, bool bRespa
 		return;
 	}
 
-	if (UMultiWorldLocalPlayer* MultiWorldLocalPlayer = GetPlayer<UMultiWorldLocalPlayer>())
-	{
-		MultiWorldLocalPlayer->SetCurrentWorld(NewWorld);
-	}
+	Recall::MultiWorld::Utils::SetLocalPlayerCurrentWorld(GetController<APlayerController>(), NewWorld);
 }
 
 UWorld* URecallMultiSimControllerComponent::GetCurrentWorld() const
 {
-	if (const UMultiWorldLocalPlayer* MultiWorldLocalPlayer = GetPlayer<UMultiWorldLocalPlayer>())
-	{
-		return MultiWorldLocalPlayer->GetCurrentWorld();
-	}
-	else
-	{
-		return GetWorld();
-	}
+	return Recall::MultiWorld::Utils::GetLocalPlayerCurrentWorld(GetController<APlayerController>());
 }
 
 FString URecallMultiSimControllerComponent::GetDefaultSimPlayerId() const

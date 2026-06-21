@@ -12,6 +12,7 @@ class UMultiWorldSubsystem;
 class UWorld;
 class UObject;
 class FSubsystemCollectionBase;
+class APlayerController;
 
 DECLARE_DELEGATE_OneParam(FRecallNestedWorldEvent, UWorld*);
 
@@ -27,12 +28,17 @@ RECALLSIMULATION_API extern bool IsMainWorld(const UObject* WorldContextObject);
 
 RECALLSIMULATION_API extern TArray<const UWorld*> GetMultiWorlds(const UObject* WorldContextObject);
 RECALLSIMULATION_API extern int32 GetWorldCount(const UObject* WorldContextObject);
-RECALLSIMULATION_API extern const UWorld* GetWorldByIndex(const UObject* WorldContextObject, int32 WorldIndex);
+RECALLSIMULATION_API extern UWorld* GetWorldByIndex(const UObject* WorldContextObject, int32 WorldIndex);
 RECALLSIMULATION_API extern UWorld* GetMutableWorldByIndex(UObject* WorldContextObject, int32 WorldIndex);
 RECALLSIMULATION_API extern int32 GetWorldIndex(const UObject* WorldContextObject, const UWorld* World);
 RECALLSIMULATION_API extern int32 GetCurrentWorldIndex(const UObject* WorldContextObject);
 
 RECALLSIMULATION_API extern FString GetCurrentWorldName(const UObject* WorldContextObject);
+
+RECALLSIMULATION_API extern UWorld* GetLocalPlayerCurrentWorld(const APlayerController* PlayerController);
+RECALLSIMULATION_API extern UWorld* GetLocalPlayerCurrentWorld(const UObject* WorldContextObject, int32 LocalPlayerIndex = 0);
+RECALLSIMULATION_API extern bool SetLocalPlayerCurrentWorld(APlayerController* PlayerController, UWorld* World);
+RECALLSIMULATION_API extern bool SetLocalPlayerCurrentWorld(UObject* WorldContextObject, UWorld* World, int32 LocalPlayerIndex = 0);
 
 RECALLSIMULATION_API extern void SubscribeOnAddNestedWorld(const UObject* WorldContextObject, const FRecallNestedWorldEvent& Callback);
 

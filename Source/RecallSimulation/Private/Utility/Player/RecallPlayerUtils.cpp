@@ -314,6 +314,7 @@ TArray<FString> FindLocalPlayerInputPhase(const UObject* WorldContextObject, uin
 	if (bSkipInput)
 	{
 		// We only keep players that do not have an input yet.
+		const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 		if (const IRecallInputQueueInterface* InputSystem = UWorld::GetSubsystem<URecallInputQueueSubsystem>(MainWorld))
 		{
 			for (int32 PlayerIndex = PlayerIds.Num() - 1; PlayerIndex >= 0; PlayerIndex--)

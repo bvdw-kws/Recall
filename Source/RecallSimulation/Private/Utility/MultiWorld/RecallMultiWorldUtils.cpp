@@ -8,15 +8,47 @@
 #include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 #include "Engine/World.h"
+#include "Engine/GameInstance.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerController.h"
 
 #ifdef WITH_MULTI_WORLD
 #include "System/MultiWorldSubsystem.h"
 #include "Subsystems/SubsystemCollection.h"
 #include "Utility/MultiWorldUtils.h"
+#include "Player/MultiWorldLocalPlayer.h"
 #endif // WITH_MULTI_WORLD
 
 namespace Recall::MultiWorld::Utils
 {
+
+namespace
+{
+	ULocalPlayer* GetLocalPlayerFromContext(UObject* WorldContextObject, int32 LocalPlayerIndex)
+	{
+		if (WorldContextObject)
+		{
+			if (const UWorld* World = WorldContextObject->GetWorld())
+			{
+				if (const UGameInstance* GameInstance = World->GetGameInstance())
+				{
+					const TArray<ULocalPlayer*>& LocalPlayers = GameInstance->GetLocalPlayers();
+					if (LocalPlayers.IsValidIndex(LocalPlayerIndex))
+					{
+						return LocalPlayers[LocalPlayerIndex];
+					}
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	const ULocalPlayer* GetLocalPlayerFromContext(const UObject* WorldContextObject, int32 LocalPlayerIndex)
+	{
+		return GetLocalPlayerFromContext(const_cast<UObject*>(WorldContextObject), LocalPlayerIndex);
+	}
+}
 
 void InitializeMultiWorldDependency(FSubsystemCollectionBase& Collection)
 {
@@ -86,7 +118,7 @@ int32 GetWorldCount(const UObject* WorldContextObject)
 #endif
 }
 
-const UWorld* GetWorldByIndex(const UObject* WorldContextObject, int32 WorldIndex)
+UWorld* GetWorldByIndex(const UObject* WorldContextObject, int32 WorldIndex)
 {
 #ifdef WITH_MULTI_WORLD
 	return MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex);
@@ -153,6 +185,70 @@ void SubscribeOnAddNestedWorld(const UObject* WorldContextObject, const FRecallN
 	{
 		MultiWorldSystem->OnAddNestedWorld.Add(Callback);
 	}
+#endif // WITH_MULTI_WORLD
+}
+
+UWorld* GetLocalPlayerCurrentWorld(const APlayerController* PlayerController)
+{
+#ifdef WITH_MULTI_WORLD
+	if (const ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr)
+	{
+		if (const UMultiWorldLocalPlayer* MultiWorldLocalPlayer = Cast<UMultiWorldLocalPlayer>(LocalPlayer))
+		{
+			return MultiWorldLocalPlayer->GetCurrentWorld();
+		}
+	}
+#endif // WITH_MULTI_WORLD
+
+	return PlayerController ? PlayerController->GetWorld() : nullptr;
+}
+
+UWorld* GetLocalPlayerCurrentWorld(const UObject* WorldContextObject, int32 LocalPlayerIndex)
+{
+#ifdef WITH_MULTI_WORLD
+	if (const ULocalPlayer* LocalPlayer = GetLocalPlayerFromContext(WorldContextObject, LocalPlayerIndex))
+	{
+		if (const UMultiWorldLocalPlayer* MultiWorldLocalPlayer = Cast<UMultiWorldLocalPlayer>(LocalPlayer))
+		{
+			return MultiWorldLocalPlayer->GetCurrentWorld();
+		}
+	}
+#endif // WITH_MULTI_WORLD
+
+	return WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+}
+
+bool SetLocalPlayerCurrentWorld(APlayerController* PlayerController, UWorld* World)
+{
+#ifdef WITH_MULTI_WORLD
+	if (ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr)
+	{
+		if (UMultiWorldLocalPlayer* MultiWorldLocalPlayer = Cast<UMultiWorldLocalPlayer>(LocalPlayer))
+		{
+			MultiWorldLocalPlayer->SetCurrentWorld(World);
+			return true;
+		}
+	}
+	return false;
+#else // WITH_MULTI_WORLD
+	return IsValid(World);
+#endif // WITH_MULTI_WORLD
+}
+
+bool SetLocalPlayerCurrentWorld(UObject* WorldContextObject, UWorld* World, int32 LocalPlayerIndex)
+{
+#ifdef WITH_MULTI_WORLD
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayerFromContext(WorldContextObject, LocalPlayerIndex))
+	{
+		if (UMultiWorldLocalPlayer* MultiWorldLocalPlayer = Cast<UMultiWorldLocalPlayer>(LocalPlayer))
+		{
+			MultiWorldLocalPlayer->SetCurrentWorld(World);
+			return true;
+		}
+	}
+	return false;
+#else // WITH_MULTI_WORLD
+	return IsValid(World);
 #endif // WITH_MULTI_WORLD
 }
 

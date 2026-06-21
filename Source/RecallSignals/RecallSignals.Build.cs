@@ -18,6 +18,7 @@ namespace UnrealBuildTool.Rules
 					"Core",
 					"CoreUObject",
 					"Engine",
+					"MassCore",
 					"MassEntity",
 					"RecallCore",
 				}

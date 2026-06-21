@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Mass/EntityElementTypes.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 
 #include "RecallTransformFragments.generated.h"
 
