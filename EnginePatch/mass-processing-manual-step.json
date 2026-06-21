@@ -1,0 +1,55 @@
+{
+  "patchId": "mass-processing-manual-step",
+  "description": "Add ExecuteStep and DisableTickFunctions for deterministic manual phase stepping (Recall)",
+  "versions": [
+    {
+      "engineVersion": "5.8",
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Public/MassProcessingPhaseManager.h",
+          "operations": [
+            {
+              "id": "add-declarations",
+              "line": 213,
+              "remove": [],
+              "add": [
+                "\tMASENTITY_API void ExecuteStep(float DeltaTime);",
+                "\tMASENTITY_API void DisableTickFunctions();"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassProcessingPhaseManager.cpp",
+          "operations": [
+            {
+              "id": "add-implementations",
+              "line": 514,
+              "remove": [],
+              "add": [
+                "",
+                "void FMassProcessingPhaseManager::ExecuteStep(float DeltaTime)",
+                "{",
+                "\tfor (uint8 i = 0; i < (uint8)EMassProcessingPhase::MAX; ++i)",
+                "\t{",
+                "\t\tEMassProcessingPhase Phase = (EMassProcessingPhase)i;",
+                "\t\tFGraphEventRef DummyCompletion;",
+                "\t\tTriggerPhase(Phase, DeltaTime, DummyCompletion);",
+                "\t}",
+                "}",
+                "",
+                "void FMassProcessingPhaseManager::DisableTickFunctions()",
+                "{",
+                "\tfor (FMassProcessingPhase& Phase : ProcessingPhases)",
+                "\t{",
+                "\t\tPhase.SetTickFunctionEnable(false);",
+                "\t}",
+                "}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

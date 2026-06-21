@@ -1,0 +1,22 @@
+{
+  "patchId": "mass-processing-render-phase",
+  "description": "Add Render phase to EMassProcessingPhase for custom rendering in simulation",
+  "versions": [
+    {
+      "engineVersion": "5.8",
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Public/MassProcessingTypes.h",
+          "operations": [
+            {
+              "id": "add-render-phase",
+              "line": 181,
+              "remove": ["\tMAX,"],
+              "add":    ["\tRender,", "\tMAX,"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "patchId": "mass-entity-handle-remove-transient",
+  "description": "Remove Transient from FMassEntityHandle fields so they serialize for replay/save",
+  "versions": [
+    {
+      "engineVersion": "5.8",
+      "files": [
+        {
+          "file": "Runtime/Mass/MassCore/Public/Mass/EntityHandle.h",
+          "operations": [
+            {
+              "id": "index-remove-transient",
+              "line": 22,
+              "remove": ["\tUPROPERTY(VisibleAnywhere, Category = \"Mass|Debug\", Transient)"],
+              "add":    ["\tUPROPERTY(VisibleAnywhere, Category = \"Mass|Debug\")"]
+            },
+            {
+              "id": "serial-remove-transient",
+              "line": 25,
+              "remove": ["\tUPROPERTY(VisibleAnywhere, Category = \"Mass|Debug\", Transient)"],
+              "add":    ["\tUPROPERTY(VisibleAnywhere, Category = \"Mass|Debug\")"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
