@@ -4,7 +4,7 @@
   "plugin": "Recall",
   "versions": [
     {
-      "engineVersion": "5.8",
+      "engineVersions": ["5.8"],
       "files": [
         {
           "file": "Runtime/MassEntity/Public/MassProcessingTypes.h",

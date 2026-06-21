@@ -1,0 +1,146 @@
+{
+  "patchId": "mass-entity-manager",
+  "description": "Add GetSerialNumberGenerator, SetSerialNumberGenerator and GetAllEntities to FMassEntityManager for deterministic snapshot/restore",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManagerStorage.h",
+          "operations": [
+            {
+              "id": "iface-serial-number-methods",
+              "line": 132,
+              "remove": [],
+              "add": [
+                "\t\tvirtual int32 GetSerialNumberGenerator() const = 0;",
+                "\t\tvirtual void SetSerialNumberGenerator(int32 InValue) = 0;"
+              ]
+            },
+            {
+              "id": "single-threaded-serial-number-decls",
+              "line": 171,
+              "remove": [],
+              "add": [
+                "\t\tvirtual int32 GetSerialNumberGenerator() const override;",
+                "\t\tvirtual void SetSerialNumberGenerator(int32 InValue) override;"
+              ]
+            },
+            {
+              "id": "concurrent-serial-number-decls",
+              "line": 235,
+              "remove": [],
+              "add": [
+                "\t\tvirtual int32 GetSerialNumberGenerator() const override;",
+                "\t\tvirtual void SetSerialNumberGenerator(int32 InValue) override;"
+              ]
+            },
+            {
+              "id": "concurrent-serial-number-member",
+              "line": 283,
+              "remove": [],
+              "add": [
+                "\t\tstd::atomic<int32> NextSerialNumber = 0;"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassEntityManagerStorage.cpp",
+          "operations": [
+            {
+              "id": "single-threaded-serial-number-impls",
+              "line": 226,
+              "remove": [],
+              "add": [
+                "",
+                "\tint32 FSingleThreadedEntityStorage::GetSerialNumberGenerator() const",
+                "\t{",
+                "\t\treturn NextSerialNumber.load();",
+                "\t}",
+                "",
+                "\tvoid FSingleThreadedEntityStorage::SetSerialNumberGenerator(int32 InValue)",
+                "\t{",
+                "\t\tNextSerialNumber.store(InValue);",
+                "\t}"
+              ]
+            },
+            {
+              "id": "concurrent-serial-number-impls",
+              "line": 628,
+              "remove": [],
+              "add": [
+                "",
+                "\tint32 FConcurrentEntityStorage::GetSerialNumberGenerator() const",
+                "\t{",
+                "\t\treturn NextSerialNumber.load();",
+                "\t}",
+                "",
+                "\tvoid FConcurrentEntityStorage::SetSerialNumberGenerator(int32 InValue)",
+                "\t{",
+                "\t\tNextSerialNumber.store(InValue);",
+                "\t}"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManager.h",
+          "operations": [
+            {
+              "id": "entity-manager-methods",
+              "line": 929,
+              "remove": [],
+              "add": [
+                "\tMASSENTITY_API int32 GetSerialNumberGenerator() const;",
+                "\tMASSENTITY_API void SetSerialNumberGenerator(int32 InValue);",
+                "\tMASSENTITY_API TArray<FMassEntityHandle> GetAllEntities() const;"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassEntityManager.cpp",
+          "operations": [
+            {
+              "id": "entity-manager-impls",
+              "line": 741,
+              "remove": [],
+              "add": [
+                "",
+                "int32 FMassEntityManager::GetSerialNumberGenerator() const",
+                "{",
+                "\treturn GetEntityStorageInterface().GetSerialNumberGenerator();",
+                "}",
+                "",
+                "void FMassEntityManager::SetSerialNumberGenerator(int32 InValue)",
+                "{",
+                "\tGetEntityStorageInterface().SetSerialNumberGenerator(InValue);",
+                "}",
+                "",
+                "TArray<FMassEntityHandle> FMassEntityManager::GetAllEntities() const",
+                "{",
+                "\tTArray<FMassEntityHandle> Result;",
+                "\tconst int32 StorageNum = GetEntityStorageInterface().Num();",
+                "\tResult.Reserve(StorageNum);",
+                "\tfor (int32 Idx = NumReservedEntities; Idx < StorageNum; ++Idx)",
+                "\t{",
+                "\t\tif (GetEntityStorageInterface().IsValid(Idx))",
+                "\t\t{",
+                "\t\t\tFMassEntityHandle Handle;",
+                "\t\t\tHandle.Index = Idx;",
+                "\t\t\tHandle.SerialNumber = GetEntityStorageInterface().GetSerialNumber(Idx);",
+                "\t\t\tResult.Add(Handle);",
+                "\t\t}",
+                "\t}",
+                "\treturn Result;",
+                "}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
