@@ -1,0 +1,342 @@
+{
+  "patchId": "mass-entity-manager-extended",
+  "description": "Add snapshot/restore methods to FMassEntityManager: DestroyAllEntities, RestoreEntitySerialNumber, GetEntityData, SetSharedFragments, ResetAllSharedFragments, GetSharedFragmentValuesMap, hash accessors, archetype chunk methods, BuildEntity and DestroyEntity overloads",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManagerStorage.h",
+          "operations": [
+            {
+              "id": "iface-restore-serial",
+              "line": 135,
+              "remove": [],
+              "add": [
+                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) = 0;"
+              ]
+            },
+            {
+              "id": "single-threaded-restore-serial",
+              "line": 179,
+              "remove": [],
+              "add": [
+                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) override;"
+              ]
+            },
+            {
+              "id": "concurrent-restore-serial",
+              "line": 247,
+              "remove": [],
+              "add": [
+                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) override;"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassEntityManagerStorage.cpp",
+          "operations": [
+            {
+              "id": "single-threaded-restore-serial-impl",
+              "line": 238,
+              "remove": [],
+              "add": [
+                "",
+                "\tvoid FSingleThreadedEntityStorage::RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber)",
+                "\t{",
+                "\t\tcheck(IsValidIndex(Entity.Index));",
+                "\t\tEntities[Entity.Index].SerialNumber = SerialNumber;",
+                "\t\tEntity.SerialNumber = SerialNumber;",
+                "\t}"
+              ]
+            },
+            {
+              "id": "concurrent-restore-serial-impl",
+              "line": 652,
+              "remove": [],
+              "add": [
+                "",
+                "\tvoid FConcurrentEntityStorage::RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber)",
+                "\t{",
+                "\t\tcheckf(false, TEXT(\"RestoreEntitySerialNumber is not supported for FConcurrentEntityStorage\"));",
+                "\t}"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Internal/MassArchetypeData.h",
+          "operations": [
+            {
+              "id": "add-chunk-shared-fragment-values",
+              "line": 473,
+              "remove": [],
+              "add": [
+                "\tFORCEINLINE const FMassArchetypeSharedFragmentValues& GetChunkSharedFragmentValues(int32 ChunkIndex) const",
+                "\t{",
+                "\t\treturn Chunks[ChunkIndex].GetSharedFragmentValues();",
+                "\t}",
+                "",
+                "\tUE_API void AddEntityToChunk(FMassEntityHandle Entity, const FMassArchetypeSharedFragmentValues& SharedFragmentValues, int32 ChunkIndex);"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassArchetypeData.cpp",
+          "operations": [
+            {
+              "id": "add-entity-to-chunk-impl",
+              "line": 386,
+              "remove": [],
+              "add": [
+                "",
+                "void FMassArchetypeData::AddEntityToChunk(FMassEntityHandle Entity, const FMassArchetypeSharedFragmentValues& SharedFragmentValues, int32 ChunkIndex)",
+                "{",
+                "\t++ArchetypeVersion;",
+                "",
+                "\tint32 IndexWithinChunk = 0;",
+                "\tint32 AbsoluteIndex = 0;",
+                "\tFMassArchetypeChunk* DestinationChunk = nullptr;",
+                "",
+                "\tif (ChunkIndex != INDEX_NONE && ChunkIndex < Chunks.Num())",
+                "\t{",
+                "\t\tDestinationChunk = &Chunks[ChunkIndex];",
+                "\t\tif (DestinationChunk->GetNumInstances() == 0)",
+                "\t\t{",
+                "\t\t\tDestinationChunk->Recycle(ChunkFragmentsTemplate, SharedFragmentValues);",
+                "\t\t}",
+                "\t\tIndexWithinChunk = DestinationChunk->GetNumInstances();",
+                "\t\tAbsoluteIndex = ChunkIndex * NumEntitiesPerChunk + IndexWithinChunk;",
+                "\t}",
+                "\telse",
+                "\t{",
+                "\t\tDestinationChunk = &GetOrAddChunk(SharedFragmentValues, AbsoluteIndex, IndexWithinChunk);",
+                "\t}",
+                "",
+                "\tDestinationChunk->AddInstance();",
+                "\tEntityMap.Add(Entity.Index, AbsoluteIndex);",
+                "\tDestinationChunk->GetEntityArrayElementRef(EntityListOffsetWithinChunk, IndexWithinChunk) = Entity;",
+                "",
+                "\t// Initialize fragments",
+                "\tfor (const FMassArchetypeFragmentConfig& FragmentConfig : FragmentConfigs)",
+                "\t{",
+                "\t\tvoid* FragmentPtr = FragmentConfig.GetFragmentData(DestinationChunk->GetRawMemory(), IndexWithinChunk);",
+                "\t\tFragmentConfig.FragmentType->InitializeStruct(FragmentPtr);",
+                "\t}",
+                "}"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManager.h",
+          "operations": [
+            {
+              "id": "container-hash-map-getter",
+              "line": 1582,
+              "remove": [],
+              "add": [
+                "",
+                "\t\tTArrayView<const TSharedStructType> GetAllInstances() const",
+                "\t\t{",
+                "\t\t\treturn Instances;",
+                "\t\t}",
+                "",
+                "\t\tconst TMultiMap<uint32, int32>& GetHashToInstanceIndexMap() const",
+                "\t\t{",
+                "\t\t\treturn HashToInstanceIndexMap;",
+                "\t\t}"
+              ]
+            },
+            {
+              "id": "entity-manager-extended-methods",
+              "line": 934,
+              "remove": [],
+              "add": [
+                "\tMASSENTITY_API void DestroyEntity(FMassEntityHandle Entity, bool bSignalObservers);",
+                "\tMASSENTITY_API void BuildEntity(FMassEntityHandle Entity, const FMassArchetypeHandle& ArchetypeHandle, const FMassArchetypeSharedFragmentValues& SharedFragmentValues, bool bSignalObservers, int32 ChunkIndex);",
+                "\tMASSENTITY_API void DestroyAllEntities();",
+                "\tMASSENTITY_API void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber);",
+                "\tMASSENTITY_API void GetEntityData(const FMassEntityHandle& Entity, TArray<FInstancedStruct>& OutFragmentInstanceList) const;",
+                "\tMASSENTITY_API TMap<uint32, FSharedStruct> GetSharedFragmentValuesMap() const;",
+                "\tMASSENTITY_API void SetSharedFragments(const TMap<uint32, FInstancedStruct>& InSharedFragmentsMap);",
+                "\tMASSENTITY_API void ResetAllSharedFragments();",
+                "\tMASSENTITY_API uint32 GetSharedFragmentHashChecked(const FSharedStruct& SharedFragment) const;",
+                "\tMASSENTITY_API uint32 GetConstSharedFragmentHashChecked(const FConstSharedStruct& ConstSharedFragment) const;",
+                "\tMASSENTITY_API const FSharedStruct& GetSharedFragmentByHashChecked(const uint32 Hash) const;",
+                "\tMASSENTITY_API const FConstSharedStruct& GetConstSharedFragmentByHashChecked(const uint32 Hash) const;",
+                "\tMASSENTITY_API int32 GetArchetypeChunkCount(const FMassArchetypeHandle& ArchetypeHandle) const;",
+                "\tMASSENTITY_API const FMassArchetypeSharedFragmentValues& GetArchetypeSharedFragmentValues(const FMassArchetypeHandle& ArchetypeHandle, int32 ChunkIndex) const;",
+                "\tMASSENTITY_API void GetArchetypeInternalIndexForEntity(const FMassEntityHandle& Entity, const FMassArchetypeHandle& ArchetypeHandle, int32& OutAbsoluteIndex, int32& OutChunkIndex) const;"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassEntityManager.cpp",
+          "operations": [
+            {
+              "id": "entity-manager-extended-impls",
+              "line": 771,
+              "remove": [],
+              "add": [
+                "",
+                "void FMassEntityManager::DestroyEntity(FMassEntityHandle Entity, bool bSignalObservers)",
+                "{",
+                "\tCHECK_SYNC_API();",
+                "\tCheckIfEntityIsActive(Entity);",
+                "\tFMassArchetypeData* Archetype = GetEntityStorageInterface().GetArchetype(Entity.Index);",
+                "\tif (Archetype)",
+                "\t{",
+                "\t\tif (bSignalObservers)",
+                "\t\t{",
+                "\t\t\tObserverManager.OnPreEntityDestroyed(Archetype->GetCompositionDescriptor(), Entity);",
+                "\t\t}",
+                "\t\tArchetype->RemoveEntity(Entity);",
+                "\t}",
+                "\tInternalReleaseEntity(Entity);",
+                "}",
+                "",
+                "void FMassEntityManager::BuildEntity(FMassEntityHandle Entity, const FMassArchetypeHandle& ArchetypeHandle, const FMassArchetypeSharedFragmentValues& SharedFragmentValues, bool bSignalObservers, int32 ChunkIndex)",
+                "{",
+                "\tCHECK_SYNC_API();",
+                "\tcheckf(!IsEntityBuilt(Entity), TEXT(\"Expecting an entity that is not already built\"));",
+                "\tcheck(ArchetypeHandle.IsValid());",
+                "\tGetEntityStorageInterface().SetArchetypeFromShared(Entity.Index, ArchetypeHandle.DataPtr);",
+                "\tArchetypeHandle.DataPtr->AddEntityToChunk(Entity, SharedFragmentValues, ChunkIndex);",
+                "\tif (bSignalObservers)",
+                "\t{",
+                "\t\tObserverManager.OnPostEntityCreated(Entity, ArchetypeHandle.DataPtr->GetCompositionDescriptor());",
+                "\t}",
+                "}",
+                "",
+                "void FMassEntityManager::DestroyAllEntities()",
+                "{",
+                "\tconst TArray<FMassEntityHandle> Entities = GetAllEntities();",
+                "\tfor (const FMassEntityHandle& Entity : Entities)",
+                "\t{",
+                "\t\tDestroyEntity(Entity, false);",
+                "\t}",
+                "}",
+                "",
+                "void FMassEntityManager::RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber)",
+                "{",
+                "\tCheckIfEntityIsValid(Entity);",
+                "\tcheckf(!IsEntityBuilt(Entity), TEXT(\"Entity has already been built (ID: %d, SN: %d)\"), Entity.Index, Entity.SerialNumber);",
+                "\tGetEntityStorageInterface().RestoreEntitySerialNumber(Entity, SerialNumber);",
+                "}",
+                "",
+                "void FMassEntityManager::GetEntityData(const FMassEntityHandle& Entity, TArray<FInstancedStruct>& OutFragmentInstanceList) const",
+                "{",
+                "\tcheck(IsEntityBuilt(Entity));",
+                "\tconst FMassArchetypeData& ArchetypeData = *GetEntityStorageInterface().GetArchetype(Entity.Index);",
+                "\tOutFragmentInstanceList.Reset();",
+                "\tfor (const FMassArchetypeFragmentConfig& FragConfig : ArchetypeData.GetFragmentConfigs())",
+                "\t{",
+                "\t\tif (FragConfig.FragmentType)",
+                "\t\t{",
+                "\t\t\tconst void* SrcMem = ArchetypeData.GetFragmentDataForEntityChecked(FragConfig.FragmentType, Entity);",
+                "\t\t\tOutFragmentInstanceList.AddDefaulted_GetRef().InitializeAs(FragConfig.FragmentType, static_cast<const uint8*>(SrcMem));",
+                "\t\t}",
+                "\t}",
+                "}",
+                "",
+                "TMap<uint32, FSharedStruct> FMassEntityManager::GetSharedFragmentValuesMap() const",
+                "{",
+                "\tTMap<uint32, FSharedStruct> Result;",
+                "\tfor (const TPair<uint32, int32>& Pair : SharedFragmentsContainer.GetHashToInstanceIndexMap())",
+                "\t{",
+                "\t\tconst FSharedStruct& Instance = SharedFragmentsContainer.GetAllInstances()[Pair.Value];",
+                "\t\tResult.Add(Pair.Key, FSharedStruct::Make(Instance.GetScriptStruct(), Instance.GetMemory()));",
+                "\t}",
+                "\treturn Result;",
+                "}",
+                "",
+                "void FMassEntityManager::SetSharedFragments(const TMap<uint32, FInstancedStruct>& InSharedFragmentsMap)",
+                "{",
+                "\tfor (const TPair<uint32, int32>& Pair : SharedFragmentsContainer.GetHashToInstanceIndexMap())",
+                "\t{",
+                "\t\tFSharedStruct& Instance = SharedFragmentsContainer.GetAllInstances()[Pair.Value];",
+                "\t\tconst UScriptStruct* Type = Instance.GetScriptStruct();",
+                "\t\tcheck(Type != nullptr);",
+                "\t\tif (const FInstancedStruct* NewData = InSharedFragmentsMap.Find(Pair.Key))",
+                "\t\t{",
+                "\t\t\tcheck(Type == NewData->GetScriptStruct());",
+                "\t\t\tType->CopyScriptStruct(Instance.GetMemory(), NewData->GetMemory());",
+                "\t\t}",
+                "\t}",
+                "}",
+                "",
+                "void FMassEntityManager::ResetAllSharedFragments()",
+                "{",
+                "\tfor (FSharedStruct& Instance : SharedFragmentsContainer.GetAllInstances())",
+                "\t{",
+                "\t\tif (const UScriptStruct* Type = Instance.GetScriptStruct())",
+                "\t\t{",
+                "\t\t\tType->InitializeStruct(Instance.GetMemory());",
+                "\t\t}",
+                "\t}",
+                "}",
+                "",
+                "uint32 FMassEntityManager::GetSharedFragmentHashChecked(const FSharedStruct& SharedFragment) const",
+                "{",
+                "\tconst TArrayView<const FSharedStruct> Instances = SharedFragmentsContainer.GetAllInstances();",
+                "\tconst int32 Index = Instances.IndexOfByKey(SharedFragment);",
+                "\tconst uint32* Hash = SharedFragmentsContainer.GetHashToInstanceIndexMap().FindKey(Index);",
+                "\tcheck(Hash != nullptr);",
+                "\treturn *Hash;",
+                "}",
+                "",
+                "uint32 FMassEntityManager::GetConstSharedFragmentHashChecked(const FConstSharedStruct& ConstSharedFragment) const",
+                "{",
+                "\tconst TArrayView<const FConstSharedStruct> Instances = ConstSharedFragmentsContainer.GetAllInstances();",
+                "\tconst int32 Index = Instances.IndexOfByKey(ConstSharedFragment);",
+                "\tconst uint32* Hash = ConstSharedFragmentsContainer.GetHashToInstanceIndexMap().FindKey(Index);",
+                "\tcheck(Hash != nullptr);",
+                "\treturn *Hash;",
+                "}",
+                "",
+                "const FSharedStruct& FMassEntityManager::GetSharedFragmentByHashChecked(const uint32 Hash) const",
+                "{",
+                "\tconst int32 Index = SharedFragmentsContainer.GetHashToInstanceIndexMap().FindChecked(Hash);",
+                "\treturn SharedFragmentsContainer.GetAllInstances()[Index];",
+                "}",
+                "",
+                "const FConstSharedStruct& FMassEntityManager::GetConstSharedFragmentByHashChecked(const uint32 Hash) const",
+                "{",
+                "\tconst int32 Index = ConstSharedFragmentsContainer.GetHashToInstanceIndexMap().FindChecked(Hash);",
+                "\treturn ConstSharedFragmentsContainer.GetAllInstances()[Index];",
+                "}",
+                "",
+                "int32 FMassEntityManager::GetArchetypeChunkCount(const FMassArchetypeHandle& ArchetypeHandle) const",
+                "{",
+                "\tcheck(ArchetypeHandle.IsValid());",
+                "\treturn FMassArchetypeHelper::ArchetypeDataFromHandleChecked(ArchetypeHandle).GetChunkCount();",
+                "}",
+                "",
+                "const FMassArchetypeSharedFragmentValues& FMassEntityManager::GetArchetypeSharedFragmentValues(const FMassArchetypeHandle& ArchetypeHandle, int32 ChunkIndex) const",
+                "{",
+                "\tcheck(ArchetypeHandle.IsValid());",
+                "\treturn FMassArchetypeHelper::ArchetypeDataFromHandleChecked(ArchetypeHandle).GetChunkSharedFragmentValues(ChunkIndex);",
+                "}",
+                "",
+                "void FMassEntityManager::GetArchetypeInternalIndexForEntity(const FMassEntityHandle& Entity, const FMassArchetypeHandle& ArchetypeHandle, int32& OutAbsoluteIndex, int32& OutChunkIndex) const",
+                "{",
+                "\tcheck(ArchetypeHandle.IsValid());",
+                "\tconst FMassArchetypeData& ArchetypeData = FMassArchetypeHelper::ArchetypeDataFromHandleChecked(ArchetypeHandle);",
+                "\tconst int32* InternalIndex = ArchetypeData.GetInternalIndexForEntity(Entity.Index);",
+                "\tcheck(InternalIndex != nullptr);",
+                "\tOutAbsoluteIndex = *InternalIndex;",
+                "\tOutChunkIndex = OutAbsoluteIndex / ArchetypeData.GetNumEntitiesPerChunk();",
+                "}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
