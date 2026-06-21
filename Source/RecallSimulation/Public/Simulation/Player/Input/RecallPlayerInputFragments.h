@@ -73,3 +73,7 @@ public:
 	// This function clears out the input buffer for a single input
 	void ClearInputBuffer(ERecallControllerInputCommand InputID);
 };
+
+template <>
+struct TMassFragmentTraits<FRecallPlayerInputFragment> final
+{ enum { AuthorAcceptsItsNotTriviallyCopyable = true }; };

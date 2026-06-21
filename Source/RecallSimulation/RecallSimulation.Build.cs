@@ -19,6 +19,7 @@ public class RecallSimulation : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
+			"MassCore",
 			"MassEntity",
 			"MassSimulation",
 			"MassSpawner",
