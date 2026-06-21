@@ -1,0 +1,76 @@
+{
+  "patchId": "mass-entity-query-deterministic-sort",
+  "description": "Add deterministic archetype sort in CacheArchetypes for rollback netcode reproducibility (Recall)",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Private/MassEntityQuery.cpp",
+          "operations": [
+            {
+              "id": "force-full-rebuild-on-archetype-change",
+              "line": 172,
+              "remove": [],
+              "add": [
+                "\t// Force full cache rebuild when archetypes have changed to ensure deterministic ordering",
+                "\telse if (bUpdateArchetypes)",
+                "\t{",
+                "\t\tValidArchetypes.Reset();",
+                "\t\tOrderedArchetypeIndices.Reset();",
+                "\t\tCachedGroupIDs.Reset();",
+                "\t\tLastUpdatedArchetypeDataVersion = 0;",
+                "\t\tArchetypeFragmentMapping.Reset();",
+                "\t}"
+              ]
+            },
+            {
+              "id": "sort-new-valid-archetypes",
+              "line": 194,
+              "remove": [],
+              "add": [
+                "\t\t// Sort NewValidArchetypes deterministically for rollback netcode compatibility",
+                "\t\tif (NewValidArchetypes.Num() > 1)",
+                "\t\t{",
+                "\t\t\tNewValidArchetypes.Sort([](const FMassArchetypeHandle& A, const FMassArchetypeHandle& B)",
+                "\t\t\t{",
+                "\t\t\t\tconst FMassArchetypeData* DataA = A.DataPtr.Get();",
+                "\t\t\t\tconst FMassArchetypeData* DataB = B.DataPtr.Get();",
+                "\t\t\t\tif (DataA && DataB)",
+                "\t\t\t\t{",
+                "\t\t\t\t\t// 1. Compare fragment counts",
+                "\t\t\t\t\tconst int32 FragmentCountA = DataA->GetFragmentConfigs().Num();",
+                "\t\t\t\t\tconst int32 FragmentCountB = DataB->GetFragmentConfigs().Num();",
+                "\t\t\t\t\tif (FragmentCountA != FragmentCountB)",
+                "\t\t\t\t\t{",
+                "\t\t\t\t\t\treturn FragmentCountA < FragmentCountB;",
+                "\t\t\t\t\t}",
+                "\t\t\t\t\t// 2. Compare bytes per entity",
+                "\t\t\t\t\tconst SIZE_T BytesPerEntityA = DataA->GetBytesPerEntity();",
+                "\t\t\t\t\tconst SIZE_T BytesPerEntityB = DataB->GetBytesPerEntity();",
+                "\t\t\t\t\tif (BytesPerEntityA != BytesPerEntityB)",
+                "\t\t\t\t\t{",
+                "\t\t\t\t\t\treturn BytesPerEntityA < BytesPerEntityB;",
+                "\t\t\t\t\t}",
+                "\t\t\t\t\t// 3. Compare composition hash",
+                "\t\t\t\t\tconst uint32 CompositionHashA = DataA->GetCompositionDescriptor().CalculateHash();",
+                "\t\t\t\t\tconst uint32 CompositionHashB = DataB->GetCompositionDescriptor().CalculateHash();",
+                "\t\t\t\t\tif (CompositionHashA != CompositionHashB)",
+                "\t\t\t\t\t{",
+                "\t\t\t\t\t\treturn CompositionHashA < CompositionHashB;",
+                "\t\t\t\t\t}",
+                "\t\t\t\t}",
+                "\t\t\t\t// 4. Final fallback - archetype handle hash",
+                "\t\t\t\tensureAlwaysMsgf(false, TEXT(\"%hs TypeHash is null\"), __FUNCTION__);",
+                "\t\t\t\treturn GetTypeHash(A) < GetTypeHash(B);",
+                "\t\t\t});",
+                "\t\t}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
