@@ -10,11 +10,11 @@
           "operations": [
             {
               "id": "add-declarations",
-              "line": 213,
+              "line": 214,
               "remove": [],
               "add": [
-                "\tMASENTITY_API void ExecuteStep(float DeltaTime);",
-                "\tMASENTITY_API void DisableTickFunctions();"
+                "\tMASSENTITY_API void ExecuteStep(float DeltaTime);",
+                "\tMASSENTITY_API void DisableTickFunctions();"
               ]
             }
           ]
@@ -24,7 +24,7 @@
           "operations": [
             {
               "id": "add-implementations",
-              "line": 514,
+              "line": 515,
               "remove": [],
               "add": [
                 "",
