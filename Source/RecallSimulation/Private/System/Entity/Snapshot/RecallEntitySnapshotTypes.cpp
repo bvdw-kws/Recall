@@ -66,25 +66,30 @@ FMassArchetypeSharedFragmentValues FRecallSharedFragmentValuesSnapshot::Get(cons
 
 void FRecallArchetypeCompositionSnapshot::Set(const FMassArchetypeCompositionDescriptor& Composition)
 {
-	for (auto It = Composition.Fragments.GetIndexIterator(); It; ++It)
+	const FMassFragmentBitSet& Fragments = Composition.GetFragments();
+	for (auto It = Fragments.GetIndexIterator(); It; ++It)
 	{
-		FragmentTypes.Add(Composition.Fragments.GetTypeAtIndex(*It));
+		FragmentTypes.Add(Fragments.GetTypeAtIndex(*It));
 	}
-	for (auto It = Composition.Tags.GetIndexIterator(); It; ++It)
+	const FMassTagBitSet& Tags = Composition.GetTags();
+	for (auto It = Tags.GetIndexIterator(); It; ++It)
 	{
-		TagTypes.Add(Composition.Tags.GetTypeAtIndex(*It));
+		TagTypes.Add(Tags.GetTypeAtIndex(*It));
 	}
-	for (auto It = Composition.ChunkFragments.GetIndexIterator(); It; ++It)
+	const FMassChunkFragmentBitSet& ChunkFragments = Composition.GetChunkFragments();
+	for (auto It = ChunkFragments.GetIndexIterator(); It; ++It)
 	{
-		ChunkFragmentTypes.Add(Composition.ChunkFragments.GetTypeAtIndex(*It));
+		ChunkFragmentTypes.Add(ChunkFragments.GetTypeAtIndex(*It));
 	}
-	for (auto It = Composition.SharedFragments.GetIndexIterator(); It; ++It)
+	const FMassSharedFragmentBitSet& SharedFragments = Composition.GetSharedFragments();
+	for (auto It = SharedFragments.GetIndexIterator(); It; ++It)
 	{
-		SharedFragmentTypes.Add(Composition.SharedFragments.GetTypeAtIndex(*It));
+		SharedFragmentTypes.Add(SharedFragments.GetTypeAtIndex(*It));
 	}
-	for (auto It = Composition.ConstSharedFragments.GetIndexIterator(); It; ++It)
+	const FMassConstSharedFragmentBitSet& ConstSharedFragments = Composition.GetConstSharedFragments();
+	for (auto It = ConstSharedFragments.GetIndexIterator(); It; ++It)
 	{
-		ConstSharedFragmentTypes.Add(Composition.ConstSharedFragments.GetTypeAtIndex(*It));
+		ConstSharedFragmentTypes.Add(ConstSharedFragments.GetTypeAtIndex(*It));
 	}
 }
 
@@ -94,23 +99,23 @@ FMassArchetypeCompositionDescriptor FRecallArchetypeCompositionSnapshot::Get() c
 
 	for (const auto& FragmentType : FragmentTypes)
 	{
-		Composition.Fragments.Add(FragmentType);
+		Composition.Add(FragmentType);
 	}
 	for (const auto& TagType : TagTypes)
 	{
-		Composition.Tags.Add(TagType);
+		Composition.Add(TagType);
 	}
 	for (const auto& ChunkFragmentType : ChunkFragmentTypes)
 	{
-		Composition.ChunkFragments.Add(ChunkFragmentType);
+		Composition.Add(ChunkFragmentType);
 	}
 	for (const auto& SharedFragmentType : SharedFragmentTypes)
 	{
-		Composition.SharedFragments.Add(SharedFragmentType);
+		Composition.Add(SharedFragmentType);
 	}
 	for (const auto& ConstSharedFragmentType : ConstSharedFragmentTypes)
 	{
-		Composition.ConstSharedFragments.Add(ConstSharedFragmentType);
+		Composition.Add(ConstSharedFragmentType);
 	}
 
 	return Composition;
