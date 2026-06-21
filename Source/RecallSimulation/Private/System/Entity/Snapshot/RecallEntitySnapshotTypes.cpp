@@ -66,27 +66,29 @@ FMassArchetypeSharedFragmentValues FRecallSharedFragmentValuesSnapshot::Get(cons
 
 void FRecallArchetypeCompositionSnapshot::Set(const FMassArchetypeCompositionDescriptor& Composition)
 {
-	const FMassFragmentBitSet& Fragments = Composition.GetFragments();
+	const FMassElementBitSet& Elements = Composition.GetElementsBitSet();
+
+	const FMassFragmentBitSet Fragments = Elements.Get<FMassFragmentBitSet>();
 	for (auto It = Fragments.GetIndexIterator(); It; ++It)
 	{
 		FragmentTypes.Add(Fragments.GetTypeAtIndex(*It));
 	}
-	const FMassTagBitSet& Tags = Composition.GetTags();
+	const FMassTagBitSet Tags = Elements.Get<FMassTagBitSet>();
 	for (auto It = Tags.GetIndexIterator(); It; ++It)
 	{
 		TagTypes.Add(Tags.GetTypeAtIndex(*It));
 	}
-	const FMassChunkFragmentBitSet& ChunkFragments = Composition.GetChunkFragments();
+	const FMassChunkFragmentBitSet ChunkFragments = Elements.Get<FMassChunkFragmentBitSet>();
 	for (auto It = ChunkFragments.GetIndexIterator(); It; ++It)
 	{
 		ChunkFragmentTypes.Add(ChunkFragments.GetTypeAtIndex(*It));
 	}
-	const FMassSharedFragmentBitSet& SharedFragments = Composition.GetSharedFragments();
+	const FMassSharedFragmentBitSet SharedFragments = Elements.Get<FMassSharedFragmentBitSet>();
 	for (auto It = SharedFragments.GetIndexIterator(); It; ++It)
 	{
 		SharedFragmentTypes.Add(SharedFragments.GetTypeAtIndex(*It));
 	}
-	const FMassConstSharedFragmentBitSet& ConstSharedFragments = Composition.GetConstSharedFragments();
+	const FMassConstSharedFragmentBitSet ConstSharedFragments = Elements.Get<FMassConstSharedFragmentBitSet>();
 	for (auto It = ConstSharedFragments.GetIndexIterator(); It; ++It)
 	{
 		ConstSharedFragmentTypes.Add(ConstSharedFragments.GetTypeAtIndex(*It));
