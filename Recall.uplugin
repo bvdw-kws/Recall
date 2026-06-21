@@ -75,7 +75,7 @@
 		},
 		{
 			"Name": "MultiWorld",
-			"Enabled": true,
+			"Enabled": false,
 			"Optional": true
 		},
 		{
