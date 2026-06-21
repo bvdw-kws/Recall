@@ -25,6 +25,12 @@ struct RECALLPHYSICSMODULE_API FRecallSensorFragment : public FMassFragment
 	TArray<FRecallPhysicsBodyHandle> BodyHandles;
 };
 
+template <>
+struct TMassFragmentTraits<FRecallSensorFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
+};
+
 USTRUCT()
 struct RECALLPHYSICSMODULE_API FRecallSensorInstanceParameters
 {

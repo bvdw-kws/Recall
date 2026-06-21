@@ -133,3 +133,9 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsSensorFragment : public FMassFragme
 	UPROPERTY(VisibleAnywhere)
 	TArray<FRecallPhysicsSensorInstance> SensorInstances;
 };
+
+template <>
+struct TMassFragmentTraits<FRecallPhysicsSensorFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
+};

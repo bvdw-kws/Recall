@@ -38,6 +38,12 @@ public:
 	static int32 GetRepresentationPlayerIndex(const UObject* WorldContextObject, const FString& PlayerID);
 };
 
+template <>
+struct TMassFragmentTraits<FRecallControllerFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
+};
+
 USTRUCT()
 struct RECALLSIMULATION_API FRecallPlayerControllerSharedFragment : public FMassConstSharedFragment
 {

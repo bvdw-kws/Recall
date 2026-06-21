@@ -25,6 +25,12 @@ struct RECALLSIMULATION_API FRecallPlayerCameraFragment : public FMassFragment
 	bool bFollowPlayer = true;
 };
 
+template <>
+struct TMassFragmentTraits<FRecallPlayerCameraFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
+};
+
 USTRUCT()
 struct RECALLSIMULATION_API FRecallPlayerCameraSharedFragment : public FMassConstSharedFragment
 {

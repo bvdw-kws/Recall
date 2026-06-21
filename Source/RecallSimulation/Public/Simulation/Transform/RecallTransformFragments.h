@@ -34,3 +34,9 @@ public:
 	FORCEINLINE bool HasChildren() const { return AttachChildren.Num() > 0; }
 	FORCEINLINE bool HasParent() const { return AttachParent.IsSet(); }
 };
+
+template <>
+struct TMassFragmentTraits<FRecallTransformFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
+};
