@@ -1,0 +1,96 @@
+{
+  "patchId": "mass-entity-storage-free-index-order",
+  "description": "Reverse free-index iteration order and use InternalReleaseEntity helper for deterministic entity ID allocation (Recall)",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManagerStorage.h",
+          "operations": [
+            {
+              "id": "add-internal-release-decl",
+              "line": 170,
+              "remove": [],
+              "add": [
+                "\t\tvoid InternalReleaseEntity(FMassEntityHandle Entity);"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Private/MassEntityManagerStorage.cpp",
+          "operations": [
+            {
+              "id": "reverse-free-index-iteration",
+              "line": 147,
+              "remove": [
+                "\t\t\tfor (int32 Index = FirstIndexToUse; Index < EntityFreeIndexList.Num(); ++Index)"
+              ],
+              "add": [
+                "\t\t\tfor (int32 Index = EntityFreeIndexList.Num() - 1; Index >= FirstIndexToUse; --Index)"
+              ]
+            },
+            {
+              "id": "use-internal-release-in-release",
+              "line": 185,
+              "remove": [
+                "\t\t\t\tEntityData.Reset();",
+                "\t\t\t\tEntityFreeIndexList.Add(Handle.Index);"
+              ],
+              "add": [
+                "\t\t\t\tInternalReleaseEntity(Handle);"
+              ]
+            },
+            {
+              "id": "use-internal-release-in-force-release",
+              "line": 206,
+              "remove": [
+                "\t\t\tEntityData.Reset();",
+                "\t\t\tEntityFreeIndexList.Add(Handle.Index);"
+              ],
+              "add": [
+                "\t\t\tInternalReleaseEntity(Handle);"
+              ]
+            },
+            {
+              "id": "add-internal-release-impl",
+              "line": 226,
+              "remove": [],
+              "add": [
+                "",
+                "\tstatic void AddOrderedEntityFreeIndexHelper(TArray<int32>& EntityFreeIndexList, int32 EntityIndex)",
+                "\t{",
+                "\t\tif (EntityFreeIndexList.Num() && EntityIndex > EntityFreeIndexList.Last())",
+                "\t\t{",
+                "\t\t\tfor (int32 Index = 0; Index < EntityFreeIndexList.Num(); Index++)",
+                "\t\t\t{",
+                "\t\t\t\tif (EntityIndex > EntityFreeIndexList[Index])",
+                "\t\t\t\t{",
+                "\t\t\t\t\tEntityFreeIndexList.Insert(EntityIndex, Index);",
+                "\t\t\t\t\treturn;",
+                "\t\t\t\t}",
+                "\t\t\t}",
+                "\t\t\tcheckNoEntry();",
+                "\t\t}",
+                "\t\telse",
+                "\t\t{",
+                "\t\t\tEntityFreeIndexList.Add(EntityIndex);",
+                "\t\t}",
+                "\t}",
+                "",
+                "\tvoid FSingleThreadedEntityStorage::InternalReleaseEntity(FMassEntityHandle Entity)",
+                "\t{",
+                "\t\tFEntityData& EntityData = Entities[Entity.Index];",
+                "\t\tEntityData.Reset();",
+                "\t\tAddOrderedEntityFreeIndexHelper(EntityFreeIndexList, Entity.Index);",
+                "\t}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

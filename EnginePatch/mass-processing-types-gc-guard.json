@@ -1,0 +1,45 @@
+{
+  "patchId": "mass-processing-types-gc-guard",
+  "description": "Add GC scope guard for processor copies created off the game thread in AppendUniqueRuntimeProcessorCopies (Recall)",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Private/MassProcessingTypes.cpp",
+          "operations": [
+            {
+              "id": "gc-guard-processor-copy",
+              "line": 131,
+              "remove": [
+                "\t\t\t// unfortunately the const cast is required since NewObject doesn't support const Template object",
+                "\t\t\tUMassProcessor* ProcCopy = NewObject<UMassProcessor>(&InOwner, Proc->GetClass(), FName(), RF_NoFlags, const_cast<UMassProcessor*>(Proc));",
+                "\t\t\tProcessors.Add(ProcCopy);"
+              ],
+              "add": [
+                "\t\t\t// unfortunately the const cast is required since NewObject doesn't support const Template object",
+                "\t\t\tif (IsInGameThread())",
+                "\t\t\t{",
+                "\t\t\t\tUMassProcessor* ProcCopy = NewObject<UMassProcessor>(&InOwner, Proc->GetClass(), FName(), RF_NoFlags, const_cast<UMassProcessor*>(Proc));",
+                "\t\t\t\tProcessors.Add(ProcCopy);",
+                "\t\t\t}",
+                "\t\t\telse",
+                "\t\t\t{",
+                "\t\t\t\t// Guard against GC interference",
+                "\t\t\t\tFGCScopeGuard GCGuard;",
+                "\t\t\t\tUMassProcessor* ProcCopy = NewObject<UMassProcessor>(&InOwner, Proc->GetClass(), FName(), RF_NoFlags, const_cast<UMassProcessor*>(Proc));",
+                "\t\t\t\tProcessors.Add(ProcCopy);",
+                "\t\t\t\t// Clear the async flag",
+                "\t\t\t\tAsyncTask(ENamedThreads::GameThread, [ProcCopy]() mutable {",
+                "\t\t\t\t\tProcCopy->ClearInternalFlags(EInternalObjectFlags::Async);",
+                "\t\t\t\t});",
+                "\t\t\t}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
