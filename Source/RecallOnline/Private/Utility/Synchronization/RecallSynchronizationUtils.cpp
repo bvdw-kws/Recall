@@ -9,21 +9,21 @@
 
 #include "Engine/World.h"
 #include "System/Synchronization/RecallRollbackSubsystem.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 namespace Recall::Synchronization::Utils
 {
 
 TScriptInterface<IRecallSynchronizationInterface> GetSynchronization(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallRollbackSubsystem* RollbackSystem = UWorld::GetSubsystem<URecallRollbackSubsystem>(MainWorld);
 	return RollbackSystem;
 }
 
 IRecallSynchronizationInterface& GetSynchronizationRef(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallRollbackSubsystem* RollbackSystem = UWorld::GetSubsystem<URecallRollbackSubsystem>(MainWorld);
 	check(RollbackSystem != nullptr);
 	return *RollbackSystem;

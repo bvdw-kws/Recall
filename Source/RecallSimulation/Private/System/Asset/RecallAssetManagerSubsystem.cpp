@@ -9,7 +9,7 @@
 
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 URecallAssetManagerSubsystem::URecallAssetManagerSubsystem()
 	: Super()
@@ -21,7 +21,7 @@ void URecallAssetManagerSubsystem::Initialize(FSubsystemCollectionBase& Collecti
 	Super::Initialize(Collection);
 	Collection.InitializeDependency<URecallMultiSimSubsystem>();
 	
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(this);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(this);
 
 	if (URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{
@@ -35,7 +35,7 @@ void URecallAssetManagerSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(this);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(this);
 
 	if (URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{

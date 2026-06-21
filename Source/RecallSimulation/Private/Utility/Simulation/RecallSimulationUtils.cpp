@@ -12,7 +12,7 @@
 #include "System/Simulation/RecallSimulationSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
 #include "Utility/Slowmo/RecallSlowmoUtils.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 namespace Recall::Simulation::Utils
 {
@@ -106,7 +106,7 @@ float GetRepresentationSpeedScale(const UObject* WorldContextObject)
 
 bool HasSimulationStarted(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 
 	if (const URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{
@@ -117,7 +117,7 @@ bool HasSimulationStarted(const UObject* WorldContextObject)
 
 bool IsSimulationProcessingPhase(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 
 	if (const URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{
@@ -129,7 +129,7 @@ bool IsSimulationProcessingPhase(const UObject* WorldContextObject)
 
 bool IsSimulationRenderPhase(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 
 	if (const URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{

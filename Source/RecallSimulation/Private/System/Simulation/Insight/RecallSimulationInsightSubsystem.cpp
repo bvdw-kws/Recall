@@ -16,9 +16,7 @@
 #include "System/AI/RecallStateTreeSubsystem.h"
 #include "System/Entity/RecallEntitySubsystem.h"
 #include "System/Random/RecallRandomNumberSubsystem.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Entity/RecallEntityUtils.h"
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
@@ -41,10 +39,7 @@ URecallSimulationInsightSubsystem::URecallSimulationInsightSubsystem()
 void URecallSimulationInsightSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-#ifdef WITH_MULTI_WORLD
-	Collection.InitializeDependency<UMultiWorldSubsystem>();
-	MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(GetWorld());
-#endif // WITH_MULTI_WORLD
+	Recall::MultiWorld::Utils::InitializeMultiWorldDependency(Collection);
 	Collection.InitializeDependency<URecallRandomNumberSubsystem>();
 	Collection.InitializeDependency<URecallStateTreeSubsystem>();
 	Collection.InitializeDependency<URecallEntitySubsystem>();
@@ -172,7 +167,7 @@ void URecallSimulationInsightSubsystem::OnFrameEnd(uint32 Frame)
 
 void URecallSimulationInsightSubsystem::SetReportFromFrame(uint32 Frame)
 {
-	for (const UWorld* World : GetMultiWorlds())
+	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 	{
 		if (URecallSimulationInsightSubsystem* InsightSystem = UWorld::GetSubsystem<URecallSimulationInsightSubsystem>(World))
 		{
@@ -189,7 +184,7 @@ void URecallSimulationInsightSubsystem::SetReportFromFrame_Internal(uint32 Frame
 FRecallSimulationInsight URecallSimulationInsightSubsystem::GenerateReportInRange(uint32 StartFrame, uint32 EndFrame) const
 {
 	FRecallSimulationInsight Report;
-	const TArray<const UWorld*> Worlds = GetMultiWorlds();
+	const TArray<const UWorld*> Worlds = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 
 	for (uint32 Frame = StartFrame; Frame <= EndFrame; Frame++)
 	{
@@ -300,18 +295,4 @@ FRecallSimulationFrameReport URecallSimulationInsightSubsystem::GenerateFrameRep
 	NewFrameReport.SerialNumberGenerator = EntityManager.GetSerialNumberGenerator();
 
 	return NewFrameReport;
-}
-
-TArray<const UWorld*> URecallSimulationInsightSubsystem::GetMultiWorlds() const
-{
-	TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-	if (MultiWorldSystem.IsValid())
-	{
-		Worlds = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	Worlds.Add(GetWorld());
-#endif // WITH_MULTI_WORLD
-	return Worlds;
 }

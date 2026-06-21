@@ -19,10 +19,7 @@
 #include "System/Input/RecallInputQueueSubsystem.h"
 #include "System/Player/RecallPlayerQueueSubsystem.h"
 #include "System/World/RecallWorldTransitionSubsystem.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#include "Utility/MultiWorldUtils.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 
 #define RECALL_PLAYER_ID_START_STR TEXT("Player")
@@ -279,16 +276,7 @@ TArray<FString> GetLocalPlayersInWorld(const UWorld* World)
 
 int32 GetPlayerWorldIndex(const UObject* WorldContextObject, const FString& PlayerId)
 {
-	TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
-	if (const UMultiWorldSubsystem* MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(MainWorld))
-	{
-		Worlds = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	Worlds.Add(WorldContextObject->GetWorld());
-#endif // WITH_MULTI_WORLD
+	const TArray<const UWorld*> Worlds = Recall::MultiWorld::Utils::GetMultiWorlds(WorldContextObject);
 
 	for (int32 WorldIndex = 0; WorldIndex < Worlds.Num(); WorldIndex++)
 	{
@@ -308,16 +296,7 @@ TArray<FString> FindLocalPlayerInputPhase(const UObject* WorldContextObject, uin
 {
 	TArray<FString> PlayerIds;
 
-	TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
-	if (const UMultiWorldSubsystem* MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(MainWorld))
-	{
-		Worlds = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	Worlds.Add(WorldContextObject->GetWorld());
-#endif // WITH_MULTI_WORLD
+	const TArray<const UWorld*> Worlds = Recall::MultiWorld::Utils::GetMultiWorlds(WorldContextObject);
 
 	for (const UWorld* World : Worlds)
 	{

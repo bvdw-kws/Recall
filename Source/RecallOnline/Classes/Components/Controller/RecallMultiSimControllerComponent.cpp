@@ -13,7 +13,7 @@
 #include "Online/RecallGameMode.h"
 #include "Player/MultiWorldLocalPlayer.h"
 #include "System/Snapshot/RecallSnapshotInterface.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Player/RecallPlayerUtils.h"
 
 void URecallMultiSimControllerComponent::BeginPlay()
@@ -53,7 +53,7 @@ void URecallMultiSimControllerComponent::OnLoadSnapshot(uint32 Frame, double Tim
 
 void URecallMultiSimControllerComponent::GoToWorld(int32 WorldIndex, bool bRespawnPlayerCamera /*= false*/)
 {
-	UWorld* NewWorld = MultiWorld::Utils::GetWorldByIndex(this, WorldIndex);
+	UWorld* NewWorld = Recall::MultiWorld::Utils::GetWorldByIndex(this, WorldIndex);
 	if (!IsValid(NewWorld))
 	{
 		return;

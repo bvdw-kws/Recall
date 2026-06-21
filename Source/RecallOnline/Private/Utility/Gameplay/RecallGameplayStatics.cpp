@@ -19,29 +19,29 @@
 #include "Online/RecallGameMode.h"
 #include "Online/RecallGameState_InGame.h"
 #include "Online/RecallPlayerController.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 ARecallPlayerController* URecallGameplayStatics::GetRecallPlayerController(const UObject* WorldContextObject, int32 PlayerIndex)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return Cast<ARecallPlayerController>(UGameplayStatics::GetPlayerController(MainWorld, PlayerIndex));
 }
 
 ARecallGameMode* URecallGameplayStatics::GetRecallGameMode(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return Cast<ARecallGameMode>(UGameplayStatics::GetGameMode(MainWorld));
 }
 
 ARecallGameState_InGame* URecallGameplayStatics::GetRecallInGameState(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return Cast<ARecallGameState_InGame>(UGameplayStatics::GetGameState(MainWorld));
 }
 
 APlayerCameraManager* URecallGameplayStatics::GetRecallPlayerCameraManager(const UObject* WorldContextObject, int32 PlayerIndex)
 {
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return UGameplayStatics::GetPlayerCameraManager(MainWorld, PlayerIndex);
 }
 

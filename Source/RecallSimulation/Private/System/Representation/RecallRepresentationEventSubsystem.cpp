@@ -11,7 +11,7 @@
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 void URecallRepresentationEventSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -19,7 +19,7 @@ void URecallRepresentationEventSubsystem::Initialize(FSubsystemCollectionBase& C
 	Collection.InitializeDependency<URecallObserverSubjectSubsystem>();
 	Collection.InitializeDependency<URecallMultiSimSubsystem>();
 
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(this);	
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(this);	
 	if (URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{
 		MultiSimSystem->GetOnTickStartEvent().AddUObject(this, &ThisClass::OnTickStart);
@@ -32,7 +32,7 @@ void URecallRepresentationEventSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 
-	const UWorld* MainWorld = MultiWorld::Utils::GetMainWorld(this);	
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(this);	
 	if (URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{
 		MultiSimSystem->GetOnTickStartEvent().RemoveAll(this);

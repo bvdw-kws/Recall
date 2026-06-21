@@ -11,7 +11,7 @@
 #include "RecallFrontendUtils.h"
 #include "Serialization/MemoryWriter.h"
 #include "System/Random/RecallRandomNumberInterface.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 DEFINE_LOG_CATEGORY(LogRecallRestore);
 
@@ -50,13 +50,13 @@ void FRecallRestoreWorldArray::GenerateFields(const UObject* WorldContextObject)
 {
 	checkf(!Items.Num(), TEXT("Only generate once"));
 
-	const int32 WorldCount = MultiWorld::Utils::GetWorldCount(WorldContextObject);
+	const int32 WorldCount = Recall::MultiWorld::Utils::GetWorldCount(WorldContextObject);
 
 	for (int32 WorldIndex = 0; WorldIndex < WorldCount; WorldIndex++)
 	{
 		FRecallWorldItemEntry& Item = Items.AddDefaulted_GetRef();
 
-		if (const UWorld* World = MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
+		if (const UWorld* World = Recall::MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
 		{
 			Item.Seed = Recall::Frontend::Utils::GetRefByWorld<IRecallRandomNumberInterface>(World).GetSeed();
 		}

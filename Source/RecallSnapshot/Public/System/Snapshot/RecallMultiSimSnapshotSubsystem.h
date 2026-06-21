@@ -50,12 +50,7 @@ public:
 
 	static void SerializeSnapshot(const FRecallMultiSimSnapshot& Snapshot, TArray<uint8>& OutMemory);
 
-	TArray<const UWorld*> GetMultiWorlds() const;
-	
 private:
-#ifdef WITH_MULTI_WORLD
-	TWeakObjectPtr<class UMultiWorldSubsystem> MultiWorldSystem;
-#endif // WITH_MULTI_WORLD
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class URecallMultiSimSubsystem> MultiSimSystem;
 

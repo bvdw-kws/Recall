@@ -61,10 +61,6 @@ protected:
 	// IRecallDesyncLogInterface implementation End
 
 private:
-#ifdef WITH_MULTI_WORLD
-	TWeakObjectPtr<class UMultiWorldSubsystem> MultiWorldSystem;
-#endif // WITH_MULTI_WORLD
-
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	mutable FCriticalSection DataGuard;
 	TRingBuffer<FRecallFrameDesyncLines, TFixedAllocator<2048>> FrameLines;

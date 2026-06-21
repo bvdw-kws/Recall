@@ -15,10 +15,7 @@
 #include "System/Snapshot/RecallMultiSimSnapshotSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationContainerSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#include "Utility/MultiWorldUtils.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "TimerManager.h"
 #include "Utility/Player/RecallPlayerUtils.h"
 #include "Utility/Rollback/RecallRollbackUtils.h"
@@ -34,7 +31,7 @@ void URecallRollbackSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	Collection.InitializeDependency<URecallMultiSimSubsystem>();
 	Collection.InitializeDependency<URecallMultiSimSnapshotSubsystem>();
-	Collection.InitializeDependency<UMultiWorldSubsystem>();
+	Recall::MultiWorld::Utils::InitializeMultiWorldDependency(Collection);
 	Collection.InitializeDependency<URecallSimulationInsightSubsystem>();
 	Collection.InitializeDependency<URecallSynchronizationContainerSubsystem>();
 
@@ -81,13 +78,11 @@ void URecallRollbackSubsystem::Restore(const FRecallSnapshotContext& Context, co
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallRollbackSubsystem::Restore"));
 
-#ifdef WITH_MULTI_WORLD
-	if (!MultiWorld::Utils::IsMainWorld(this))
+	if (!Recall::MultiWorld::Utils::IsMainWorld(this))
 	{
 		return;
 	}
-#endif // WITH_MULTI_WORLD
-	
+
 	if (Context.IsSnapshot())
 	{
 		ResetSyncedFrame(Context.Frame);

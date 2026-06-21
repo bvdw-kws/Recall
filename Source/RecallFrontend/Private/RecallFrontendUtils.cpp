@@ -16,30 +16,22 @@
 #include "System/Simulation/Insight/RecallSimulationInsightSubsystem.h"
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 #include "System/Snapshot/RecallMultiSimSnapshotSubsystem.h"
-#ifdef WITH_MULTI_WORLD
-#include "Utility/MultiWorldUtils.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 namespace Recall::Frontend::Utils
 {
 
-#ifdef WITH_MULTI_WORLD
-#define GET_MAIN_WORLD(WorldContext) GET_MAIN_WORLD(WorldContext)
-#else
-#define GET_MAIN_WORLD(WorldContext) (Cast<UObject>(WorldContext)->GetWorld())
-#endif // WITH_MULTI_WORLD
-
 template<>
 RECALLFRONTEND_API TScriptInterface<IRecallObserverSubjectInterface> Get<IRecallObserverSubjectInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld);
 }
 
 template<>
 RECALLFRONTEND_API IRecallObserverSubjectInterface& GetRef<IRecallObserverSubjectInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld);
 	check(MultiSimSystem != nullptr);
 	return *MultiSimSystem;
@@ -56,7 +48,7 @@ RECALLFRONTEND_API IRecallObserverSubjectInterface& GetRefByWorld<IRecallObserve
 template<>
 RECALLFRONTEND_API IRecallSimulationControllerInterface& GetRef<IRecallSimulationControllerInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld);
 	check(MultiSimSystem != nullptr);
 	return *MultiSimSystem;
@@ -65,7 +57,7 @@ RECALLFRONTEND_API IRecallSimulationControllerInterface& GetRef<IRecallSimulatio
 template<>
 RECALLFRONTEND_API TScriptInterface<IRecallSimulationControllerInterface> Get<IRecallSimulationControllerInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 
 	if (URecallMultiSimSubsystem* MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(MainWorld))
 	{
@@ -78,7 +70,7 @@ RECALLFRONTEND_API TScriptInterface<IRecallSimulationControllerInterface> Get<IR
 template<>
 RECALLFRONTEND_API IRecallInputQueueInterface& GetRef<IRecallInputQueueInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallInputQueueSubsystem* InputQueueSystem = UWorld::GetSubsystem<URecallInputQueueSubsystem>(MainWorld);
 	check(InputQueueSystem != nullptr);
 	return *InputQueueSystem;
@@ -87,7 +79,7 @@ RECALLFRONTEND_API IRecallInputQueueInterface& GetRef<IRecallInputQueueInterface
 template<>
 RECALLFRONTEND_API TScriptInterface<IRecallInputQueueInterface> Get<IRecallInputQueueInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return UWorld::GetSubsystem<URecallInputQueueSubsystem>(MainWorld);
 }
 
@@ -110,14 +102,14 @@ RECALLFRONTEND_API IRecallRandomNumberInterface& GetRefByWorld<IRecallRandomNumb
 template<>
 RECALLFRONTEND_API TScriptInterface<IRecallSimulationInsightInterface> Get<IRecallSimulationInsightInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return UWorld::GetSubsystem<URecallSimulationInsightSubsystem>(MainWorld);
 }
 
 template<>
 RECALLFRONTEND_API IRecallSimulationInsightInterface& GetRef<IRecallSimulationInsightInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallSimulationInsightSubsystem* InsightSystem = UWorld::GetSubsystem<URecallSimulationInsightSubsystem>(MainWorld);
 	check(InsightSystem != nullptr);
 	return *InsightSystem;
@@ -126,14 +118,14 @@ RECALLFRONTEND_API IRecallSimulationInsightInterface& GetRef<IRecallSimulationIn
 template<>
 RECALLFRONTEND_API TScriptInterface<IRecallSnapshotInterface> Get<IRecallSnapshotInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return UWorld::GetSubsystem<URecallMultiSimSnapshotSubsystem>(MainWorld);
 }
 
 template<>
 RECALLFRONTEND_API IRecallSnapshotInterface& GetRef<IRecallSnapshotInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallMultiSimSnapshotSubsystem* MultiSimSnapshotSystem = UWorld::GetSubsystem<URecallMultiSimSnapshotSubsystem>(MainWorld);
 	check(MultiSimSnapshotSystem != nullptr);
 	return *MultiSimSnapshotSystem;
@@ -142,14 +134,14 @@ RECALLFRONTEND_API IRecallSnapshotInterface& GetRef<IRecallSnapshotInterface>(co
 template<>
 RECALLFRONTEND_API TScriptInterface<IRecallDesyncLogInterface> Get<IRecallDesyncLogInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	return UWorld::GetSubsystem<URecallDesyncLogSubsystem>(MainWorld);
 }
 
 template<>
 RECALLFRONTEND_API IRecallDesyncLogInterface& GetRef<IRecallDesyncLogInterface>(const UObject* WorldContextObject)
 {
-	const UWorld* MainWorld = GET_MAIN_WORLD(WorldContextObject);
+	const UWorld* MainWorld = Recall::MultiWorld::Utils::GetMainWorld(WorldContextObject);
 	URecallDesyncLogSubsystem* DesyncLogSystem = UWorld::GetSubsystem<URecallDesyncLogSubsystem>(MainWorld);
 	check(DesyncLogSystem != nullptr);
 	return *DesyncLogSystem;

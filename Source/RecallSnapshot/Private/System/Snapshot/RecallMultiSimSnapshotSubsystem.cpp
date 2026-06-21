@@ -14,9 +14,7 @@
 #include "Serialization/MemoryWriter.h"
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 #include "System/Snapshot/RecallSnapshotSubsystem.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Subsystems/SubsystemCollection.h"
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
@@ -38,10 +36,7 @@ URecallMultiSimSnapshotSubsystem::URecallMultiSimSnapshotSubsystem()
 void URecallMultiSimSnapshotSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-#ifdef WITH_MULTI_WORLD
-	Collection.InitializeDependency<UMultiWorldSubsystem>();
-	MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(GetWorld());
-#endif // WITH_MULTI_WORLD
+	Recall::MultiWorld::Utils::InitializeMultiWorldDependency(Collection);
 	Collection.InitializeDependency<URecallMultiSimSubsystem>();
 
 	MultiSimSystem = UWorld::GetSubsystem<URecallMultiSimSubsystem>(GetWorld());
@@ -51,9 +46,6 @@ void URecallMultiSimSnapshotSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 
-#ifdef WITH_MULTI_WORLD
-	MultiWorldSystem.Reset();
-#endif // WITH_MULTI_WORLD
 	MultiSimSystem.Reset();
 }
 
@@ -177,7 +169,7 @@ bool URecallMultiSimSnapshotSubsystem::TakeQuickSnapshot(FRecallMultiSimSnapshot
 	OutSnapshot.Frame = MultiSimSystem->GetElapsedFrame();
 	OutSnapshot.Time = MultiSimSystem->GetElapsedTime();
 
-	const TArray<const UWorld*> NestedWorlds = GetMultiWorlds();
+	const TArray<const UWorld*> NestedWorlds = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 
 	OutSnapshot.SimSnapshots.SetNum(NestedWorlds.Num());
 
@@ -203,7 +195,7 @@ bool URecallMultiSimSnapshotSubsystem::LoadQuickSnapshot(const FRecallMultiSimSn
 		return false;
 	}
 
-	const TArray<const UWorld*> NestedWorlds = GetMultiWorlds();
+	const TArray<const UWorld*> NestedWorlds = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 	if (!ensureMsgf(NestedWorlds.Num() == Snapshot.SimSnapshots.Num(),
 		TEXT("%hs Snapshot world count does not match."), __FUNCTION__))
 	{
@@ -256,18 +248,4 @@ bool URecallMultiSimSnapshotSubsystem::LoadQuickSnapshot(const FRecallMultiSimSn
 	}
 
 	return true;
-}
-
-TArray<const UWorld*> URecallMultiSimSnapshotSubsystem::GetMultiWorlds() const
-{
-	TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-	if (MultiWorldSystem.IsValid())
-	{
-		Worlds = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	Worlds.Add(GetWorld());
-#endif // WITH_MULTI_WORLD
-	return Worlds;
 }

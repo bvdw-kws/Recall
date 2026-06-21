@@ -14,10 +14,8 @@
 #include "System/Player/RecallPlayerQueueSubsystem.h"
 #include "System/Simulation/RecallSimulationSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#endif // WITH_MULTI_WORLD
 #include "Thread/RecallMultiSimStepThread.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Player/RecallPlayerUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 
@@ -66,10 +64,7 @@ URecallMultiSimSubsystem::URecallMultiSimSubsystem()
 void URecallMultiSimSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-#ifdef WITH_MULTI_WORLD
-	Collection.InitializeDependency<UMultiWorldSubsystem>();
-	MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(GetWorld());
-#endif // WITH_MULTI_WORLD
+	Recall::MultiWorld::Utils::InitializeMultiWorldDependency(Collection);
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	// Reset pause flag when enter a new level.
@@ -85,10 +80,6 @@ void URecallMultiSimSubsystem::Deinitialize()
 
 	ensureAlwaysMsgf(!StepThread.IsValid(),
 		TEXT("%hs Step thread must stopped before the world is teared down"), __FUNCTION__);
-
-#ifdef WITH_MULTI_WORLD
-	MultiWorldSystem.Reset();
-#endif // WITH_MULTI_WORLD
 
 	FWorldDelegates::OnWorldBeginTearDown.RemoveAll(this);
 }
@@ -234,7 +225,7 @@ void URecallMultiSimSubsystem::StartSimulation(const FRecallSimulationStartParam
 
 	bSimulationProcessingPhase = true;
 
-	for (const UWorld* World : GetMultiWorlds())
+	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 	{
 		if (URecallSimulationSubsystem* SimulationSystem = UWorld::GetSubsystem<URecallSimulationSubsystem>(World))
 		{
@@ -272,7 +263,7 @@ void URecallMultiSimSubsystem::ResetSimulation()
 	ElapsedFrame = 0;
 	AccumulatedTime = 0.0f;
 
-	for (const UWorld* World : GetMultiWorlds())
+	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 	{
 		if (URecallSimulationSubsystem* SimulationSystem = UWorld::GetSubsystem<URecallSimulationSubsystem>(World))
 		{
@@ -319,7 +310,7 @@ void URecallMultiSimSubsystem::StartTick(float DeltaTime)
     	OnTickStartEvent.Broadcast(DeltaTime);
     }
 
-	const TArray<const UWorld*> WorldsForTick = GetMultiWorlds();
+	const TArray<const UWorld*> WorldsForTick = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 	if (!WorldsForTick.IsEmpty())
 	{
     	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallMultiSimSubsystem::StartTick"));
@@ -361,7 +352,7 @@ void URecallMultiSimSubsystem::StepSimulation()
 	}
 
 	// Step our game simulation per world.
-	const TArray<const UWorld*> WorldsToStep = GetMultiWorlds();
+	const TArray<const UWorld*> WorldsToStep = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 	if (!WorldsToStep.IsEmpty())
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallMultiSimSubsystem::Step"));
@@ -454,7 +445,7 @@ void URecallMultiSimSubsystem::RenderSimulation(float DeltaTime, bool bResetRend
 
 	bRenderProcessingPhase = true;
 
-	const TArray<const UWorld*> WorldsToRender = GetMultiWorlds();
+	const TArray<const UWorld*> WorldsToRender = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 	if (!WorldsToRender.IsEmpty())
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallMultiSimSubsystem::Render"));
@@ -535,7 +526,7 @@ void URecallMultiSimSubsystem::RequestAddPlayer(int32 WorldIndex, uint32 Frame, 
 
 	WaitForStepThread();
 
-	const TArray<const UWorld*> Worlds = GetMultiWorlds();
+	const TArray<const UWorld*> Worlds = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 	if (WorldIndex >= 0 && WorldIndex < Worlds.Num())
 	{
 		const UWorld* World = Worlds[WorldIndex];
@@ -555,7 +546,7 @@ void URecallMultiSimSubsystem::RequestRemovePlayer(int32 WorldIndex, uint32 Fram
 
 	WaitForStepThread();
 
-	const TArray<const UWorld*> Worlds = GetMultiWorlds();
+	const TArray<const UWorld*> Worlds = Recall::MultiWorld::Utils::GetMultiWorlds(this);
 	if (WorldIndex >= 0 && WorldIndex < Worlds.Num())
 	{
 		const UWorld* World = Worlds[WorldIndex];
@@ -568,7 +559,7 @@ void URecallMultiSimSubsystem::RequestRemovePlayer(int32 WorldIndex, uint32 Fram
 
 void URecallMultiSimSubsystem::RegisterObserver(UClass* Class, UObject* ObjectPointer)
 {
-	for (const UWorld* World : GetMultiWorlds())
+	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 	{
 		if (IRecallObserverSubjectInterface* ObserverSubjectSystem = UWorld::GetSubsystem<URecallObserverSubjectSubsystem>(World))
 		{
@@ -579,7 +570,7 @@ void URecallMultiSimSubsystem::RegisterObserver(UClass* Class, UObject* ObjectPo
 
 void URecallMultiSimSubsystem::UnregisterObserver(UObject* SourceObject)
 {
-	for (const UWorld* World : GetMultiWorlds())
+	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 	{
 		if (IRecallObserverSubjectInterface* ObserverSubjectSystem = UWorld::GetSubsystem<URecallObserverSubjectSubsystem>(World))
 		{
@@ -592,7 +583,7 @@ void URecallMultiSimSubsystem::SetFramesPerSecond(int32 FramesPerSecond)
 {
 	checkf(!HasSimulationStarted(), TEXT("Do not edit FPS after the game sim has started"));
 
-	for (const UWorld* World : GetMultiWorlds())
+	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 	{
 		if (URecallSimulationSubsystem* SimulationSystem = UWorld::GetSubsystem<URecallSimulationSubsystem>(World))
 		{
@@ -607,20 +598,6 @@ void URecallMultiSimSubsystem::WaitForStepThread() const
 	{
 		StepThread->WaitForStep();
 	}
-}
-
-TArray<const UWorld*> URecallMultiSimSubsystem::GetMultiWorlds() const
-{
-	TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-	if (MultiWorldSystem.IsValid())
-	{
-		Worlds = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	Worlds.Add(GetWorld());
-#endif // WITH_MULTI_WORLD
-	return Worlds;
 }
 
 void URecallMultiSimSubsystem::OnLoadSnapshot(uint32 Frame, double TimeSeconds, bool bIsRollback)

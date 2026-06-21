@@ -8,38 +8,28 @@
 #include "System/Input/RecallInputQueueSubsystem.h"
 
 #include "RecallInputQueueSnapshot.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#include "Utility/MultiWorldUtils.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 
 void URecallInputQueueSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-#ifdef WITH_MULTI_WORLD
-	Collection.InitializeDependency<UMultiWorldSubsystem>();
+	Recall::MultiWorld::Utils::InitializeMultiWorldDependency(Collection);
 
-	if (MultiWorld::Utils::IsMainWorld(this))
+	if (Recall::MultiWorld::Utils::IsMainWorld(this))
 	{
 		InputQueue = MakeShared<FRecallInputQueue>();
 		PlayerControlLock = MakeShared<FRecallPlayerInputLock>();
 
-		for (const UWorld* NestedWorld : GetMultiWorlds())
+		for (const UWorld* NestedWorld : Recall::MultiWorld::Utils::GetMultiWorlds(this))
 		{
 			RegisterNestedWorld(NestedWorld);
 		}
 
-		if (UMultiWorldSubsystem* MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(GetWorld()))
-		{
-			MultiWorldSystem->OnAddNestedWorld.AddUObject(this, &ThisClass::OnAddNestedWorld);
-		}
+		Recall::MultiWorld::Utils::SubscribeOnAddNestedWorld(
+			this,
+			FRecallNestedWorldEvent::CreateUObject(this, &ThisClass::OnAddNestedWorld));
 	}
-#else // WITH_MULTI_WORLD
-	InputQueue = MakeShared<FRecallInputQueue>();
-	PlayerControlLock = MakeShared<FRecallPlayerInputLock>();
-	RegisterNestedWorld(GetWorld());
-#endif // WITH_MULTI_WORLD
 }
 
 void URecallInputQueueSubsystem::Deinitialize()
@@ -297,18 +287,4 @@ bool URecallInputQueueSubsystem::IsLockControl() const
 	FScopeLock Lock(&DataGuard);
 	check(PlayerControlLockCopy.IsValid());
 	return PlayerControlLockCopy.Pin()->bLocked;
-}
-
-TArray<const UWorld*> URecallInputQueueSubsystem::GetMultiWorlds() const
-{
-	TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-	if (UMultiWorldSubsystem* MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(GetWorld()))
-	{
-		Worlds = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	Worlds.Add(GetWorld());
-#endif // WITH_MULTI_WORLD
-	return Worlds;
 }

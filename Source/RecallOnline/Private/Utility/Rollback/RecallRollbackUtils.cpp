@@ -8,9 +8,7 @@
 #include "Utility/Rollback/RecallRollbackUtils.h"
 
 #include "System/Input/RecallInputQueueSubsystem.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "System/Snapshot/RecallMultiSimSnapshotTypes.h"
 #include "System/Synchronization/RecallRollbackSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
@@ -342,15 +340,7 @@ namespace Recall::Rollback::Utils
 		FRecallSynchronizationFrameComparator FrameComparator;
 		FrameComparator.Frame = Frame;
 
-		TArray<const UWorld*> Worlds;
-#ifdef WITH_MULTI_WORLD
-		if (const UMultiWorldSubsystem* MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(World))
-		{
-			Worlds = MultiWorldSystem->GetNestedWorlds();
-		}
-#else // WITH_MULTI_WORLD
-		Worlds.Add(World);
-#endif // WITH_MULTI_WORLD
+		const TArray<const UWorld*> Worlds = Recall::MultiWorld::Utils::GetMultiWorlds(World);
 
 		for (const UWorld* NestedWorld : Worlds)
 		{

@@ -54,8 +54,6 @@ private:
 	void OnAddNestedWorld(UWorld* World);
 
 	void RegisterNestedWorld(const UWorld* World);
-
-	TArray<const UWorld*> GetMultiWorlds() const;
 };
 
 template<>

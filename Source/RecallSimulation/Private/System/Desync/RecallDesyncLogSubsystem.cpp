@@ -12,19 +12,13 @@
 #include "Settings/RecallSimulationSettings.h"
 #include "Subsystems/SubsystemCollection.h"
 #include "System/Simulation/RecallSimulationSubsystem.h"
-#ifdef WITH_MULTI_WORLD
-#include "System/MultiWorldSubsystem.h"
-#include "Utility/MultiWorldUtils.h"
-#endif // WITH_MULTI_WORLD
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 
 void URecallDesyncLogSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-#ifdef WITH_MULTI_WORLD
-	Collection.InitializeDependency<UMultiWorldSubsystem>();
-	MultiWorldSystem = UWorld::GetSubsystem<UMultiWorldSubsystem>(GetWorld());
-#endif // WITH_MULTI_WORLD
+	Recall::MultiWorld::Utils::InitializeMultiWorldDependency(Collection);
 	Collection.InitializeDependency<URecallSimulationSubsystem>();
 
 	if (URecallSimulationSubsystem* SimulationSystem = UWorld::GetSubsystem<URecallSimulationSubsystem>(GetWorld()))
@@ -36,10 +30,6 @@ void URecallDesyncLogSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void URecallDesyncLogSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
-
-#ifdef WITH_MULTI_WORLD
-	MultiWorldSystem.Reset();
-#endif // WITH_MULTI_WORLD
 
 	if (URecallSimulationSubsystem* SimulationSystem = UWorld::GetSubsystem<URecallSimulationSubsystem>(GetWorld()))
 	{
@@ -136,16 +126,8 @@ void URecallDesyncLogSubsystem::DumpDesyncLog()
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Desync_DumpLog);
 
-	TArray<const UWorld*> WorldsToLog;
-#ifdef WITH_MULTI_WORLD
-	checkf(MultiWorld::Utils::IsMainWorld(this), TEXT("Only main world should dump log"));
-	if (MultiWorldSystem.IsValid())
-	{
-		WorldsToLog = MultiWorldSystem->GetNestedWorlds();
-	}
-#else // WITH_MULTI_WORLD
-	WorldsToLog.Add(GetWorld());
-#endif
+	TArray<const UWorld*> WorldsToLog = Recall::MultiWorld::Utils::GetMultiWorlds(this);
+	checkf(Recall::MultiWorld::Utils::IsMainWorld(this), TEXT("Only main world should dump log"));
 
 	if (!WorldsToLog.IsEmpty())
 	{

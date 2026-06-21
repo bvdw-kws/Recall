@@ -131,10 +131,6 @@ protected:
 	float DeltaTimeDecay = 0.1f;
 
 private:
-#ifdef WITH_MULTI_WORLD
-	TWeakObjectPtr<class UMultiWorldSubsystem> MultiWorldSystem;
-#endif // WITH_MULTI_WORLD
-
 	UPROPERTY(Transient)
 	bool bSimulationProcessingPhase{ false };
 
@@ -168,8 +164,6 @@ private:
 
 	float GetSimulationRate() const;
 	uint32 GetMaxStepCount() const;
-
-	TArray<const UWorld*> GetMultiWorlds() const;
 
 	void OnWorldBeginTearDown(UWorld* World);
 };

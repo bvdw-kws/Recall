@@ -24,7 +24,7 @@
 #include "System/Random/RecallRandomNumberInterface.h"
 #include "System/Simulation/RecallSimulationControllerInterface.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 #include "Engine/GameInstance.h"
@@ -82,12 +82,12 @@ bool GenerateReplay(const UObject* WorldContextObject, FRecallReplay& OutReplay,
 		// OutReplay.DebugMenu = DebugMenu;
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 
-		const int32 WorldCount = MultiWorld::Utils::GetWorldCount(WorldContextObject);
+		const int32 WorldCount = Recall::MultiWorld::Utils::GetWorldCount(WorldContextObject);
 		OutReplay.Worlds.SetNum(WorldCount);
 
 		for (int32 WorldIndex = 0; WorldIndex < WorldCount; WorldIndex++)
 		{
-			if (const UWorld* NestedWorld = MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
+			if (const UWorld* NestedWorld = Recall::MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
 			{
 				GenerateWorldReplay(NestedWorld, OutReplay.Worlds[WorldIndex]);
 			}
@@ -134,9 +134,9 @@ void InitReplay(const UObject* WorldContextObject, const FRecallReplay& Replay)
 		}
 	}
 
-	for (int32 WorldIndex = 0; WorldIndex < MultiWorld::Utils::GetWorldCount(WorldContextObject); WorldIndex++)
+	for (int32 WorldIndex = 0; WorldIndex < Recall::MultiWorld::Utils::GetWorldCount(WorldContextObject); WorldIndex++)
 	{
-		if (UWorld* NestedWorld = MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
+		if (UWorld* NestedWorld = Recall::MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
 		{
 			if (ensure(Replay.Worlds.IsValidIndex(WorldIndex)) == false) continue;
 
@@ -164,9 +164,9 @@ void RestoreReplay(const UObject* WorldContextObject, uint32 Frame)
 {
 	Recall::Frontend::Utils::GetRef<IRecallInputQueueInterface>(WorldContextObject).ClearInputQueuePastFrame(Frame);
 
-	for (int32 WorldIndex = 0; WorldIndex < MultiWorld::Utils::GetWorldCount(WorldContextObject); WorldIndex++)
+	for (int32 WorldIndex = 0; WorldIndex < Recall::MultiWorld::Utils::GetWorldCount(WorldContextObject); WorldIndex++)
 	{
-		if (const UWorld* World = MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
+		if (const UWorld* World = Recall::MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
 		{
 			Recall::Frontend::Utils::GetRefByWorld<IRecallPlayerQueueInterface>(World).ClearPlayerQueuePastFrame(Frame);
 		}

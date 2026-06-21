@@ -20,7 +20,7 @@
 #include "System/Restore/RecallRestoreTypes.h"
 #include "System/Snapshot/RecallSnapshotInterface.h"
 #include "System/Synchronization/RecallSynchronizationInterface.h"
-#include "Utility/MultiWorldUtils.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Replay/RecallReplayUtils.h"
 #include "Utility/Synchronization/RecallSynchronizationUtils.h"
 
@@ -62,7 +62,7 @@ void InitRestoreClientInfo(const UObject* WorldContextObject, FRecallRestoreClie
 
 static void InitGameSimulationWorld(const UObject* WorldContextObject, int32 WorldIndex, bool bSeed)
 {
-	if (const UWorld* World = MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
+	if (const UWorld* World = Recall::MultiWorld::Utils::GetWorldByIndex(WorldContextObject, WorldIndex))
 	{
 		const ARecallGameState_InGame* GameState = Cast<ARecallGameState_InGame>(UGameplayStatics::GetGameState(World));
 		
@@ -86,7 +86,7 @@ static void InitGameSimulationWorld(const UObject* WorldContextObject, int32 Wor
 
 void InitGameSimulation(const UObject* WorldContextObject, bool bSeed /*= true*/)
 {
-	const int32 WorldCount = MultiWorld::Utils::GetWorldCount(WorldContextObject);
+	const int32 WorldCount = Recall::MultiWorld::Utils::GetWorldCount(WorldContextObject);
 
 	for (int32 WorldIndex = 0; WorldIndex < WorldCount; WorldIndex++)
 	{

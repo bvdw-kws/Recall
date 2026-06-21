@@ -45,9 +45,6 @@ public:
 	// IRecallSimulationInsightInterface implementation End
 
 private:
-#ifdef WITH_MULTI_WORLD
-	TWeakObjectPtr<class UMultiWorldSubsystem> MultiWorldSystem;
-#endif // WITH_MULTI_WORLD
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class URecallRandomNumberSubsystem> RandomNumberSystem;
 	UPROPERTY(Transient)
@@ -66,8 +63,6 @@ private:
 	void OnFrameEnd(uint32 Frame);
 
 	void SetReportFromFrame_Internal(uint32 Frame);
-
-	TArray<const UWorld*> GetMultiWorlds() const;
 
 	bool FindFrameReport(uint32 Frame, FRecallSimulationFrameReport& OutReport) const;
 	FRecallSimulationFrameReport GenerateFrameReport(uint32 Frame) const;
