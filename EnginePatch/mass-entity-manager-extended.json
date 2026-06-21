@@ -1,40 +1,11 @@
 {
   "patchId": "mass-entity-manager-extended",
-  "description": "Add snapshot/restore methods to FMassEntityManager: DestroyEntity(bSignalObservers), BuildEntity(ChunkIndex), DestroyAllEntities, RestoreEntitySerialNumber, GetEntityData, shared fragment value map/hash/reset helpers, and archetype chunk accessors",
+  "description": "Add snapshot/restore methods to FMassEntityManager: DestroyEntity(bSignalObservers), BuildEntity(ChunkIndex), DestroyAllEntities, RestoreEntitySerialNumber, GetEntityData, shared fragment value map/hash/reset helpers, archetype chunk accessors, deterministic GetStructCrc32, and DefaultSharedFragments caching for reset-to-default support",
   "plugin": "Recall",
   "versions": [
     {
       "engineVersions": ["5.8"],
       "files": [
-        {
-          "file": "Runtime/MassEntity/Public/MassEntityManagerStorage.h",
-          "operations": [
-            {
-              "id": "iface-restore-serial",
-              "line": 132,
-              "remove": [],
-              "add": [
-                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) = 0;"
-              ]
-            },
-            {
-              "id": "single-threaded-restore-serial",
-              "line": 171,
-              "remove": [],
-              "add": [
-                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) override;"
-              ]
-            },
-            {
-              "id": "concurrent-restore-serial",
-              "line": 235,
-              "remove": [],
-              "add": [
-                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) override;"
-              ]
-            }
-          ]
-        },
         {
           "file": "Runtime/MassEntity/Private/MassEntityManagerStorage.cpp",
           "operations": [
@@ -62,6 +33,35 @@
                 "\t{",
                 "\t\tcheckf(false, TEXT(\"RestoreEntitySerialNumber is not supported for FConcurrentEntityStorage\"));",
                 "\t}"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManagerStorage.h",
+          "operations": [
+            {
+              "id": "iface-restore-serial",
+              "line": 132,
+              "remove": [],
+              "add": [
+                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) = 0;"
+              ]
+            },
+            {
+              "id": "single-threaded-restore-serial",
+              "line": 171,
+              "remove": [],
+              "add": [
+                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) override;"
+              ]
+            },
+            {
+              "id": "concurrent-restore-serial",
+              "line": 235,
+              "remove": [],
+              "add": [
+                "\t\tvirtual void RestoreEntitySerialNumber(FMassEntityHandle& Entity, int32 SerialNumber) override;"
               ]
             }
           ]
@@ -148,7 +148,103 @@
                 "\tMASSENTITY_API const FConstSharedStruct& GetConstSharedFragmentByHashChecked(uint32 Hash) const;",
                 "\tMASSENTITY_API int32 GetArchetypeChunkCount(const FMassArchetypeHandle& ArchetypeHandle) const;",
                 "\tMASSENTITY_API const FMassArchetypeSharedFragmentValues& GetArchetypeSharedFragmentValues(const FMassArchetypeHandle& ArchetypeHandle, int32 ChunkIndex) const;",
-                "\tMASSENTITY_API void GetArchetypeInternalIndexForEntity(const FMassEntityHandle& Entity, const FMassArchetypeHandle& ArchetypeHandle, int32& OutAbsoluteIndex, int32& OutChunkIndex) const;"
+                "\tMASSENTITY_API void GetArchetypeInternalIndexForEntity(const FMassEntityHandle& Entity, const FMassArchetypeHandle& ArchetypeHandle, int32& OutAbsoluteIndex, int32& OutChunkIndex) const;",
+                "\tMASSENTITY_API static uint32 GetStructCrc32(const FConstStructView& StructView, const uint32 CRC = 0);",
+                "\tMASSENTITY_API static uint32 GetStructCrc32(const UScriptStruct& ScriptStruct, const uint8* StructMemory, const uint32 CRC = 0);"
+              ]
+            },
+            {
+              "id": "default-shared-fragments-cache",
+              "line": 949,
+              "remove": [
+                "\t\treturn SharedFragmentsContainer.FindOrAdd(Hash, T::StaticStruct(), reinterpret_cast<const uint8*>(&Fragment));"
+              ],
+              "add": [
+                "\t\tFSharedStruct& SharedFragment = SharedFragmentsContainer.FindOrAdd(Hash, T::StaticStruct(), reinterpret_cast<const uint8*>(&Fragment));",
+                "\t\tconst UScriptStruct* FragmentType = SharedFragment.GetScriptStruct();",
+                "\t\tDefaultSharedFragments.Add(FragmentType, FInstancedStruct(FragmentType));",
+                "\t\tFragmentType->CopyScriptStruct(DefaultSharedFragments[FragmentType].GetMutableMemory(), SharedFragment.GetMemory());",
+                "\t\treturn SharedFragment;"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-const-instance",
+              "line": 1052,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(FConstStructView::Make(Fragment));"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(FConstStructView::Make(Fragment));"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-shared-instance",
+              "line": 1083,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(FConstStructView::Make(Fragment));"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(FConstStructView::Make(Fragment));"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-const-args",
+              "line": 1115,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(FConstStructView::Make(Struct));"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(FConstStructView::Make(Struct));"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-shared-args",
+              "line": 1147,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(FConstStructView::Make(Struct));"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(FConstStructView::Make(Struct));"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-const-raw",
+              "line": 1167,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(InScriptStruct, InStructMemory);"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(InScriptStruct, InStructMemory);"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-shared-raw",
+              "line": 1187,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(InScriptStruct, InStructMemory);"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(InScriptStruct, InStructMemory);"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-const-helper",
+              "line": 1232,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(HashingHelperStruct);"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(HashingHelperStruct);"
+              ]
+            },
+            {
+              "id": "get-struct-crc32-shared-helper",
+              "line": 1277,
+              "remove": [
+                "\t\tconst uint32 Hash = UE::StructUtils::GetStructInstanceCrc32(HashingHelperStruct);"
+              ],
+              "add": [
+                "\t\tconst uint32 Hash = GetStructCrc32(HashingHelperStruct);"
               ]
             },
             {
@@ -172,12 +268,28 @@
                 "\t\t\treturn HashToInstanceIndexMap;",
                 "\t\t}"
               ]
+            },
+            {
+              "id": "default-shared-fragments-member",
+              "line": 1597,
+              "remove": [],
+              "add": [
+                "\tTMap<const UScriptStruct*, FInstancedStruct> DefaultSharedFragments;"
+              ]
             }
           ]
         },
         {
           "file": "Runtime/MassEntity/Private/MassEntityManager.cpp",
           "operations": [
+            {
+              "id": "add-archive-crc32-include",
+              "line": 20,
+              "remove": [],
+              "add": [
+                "#include \"Serialization/ArchiveCrc32.h\""
+              ]
+            },
             {
               "id": "entity-manager-extended-impls",
               "line": 688,
@@ -266,6 +378,13 @@
                 "\t\t\tcheck(Type == NewData->GetScriptStruct());",
                 "\t\t\tType->CopyScriptStruct(Instance.GetMemory(), NewData->GetMemory());",
                 "\t\t}",
+                "\t\telse",
+                "\t\t{",
+                "\t\t\tif (const FInstancedStruct* DefaultData = DefaultSharedFragments.Find(Type))",
+                "\t\t\t{",
+                "\t\t\t\tType->CopyScriptStruct(Instance.GetMemory(), DefaultData->GetMemory());",
+                "\t\t\t}",
+                "\t\t}",
                 "\t}",
                 "}",
                 "",
@@ -275,7 +394,10 @@
                 "\t{",
                 "\t\tif (const UScriptStruct* Type = Instance.GetScriptStruct())",
                 "\t\t{",
-                "\t\t\tType->InitializeStruct(Instance.GetMemory());",
+                "\t\t\tif (const FInstancedStruct* DefaultData = DefaultSharedFragments.Find(Type))",
+                "\t\t\t{",
+                "\t\t\t\tType->CopyScriptStruct(Instance.GetMemory(), DefaultData->GetMemory());",
+                "\t\t\t}",
                 "\t\t}",
                 "\t}",
                 "}",
@@ -332,6 +454,31 @@
                 "\tcheck(InternalIndex != nullptr);",
                 "\tOutAbsoluteIndex = *InternalIndex;",
                 "\tOutChunkIndex = OutAbsoluteIndex / ArchetypeData.GetNumEntitiesPerChunk();",
+                "}",
+                "",
+                "uint32 FMassEntityManager::GetStructCrc32(const FConstStructView& StructView, const uint32 CRC /*= 0*/)",
+                "{",
+                "\treturn GetStructCrc32(*StructView.GetScriptStruct(), StructView.GetMemory(), CRC);",
+                "}",
+                "",
+                "uint32 FMassEntityManager::GetStructCrc32(const UScriptStruct& ScriptStruct, const uint8* StructMemory, const uint32 CRC /*= 0*/)",
+                "{",
+                "\tconst FString StructPathName = ScriptStruct.GetPathName();",
+                "",
+                "\t// MurmurFinalize32",
+                "\tuint32 StructHash = GetTypeHash(StructPathName);",
+                "\tStructHash ^= StructHash >> 16;",
+                "\tStructHash *= 0x85ebca6b;",
+                "\tStructHash ^= StructHash >> 13;",
+                "\tStructHash *= 0xc2b2ae35;",
+                "\tStructHash ^= StructHash >> 16;",
+                "",
+                "\tFArchiveCrc32 Ar(HashCombine(CRC, StructHash));",
+                "\tUScriptStruct& NonConstScriptStruct = const_cast<UScriptStruct&>(ScriptStruct);",
+                "\tNonConstScriptStruct.SerializeItem(Ar, const_cast<uint8*>(StructMemory), nullptr);",
+                "",
+                "\tconst uint32 Hash = Ar.GetCrc();",
+                "\treturn Hash;",
                 "}"
               ]
             }
