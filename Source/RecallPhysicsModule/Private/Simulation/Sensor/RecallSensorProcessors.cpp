@@ -25,7 +25,7 @@ URecallSensorDestructor::URecallSensorDestructor()
 {
 	ExecutionFlags = (int32)EProcessorExecutionFlags::All;
 	ObservedTypes.Add(FRecallSensorFragment::StaticStruct());
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations.Add(EMassObservedOperation::Remove);
 }
 
 void URecallSensorDestructor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)
