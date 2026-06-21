@@ -1,6 +1,7 @@
 {
   "patchId": "mass-processing-manual-step",
   "description": "Add ExecuteStep and DisableTickFunctions for deterministic manual phase stepping (Recall)",
+  "plugin": "Recall",
   "versions": [
     {
       "engineVersion": "5.8",

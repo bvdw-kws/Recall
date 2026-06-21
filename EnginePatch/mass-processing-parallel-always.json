@@ -1,6 +1,7 @@
 {
   "patchId": "mass-processing-parallel-always",
   "description": "Force MASS_DO_PARALLEL to 1 (always run parallel regardless of server flag)",
+  "plugin": "Recall",
   "versions": [
     {
       "engineVersion": "5.8",
@@ -11,8 +12,12 @@
             {
               "id": "force-parallel",
               "line": 14,
-              "remove": ["#define MASS_DO_PARALLEL !UE_SERVER"],
-              "add":    ["#define MASS_DO_PARALLEL 1"]
+              "remove": [
+                "#define MASS_DO_PARALLEL !UE_SERVER"
+              ],
+              "add": [
+                "#define MASS_DO_PARALLEL 1"
+              ]
             }
           ]
         }

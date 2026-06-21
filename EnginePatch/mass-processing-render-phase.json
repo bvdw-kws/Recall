@@ -1,6 +1,7 @@
 {
   "patchId": "mass-processing-render-phase",
   "description": "Add Render phase to EMassProcessingPhase for custom rendering in simulation",
+  "plugin": "Recall",
   "versions": [
     {
       "engineVersion": "5.8",
@@ -11,8 +12,13 @@
             {
               "id": "add-render-phase",
               "line": 181,
-              "remove": ["\tMAX,"],
-              "add":    ["\tRender,", "\tMAX,"]
+              "remove": [
+                "\tMAX,"
+              ],
+              "add": [
+                "\tRender,",
+                "\tMAX,"
+              ]
             }
           ]
         }
