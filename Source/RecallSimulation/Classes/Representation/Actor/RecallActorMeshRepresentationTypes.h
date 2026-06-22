@@ -104,7 +104,7 @@ struct RECALLSIMULATION_API FSkeletalMeshRepresentationMeshDesc : public FRecall
 	TArray<FMeshRepresentationMaterialDesc> MaterialOverrides;
 
 	/** The animation blueprint to use on the visual representation */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowedClasses="/Script/Engine.AnimBlueprint"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowedClasses="/Script/Engine.AnimInstance"))
 	FSoftClassPath AnimBP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowedClasses="/Script/Engine.MaterialInterface"))
