@@ -169,7 +169,7 @@ void URecallControllerInitializer::Execute(FMassEntityManager& EntityManager, FM
 			FRecallControllerFragment& ControllerFragment = ControllerList[EntityIndex];
 			FRecallGameplayTagFragment* const GameplayTagFragmentPtr = GameplayTagList.IsValidIndex(EntityIndex) ? &GameplayTagList[EntityIndex] : nullptr;
 
-			const FRecallControllerEntityCreationContext& CreationContext = EntitySystem.GetControllerEntityCreationContext();
+			const FRecallControllerEntityCreationContext CreationContext = EntitySystem.PopControllerEntityCreationContext();
 
 			ControllerFragment.ControllerID = CreationContext.OwnerControllerId;
 

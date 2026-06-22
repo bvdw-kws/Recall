@@ -70,6 +70,6 @@ struct TMassExternalSubsystemTraits<URecallObserverSubjectSubsystem> final
 {
 	enum
 	{
-		GameThreadOnly = true
+		GameThreadOnly = false
 	};
 };

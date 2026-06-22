@@ -50,7 +50,7 @@ public:
 	TArray<FMassEntityHandle> GetControllerEntities() const;
 	int32 GetControllerCount() const;
 
-	const FRecallControllerEntityCreationContext& GetControllerEntityCreationContext() const;
+	FRecallControllerEntityCreationContext PopControllerEntityCreationContext();
 	FRecallControllerEntityData GetControllerEntityData(const FString& ControllerID) const;
 
 	FORCEINLINE bool IsStaticEntity(const FMassEntityHandle& Entity) const { return Entity.SerialNumber <= LastStaticEntitySerialNumber; }

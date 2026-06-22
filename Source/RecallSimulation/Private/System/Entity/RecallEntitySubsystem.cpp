@@ -10,6 +10,7 @@
 #include "Async/ParallelFor.h"
 #include "Component/RecallEntityComponent.h"
 #include "Desync/RecallDesyncLog.h"
+#include "Engine/World.h"
 #include "MassEntityManager.h"
 #include "MassEntityUtils.h"
 #include "MassEntityView.h"
@@ -272,7 +273,7 @@ void URecallEntitySubsystem::CreateControllerEntity(const TObjectPtr<const UMass
 			*InParams.OwnerControllerId, *OutEntity.DebugGetDescription(), AbsoluteIndex, ChunkIndex));
 #endif // RECALL_DESYNC_LOG
 
-	ControllerEntityCreationContext.Reset();
+	// ControllerEntityCreationContext.Reset();
 }
 
 void URecallEntitySubsystem::CreateEntities_Internal(const FMassEntityConfig& EntityConfig, int32 Count, TArray<FMassEntityHandle>& OutEntities)
@@ -412,11 +413,13 @@ int32 URecallEntitySubsystem::GetControllerCount() const
 	return EntityRegistry.ControllerEntries.Num();
 }
 
-const FRecallControllerEntityCreationContext& URecallEntitySubsystem::GetControllerEntityCreationContext() const
+FRecallControllerEntityCreationContext URecallEntitySubsystem::PopControllerEntityCreationContext()
 {
 	// Make sure we have a player entity currently being created.
 	check(ControllerEntityCreationContext.IsValid());
-	return *ControllerEntityCreationContext.Get();
+	const FRecallControllerEntityCreationContext CreationContext = MoveTemp(*ControllerEntityCreationContext.Get());
+	ControllerEntityCreationContext.Reset();
+	return CreationContext;
 }
 
 FMassEntityHandle URecallEntitySubsystem::CreateStreamingEntity(const URecallEntityComponent* EntityComponent)

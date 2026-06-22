@@ -55,6 +55,6 @@ struct TMassExternalSubsystemTraits<URecallPlayerStartSubsystem> final
 {
 	enum
 	{
-		GameThreadOnly = true
+		GameThreadOnly = false
 	};
 };

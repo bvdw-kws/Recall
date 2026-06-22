@@ -93,7 +93,7 @@ struct TMassExternalSubsystemTraits<URecallRandomNumberSubsystem> final
 {
 	enum
 	{
-		GameThreadOnly = true
+		GameThreadOnly = false
 	};
 };
 

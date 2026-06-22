@@ -37,9 +37,9 @@ void URecallSimulationSubsystem::Initialize(FSubsystemCollectionBase& Collection
 	{
 		if (SimulationSystem.IsValid() && SimulationSystem->IsSimulationStarted())
 		{
-			SimulationSystem->GetMutablePhaseManager().Pause();
+			SimulationSystem->GetMutablePhaseManager().DisableTickFunctions();
 		}
-
+		
 		UMassSimulationSubsystem::GetOnSimulationStarted().AddUObject(this, &ThisClass::OnSimulationStarted);
 	}
 }
@@ -61,7 +61,7 @@ void URecallSimulationSubsystem::OnSimulationStarted(UWorld* World)
 {
 	if (SimulationSystem.IsValid() && SimulationSystem->IsSimulationStarted())
 	{
-		SimulationSystem->GetMutablePhaseManager().Pause();
+		SimulationSystem->GetMutablePhaseManager().DisableTickFunctions();
 	}
 }
 

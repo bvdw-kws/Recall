@@ -56,6 +56,6 @@ struct TMassExternalSubsystemTraits<URecallWorldTransitionSubsystem> final
 {
 	enum
 	{
-		GameThreadOnly = true
+		GameThreadOnly = false
 	};
 };

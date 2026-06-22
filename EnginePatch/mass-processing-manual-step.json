@@ -106,27 +106,6 @@
               ]
             },
             {
-              "id": "pause-disable-ticks",
-              "line": 525,
-              "remove": ["\t}"],
-              "add": [
-                "\t\tDisableTickFunctions();",
-                "\t}"
-              ]
-            },
-            {
-              "id": "resume-enable-ticks",
-              "line": 537,
-              "remove": ["\t}"],
-              "add": [
-                "\t\tif (UWorld* World = EntityManager->GetWorld())",
-                "\t\t{",
-                "\t\t\tEnableTickFunctions(*World);",
-                "\t\t}",
-                "\t}"
-              ]
-            },
-            {
               "id": "add-manager-step-impl",
               "line": 515,
               "remove": [],
