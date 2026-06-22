@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "RecallActorRepresentationTypes.h"
+#include "UObject/SoftObjectPath.h"
 
 #include "RecallActorMeshRepresentationTypes.generated.h"
 
