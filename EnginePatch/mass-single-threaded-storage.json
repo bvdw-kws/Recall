@@ -1,0 +1,108 @@
+{
+  "patchId": "mass-single-threaded-storage",
+  "description": "Force single-threaded entity storage (disable concurrent reserve) for deterministic rollback, and suppress the UE_DEPRECATED warning on FSingleThreadedEntityStorage",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManager.h",
+          "operations": [
+            {
+              "id": "force-single-threaded-reserve",
+              "line": 72,
+              "remove": [
+                "#define WITH_MASS_CONCURRENT_RESERVE (REQUESTED_MASS_CONCURRENT_RESERVE || WITH_EDITOR)"
+              ],
+              "add": [
+                "// #define WITH_MASS_CONCURRENT_RESERVE (REQUESTED_MASS_CONCURRENT_RESERVE || WITH_EDITOR)",
+                "#define WITH_MASS_CONCURRENT_RESERVE 0"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Editor/MassEntityEditor/Private/MassEntityEditorSubsystem.cpp",
+          "operations": [
+            {
+              "id": "editor-subsystem-single-threaded-fallback",
+              "line": 135,
+              "remove": [
+                "\tFMassEntityManagerStorageInitParams InitParams;",
+                "\tInitParams.Emplace<FMassEntityManager_InitParams_Concurrent>(",
+                "\t\tFMassEntityManager_InitParams_Concurrent",
+                "\t\t{",
+                "\t\t\t.MaxEntityCount = 1llu << 28,",
+                "\t\t\t.MaxEntitiesPerPage = 1 << 16",
+                "\t\t});",
+                "\tEntityManager->Initialize(InitParams);"
+              ],
+              "add": [
+                "\tFMassEntityManagerStorageInitParams InitParams;",
+                "#if WITH_MASS_CONCURRENT_RESERVE",
+                "\tInitParams.Emplace<FMassEntityManager_InitParams_Concurrent>(",
+                "\t\tFMassEntityManager_InitParams_Concurrent",
+                "\t\t{",
+                "\t\t\t.MaxEntityCount = 1llu << 28,",
+                "\t\t\t.MaxEntitiesPerPage = 1 << 16",
+                "\t\t});",
+                "#else",
+                "PRAGMA_DISABLE_DEPRECATION_WARNINGS",
+                "\tInitParams.Emplace<FMassEntityManager_InitParams_SingleThreaded>();",
+                "PRAGMA_ENABLE_DEPRECATION_WARNINGS",
+                "#endif // WITH_MASS_CONCURRENT_RESERVE",
+                "\tEntityManager->Initialize(InitParams);"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "Runtime/MassEntity/Public/MassEntityManagerStorage.h",
+          "operations": [
+            {
+              "id": "remove-init-params-deprecated",
+              "line": 17,
+              "remove": [
+                "struct",
+                "\tUE_DEPRECATED(5.8, \"Single threaded entity storage is being removed. Use FMassEntityManager_InitParams_Concurrent instead.\")",
+                "\tFMassEntityManager_InitParams_SingleThreaded {};"
+              ],
+              "add": [
+                "struct FMassEntityManager_InitParams_SingleThreaded {};"
+              ]
+            },
+            {
+              "id": "remove-single-threaded-deprecated",
+              "line": 141,
+              "remove": [
+                "\tclass",
+                "\t\tUE_DEPRECATED(5.8, \"Single threaded entity storage is being removed. Use FConcurrentEntityStorage instead.\")",
+                "\t\tFSingleThreadedEntityStorage final : public IEntityStorageInterface"
+              ],
+              "add": [
+                "\tclass FSingleThreadedEntityStorage final : public IEntityStorageInterface"
+              ]
+            },
+            {
+              "id": "remove-pragma-disable-deprecation",
+              "line": 146,
+              "remove": [
+                "PRAGMA_DISABLE_DEPRECATION_WARNINGS"
+              ],
+              "add": []
+            },
+            {
+              "id": "remove-pragma-enable-deprecation",
+              "line": 148,
+              "remove": [
+                "PRAGMA_ENABLE_DEPRECATION_WARNINGS"
+              ],
+              "add": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
