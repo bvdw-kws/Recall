@@ -6,8 +6,10 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Mass/EntityElementTypes.h"
 #include "Mass/EntityHandle.h"
+#include "UObject/ObjectPtr.h"
 
 #include "RecallControllerFragments.generated.h"
 
