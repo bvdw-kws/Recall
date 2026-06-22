@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "Mass/EntityElementTypes.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "Mass/EntityHandle.h"
 #include "UObject/ObjectPtr.h"
 

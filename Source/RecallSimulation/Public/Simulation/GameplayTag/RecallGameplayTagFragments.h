@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Mass/EntityElementTypes.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "GameplayTag/RecallGameplayTagTypes.h"
 
 #include "RecallGameplayTagFragments.generated.h"

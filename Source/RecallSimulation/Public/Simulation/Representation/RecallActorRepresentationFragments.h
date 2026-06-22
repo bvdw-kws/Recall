@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Mass/EntityElementTypes.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "System/Actor/RecallActorTypes.h"
 #include "Representation/Actor/RecallActorMeshRepresentationTypes.h"
 
