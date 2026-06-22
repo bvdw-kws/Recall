@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "MassEntityTypes.h"
+#include "Mass/EntityElementTypes.h"
 #include "RecallPlayerCameraTypes.h"
 #include "System/Actor/RecallActorTypes.h"
 

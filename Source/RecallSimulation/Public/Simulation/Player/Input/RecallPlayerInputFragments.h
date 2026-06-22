@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "MassEntityTypes.h"
+#include "Mass/EntityElementTypes.h"
 #include "System/Input/RecallInputQueueTypes.h"
 
 #include "RecallPlayerInputFragments.generated.h"

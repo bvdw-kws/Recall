@@ -43,7 +43,7 @@ public class RecallSimulation : ModuleRules
 		// Uncomment if you are debugging online de-sync
 		if (Target.Configuration != UnrealTargetConfiguration.Shipping)
 		{
-			PublicDefinitions.Add("RECALL_DESYNC_ENABLED");
+			// PublicDefinitions.Add("RECALL_DESYNC_ENABLED");
 		}
 	}
 }

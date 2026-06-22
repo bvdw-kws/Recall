@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "MassEntityTypes.h"
+#include "Mass/EntityElementTypes.h"
 #include "Physics/Vehicle/RecallPhysicsVehicleShapeTypes.h"
 
 #include "RecallPhysicsVehicleFragments.generated.h"
