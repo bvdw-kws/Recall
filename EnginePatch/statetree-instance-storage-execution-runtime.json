@@ -1,0 +1,38 @@
+{
+  "patchId": "statetree-instance-storage-execution-runtime",
+  "description": "Expose ExecutionRuntimeData and ExecutionRuntimeDataInfos accessors on FStateTreeInstanceStorage for snapshot/restore (rollback support).",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Plugins/Runtime/StateTree/Source/StateTreeModule/Public/StateTreeInstanceData.h",
+          "operations": [
+            {
+              "id": "add-execution-runtime-restore-accessors",
+              "line": 356,
+              "remove": [],
+              "add": [
+                "",
+                "\t/** @return the execution runtime data container (for snapshot/restore). */",
+                "\tUE::StateTree::InstanceData::FInstanceContainer& GetMutableExecutionRuntimeData() { return ExecutionRuntimeData; }",
+                "",
+                "\t/** Registers an execution runtime data entry without appending data (for snapshot/restore). */",
+                "\tvoid AddExecutionRuntimeDataInfo(const FObjectKey InStateTree, const int32 InStartIndex)",
+                "\t{",
+                "\t\tFExecutionRuntimeInfo& Info = ExecutionRuntimeDataInfos.AddDefaulted_GetRef();",
+                "\t\tInfo.StateTree = InStateTree;",
+                "\t\tInfo.StartIndex = InStartIndex;",
+                "\t}",
+                "",
+                "\t/** Clears all execution runtime data info entries (for snapshot/restore). */",
+                "\tvoid ResetExecutionRuntimeDataInfos() { ExecutionRuntimeDataInfos.Reset(); }"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

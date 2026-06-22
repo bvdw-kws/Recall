@@ -62,7 +62,8 @@ void FRecallStateTreeActiveFrameSnapshot::Save(const FStateTreeExecutionFrame& A
 
 	NumCurrentlyActiveStates = ActiveFrame.ActiveStates.NumStates;
 	ActiveTasksStatus = ActiveFrame.ActiveTasksStatus;
-	
+	ActiveNodeIndex = ActiveFrame.ActiveNodeIndex.AsInt32();
+
 	ActiveStates.Save(ActiveFrame.ActiveStates, UniqueIdGenerator);
 }
 
@@ -78,7 +79,8 @@ void FRecallStateTreeActiveFrameSnapshot::Restore(FStateTreeExecutionFrame& Acti
 	ActiveFrame.FrameID = UE::StateTree::FActiveFrameID(FrameID);
 	ActiveFrame.ActiveStates.NumStates = NumCurrentlyActiveStates;
 	ActiveFrame.ActiveTasksStatus = ActiveTasksStatus;
-	
+	ActiveFrame.ActiveNodeIndex = ActiveNodeIndex == INDEX_NONE ? FStateTreeIndex16::Invalid : FStateTreeIndex16(ActiveNodeIndex);
+
 	ActiveStates.Restore(ActiveFrame.ActiveStates);
 }
 
@@ -131,6 +133,30 @@ void FRecallStateTreeInstanceDataArraySnapshot::Restore(UObject& InOwner, FRecal
 	InstancedPropertyBag.Serialize(Ar);
 
 	Item.InstanceData.GetMutableStorage().SetGlobalParameters(InstancedPropertyBag.GetValue());
+
+	// Restore ExecutionRuntimeData (new in 5.8, transient — not populated by Init).
+	TArray<FConstStructView> RuntimeViews;
+	RuntimeViews.Reserve(ExecutionRuntimeStructs.Num());
+	for (const FInstancedStruct& S : ExecutionRuntimeStructs)
+	{
+		RuntimeViews.Add(FConstStructView(S));
+	}
+	FStateTreeInstanceStorage& Storage = Item.InstanceData.GetMutableStorage();
+	Storage.GetMutableExecutionRuntimeData().Init(&InOwner, RuntimeViews, {});
+
+	// Rebuild ExecutionRuntimeDataInfos from restored ActiveFrames so AddExecutionRuntimeData
+	// deduplication stays consistent and won't re-append data on future frame setups.
+	Storage.ResetExecutionRuntimeDataInfos();
+	const FStateTreeExecutionState& RestoredExecState = Storage.GetExecutionState();
+	TSet<const UStateTree*> RegisteredTrees;
+	for (const FStateTreeExecutionFrame& Frame : RestoredExecState.ActiveFrames)
+	{
+		if (Frame.StateTree && Frame.ExecutionRuntimeIndexBase.IsValid() && !RegisteredTrees.Contains(Frame.StateTree))
+		{
+			Storage.AddExecutionRuntimeDataInfo(FObjectKey(Frame.StateTree), Frame.ExecutionRuntimeIndexBase.Get());
+			RegisteredTrees.Add(Frame.StateTree);
+		}
+	}
 }
 
 void FRecallStateTreeInstanceDataArraySnapshot::Save(const FRecallStateTreeInstanceDataItem& Item)
@@ -178,6 +204,14 @@ void FRecallStateTreeInstanceDataArraySnapshot::Save(const FRecallStateTreeInsta
 	FMemoryWriter MemoryWriter(GlobalParametersMemory, true);
 	FObjectAndNameAsStringProxyArchive Ar(MemoryWriter, false);
 	InstancedPropertyBag.Serialize(Ar);
+
+	const UE::StateTree::InstanceData::FInstanceContainer& RuntimeData = Item.InstanceData.GetStorage().GetExecutionRuntimeData();
+	ExecutionRuntimeStructs.SetNum(RuntimeData.Num());
+	for (int32 i = 0; i < RuntimeData.Num(); i++)
+	{
+		const FConstStructView Src = RuntimeData.GetStruct(i);
+		ExecutionRuntimeStructs[i].InitializeAs(Src.GetScriptStruct(), Src.GetMemory());
+	}
 }
 
 //----------------------------------------------------------------------//

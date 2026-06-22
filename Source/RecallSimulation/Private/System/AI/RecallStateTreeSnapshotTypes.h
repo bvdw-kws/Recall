@@ -44,6 +44,10 @@ struct FRecallStateTreeActiveFrameSnapshot
 	UPROPERTY(VisibleAnywhere)
 	int32 NumCurrentlyActiveStates = 0;
 
+	/** Last entered evaluator/task node index (non-UPROPERTY on FStateTreeExecutionFrame, must be saved explicitly). */
+	UPROPERTY(VisibleAnywhere)
+	int32 ActiveNodeIndex = INDEX_NONE;
+
 	UPROPERTY(VisibleAnywhere)
 	FRecallStateTreeActiveStatesSnapshot ActiveStates;
 	
