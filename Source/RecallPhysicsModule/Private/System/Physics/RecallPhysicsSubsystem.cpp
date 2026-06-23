@@ -881,11 +881,11 @@ void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct&
 {
 	checkf(!Recall::Simulation::Utils::HasSimulationStarted(this),
 		TEXT("%hs Cannot create static body after simulation has started"), __FUNCTION__);
-		
+
 	FRecallPhysicsBodyParameters Params;
 	Params.MotionType = ERecallPhysicsMotionType::Static;
 	Params.Friction = Friction;
-	
+
 	if (PhysicsLayer)
 	{
 		Params.Layer = PhysicsLayer->GetStaticLayerHandle();
@@ -893,8 +893,8 @@ void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct&
 
 	constexpr FMassEntityHandle StaticDummyEntity;
 	const FRecallPhysicsBodyHandle Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
-	
-	const URecallPhysicsObjectFactory* Factory = CreateShapeFactory(FactoryClass);	
+
+	const URecallPhysicsObjectFactory* Factory = CreateShapeFactory(FactoryClass);
 	const TSharedPtr<FRecallPhysicsBody> Body = Factory->BuildPhysicsObject(Handle.SerialNumber, Shape, Params);
 	if (Body.IsValid())
 	{
@@ -904,6 +904,35 @@ void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct&
 
 	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
 	BodyHandleMap.Add(Handle.SerialNumber, Handle);
+}
+
+FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateDynamicStaticShape_Internal(const FInstancedStruct& Shape,
+	const FVector& Location, const FQuat& Rotation,
+	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction)
+{
+	FRecallPhysicsBodyParameters Params;
+	Params.MotionType = ERecallPhysicsMotionType::Static;
+	Params.Friction = Friction;
+	if (PhysicsLayer)
+	{
+		Params.Layer = PhysicsLayer->GetStaticLayerHandle();
+	}
+
+	constexpr FMassEntityHandle StaticDummyEntity;
+	const FRecallPhysicsBodyHandle Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
+
+	const URecallPhysicsObjectFactory* Factory = CreateShapeFactory(FactoryClass);
+	const TSharedPtr<FRecallPhysicsBody> Body = Factory->BuildPhysicsObject(Handle.SerialNumber, Shape, Params);
+	if (Body.IsValid())
+	{
+		Body->SetPositionAndRotation(Location, Rotation);
+		Body->Activate();
+	}
+
+	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
+	BodyHandleMap.Add(Handle.SerialNumber, Handle);
+
+	return Handle;
 }
 
 URecallPhysicsObjectFactory* URecallPhysicsSubsystem::CreateShapeFactory(

@@ -71,7 +71,13 @@ public:
 	{
 		CreateStaticShape_Internal(FInstancedStruct::Make<T>(Shape), Location, Rotation, Shape.FactoryClass, Friction);
 	}
-	
+
+	template<typename T=FRecallPhysicsShape>
+	FRecallPhysicsBodyHandle CreateDynamicStaticShape(const T& Shape, const FVector& Location, const FQuat& Rotation, float Friction)
+	{
+		return CreateDynamicStaticShape_Internal(FInstancedStruct::Make<T>(Shape), Location, Rotation, Shape.FactoryClass, Friction);
+	}
+
 	void CreateFixedConstrain(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
 	void RemoveAllConstrains(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
 
@@ -143,7 +149,10 @@ protected:
 	
 	void CreateStaticShape_Internal(const FInstancedStruct& Shape, const FVector& Location, const FQuat& Rotation,
 		const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction);
-	
+
+	FRecallPhysicsBodyHandle CreateDynamicStaticShape_Internal(const FInstancedStruct& Shape, const FVector& Location,
+		const FQuat& Rotation, const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction);
+
 	void CreateShape_Internal(const FMassEntityHandle& Entity, const FInstancedStruct& Shape,
 		const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FRecallPhysicsBodyParameters& Params,
 		FRecallPhysicsBodyHandle& Handle);
