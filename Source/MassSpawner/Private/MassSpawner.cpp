@@ -97,7 +97,10 @@ AMassSpawner::AMassSpawner()
 			FName MassSpawnerID;
 			FText MassSpawnerName;
 			FConstructorStatics()
-				: IconTextureObject(TEXT("/MassGameplay/S_MassCrowd"))
+//@ BASTIEN ADD
+//				: IconTextureObject(TEXT("/MassGameplay/S_MassCrowd"))
+				: IconTextureObject(TEXT("/Recall/S_MassCrowd"))
+//@ BASTIEN END
 				, MassSpawnerID(TEXT("MassSpawner"))
 				, MassSpawnerName(NSLOCTEXT("SpriteCategory", "MassSpawner", "MassSpawner"))
 			{
