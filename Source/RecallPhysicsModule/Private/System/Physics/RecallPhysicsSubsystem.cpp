@@ -882,28 +882,7 @@ void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct&
 	checkf(!Recall::Simulation::Utils::HasSimulationStarted(this),
 		TEXT("%hs Cannot create static body after simulation has started"), __FUNCTION__);
 
-	FRecallPhysicsBodyParameters Params;
-	Params.MotionType = ERecallPhysicsMotionType::Static;
-	Params.Friction = Friction;
-
-	if (PhysicsLayer)
-	{
-		Params.Layer = PhysicsLayer->GetStaticLayerHandle();
-	}
-
-	constexpr FMassEntityHandle StaticDummyEntity;
-	const FRecallPhysicsBodyHandle Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
-
-	const URecallPhysicsObjectFactory* Factory = CreateShapeFactory(FactoryClass);
-	const TSharedPtr<FRecallPhysicsBody> Body = Factory->BuildPhysicsObject(Handle.SerialNumber, Shape, Params);
-	if (Body.IsValid())
-	{
-		Body->SetPositionAndRotation(Location, Rotation);
-		Body->Activate();
-	}
-
-	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
-	BodyHandleMap.Add(Handle.SerialNumber, Handle);
+	CreateMutableStaticShape_Internal(Shape, Location, Rotation, FactoryClass, Friction);
 }
 
 FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Internal(const FInstancedStruct& Shape,
