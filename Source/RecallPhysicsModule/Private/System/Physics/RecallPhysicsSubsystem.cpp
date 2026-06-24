@@ -892,6 +892,7 @@ FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Inter
 	FRecallPhysicsBodyParameters Params;
 	Params.MotionType = ERecallPhysicsMotionType::Static;
 	Params.Friction = Friction;
+	Params.bAllowDynamicOrKinematic = true;
 	if (PhysicsLayer)
 	{
 		Params.Layer = PhysicsLayer->GetStaticLayerHandle();
@@ -940,8 +941,8 @@ void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Enti
 	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FRecallPhysicsBodyParameters& Params,
 	FRecallPhysicsBodyHandle& Handle)
 {
-	checkf(Entity.IsSet(),
-		TEXT("%hs Use CreateStaticShape to create static shape without an entity"), __FUNCTION__);
+	// checkf(Entity.IsSet(),
+	// 	TEXT("%hs Use CreateStaticShape to create static shape without an entity"), __FUNCTION__);
 
 	bool bRestoreBody = true;
 
