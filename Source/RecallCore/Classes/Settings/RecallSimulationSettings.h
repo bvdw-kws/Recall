@@ -8,6 +8,7 @@
 
 #include "Engine/DeveloperSettingsBackedByCVars.h"
 #include "Settings/RecallStreamingConfig.h"
+#include "UObject/SoftObjectPtr.h"
 
 #include "RecallSimulationSettings.generated.h"
 
