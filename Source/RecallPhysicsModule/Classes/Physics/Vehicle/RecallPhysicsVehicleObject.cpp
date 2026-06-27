@@ -10,7 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "RecallPhysicsVehicleShapeTypes.h"
 #include "Kismet/KismetStringLibrary.h"
-#include "Physics/Jolt/RecallPhysicsJoltTypes.h"
+#include "Physics/JPRPhysicsMath.h"
 #include "Utility/Math/RecallMathUtils.h"
 
 #if WITH_JOLT_PHYSICS

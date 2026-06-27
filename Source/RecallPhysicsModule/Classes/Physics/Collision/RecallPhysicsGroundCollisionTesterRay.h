@@ -6,32 +6,11 @@
 
 #pragma once
 
-#include "Physics/RecallPhysicsTypes.h"
-
-#if WITH_JOLT_PHYSICS
-namespace JPH
-{
-	class PhysicsSystem;
-} // namespace JPH
-#endif // WITH_JOLT_PHYSICS
+#include "Physics/Collision/JPRPhysicsGroundCollisionTesterRay.h"
 
 /// Class that does collision detection with ground
-class RECALLPHYSICSMODULE_API FRecallPhysicsGroundCollisionTesterRay
+class RECALLPHYSICSMODULE_API FRecallPhysicsGroundCollisionTesterRay : public FJPRPhysicsGroundCollisionTesterRay
 {
 public:
-	/// Constructor
-	/// @param inObjectLayer Object layer to test collision with
-	/// @param inUp World space up vector, used to avoid colliding with vertical walls.
-	/// @param inMaxSlopeAngle Max angle (degrees) that is considered for colliding wheels. This is to avoid colliding with vertical walls.
-	FRecallPhysicsGroundCollisionTesterRay(int32 inObjectLayer, FVector inUp = FVector::UpVector, float inMaxSlopeAngle = 80.0f);
-
-#if WITH_JOLT_PHYSICS
-	bool Collide(JPH::PhysicsSystem& inPhysicsSystem, uint32 inBodyID, const FVector& inRayOrigin, const FVector& inRayDirection, float inRayLength,
-		uint32& outContactBodyID, FVector& outContactPosition, FVector& outContactNormal) const;
-#endif // WITH_JOLT_PHYSICS
-	
-private:
-	int32							mObjectLayer;
-	FVector							mUp;
-	float							mCosMaxSlopeAngle;
+	using FJPRPhysicsGroundCollisionTesterRay::FJPRPhysicsGroundCollisionTesterRay;
 };

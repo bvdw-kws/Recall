@@ -12,7 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "RecallPhysicsCommonShapeTypes.h"
 #include "Physics/RecallPhysicsTypes.h"
-#include "Physics/Jolt/RecallPhysicsJoltTypes.h"
+#include "Physics/JPRPhysicsMath.h"
 
 #if WITH_JOLT_PHYSICS
 // The Jolt headers don't include Jolt.h. Always include Jolt.h before including any other Jolt header.

@@ -9,7 +9,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "RecallPhysicsTypes.h"
-#include "Jolt/RecallPhysicsJoltTypes.h"
+#include "Physics/JPRPhysicsMath.h"
 #include "Utility/Math/RecallMathUtils.h"
 
 #if WITH_JOLT_PHYSICS

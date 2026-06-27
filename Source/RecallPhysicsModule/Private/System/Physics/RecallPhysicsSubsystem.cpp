@@ -14,7 +14,7 @@
 #include "Landscape.h"
 #include "RecallPhysicsSnapshot.h"
 #include "Physics/Factory/RecallPhysicsObjectFactory.h"
-#include "Physics/Jolt/RecallPhysicsJoltTypes.h"
+#include "Physics/JPRPhysicsMath.h"
 #include "Physics/RecallPhysicsObjects.h"
 #include "Physics/RecallPhysicsShapeTypes.h"
 #include "Settings/RecallSimulationSettings.h"
