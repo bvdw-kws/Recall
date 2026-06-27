@@ -25,7 +25,7 @@ void URecallPhysicsObjectFactory::SetupPhysicsObject(const TSharedPtr<FRecallPhy
 
 #if WITH_JOLT_PHYSICS
 	const URecallPhysicsSubsystem* PhysicsSystem = CastChecked<URecallPhysicsSubsystem>(GetOuter());
-	Body->SetPhysicsSystem(PhysicsSystem->physics_system);
-	Body->SetTempAllocator(PhysicsSystem->temp_allocator);
+	Body->SetPhysicsSystem(PhysicsSystem->GetPhysicsSystemPtr());
+	Body->SetTempAllocator(PhysicsSystem->GetTempAllocator());
 #endif // WITH_JOLT_PHYSICS
 }

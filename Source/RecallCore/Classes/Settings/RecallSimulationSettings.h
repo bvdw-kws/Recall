@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Settings/JPRPhysicsSettings.h"
+#include "Engine/DeveloperSettingsBackedByCVars.h"
 #include "Settings/RecallStreamingConfig.h"
 #include "UObject/SoftObjectPtr.h"
 
@@ -16,7 +16,7 @@
  * Settings for the Recall simulation.
  */
 UCLASS(config=Game, defaultconfig, meta=(DisplayName="Recall"))
-class RECALLCORE_API URecallSimulationSettings : public UJPRPhysicsSettings
+class RECALLCORE_API URecallSimulationSettings : public UDeveloperSettingsBackedByCVars
 {
 	GENERATED_BODY()
 

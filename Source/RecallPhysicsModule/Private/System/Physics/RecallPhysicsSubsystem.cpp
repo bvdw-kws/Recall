@@ -18,6 +18,7 @@
 #include "Physics/RecallPhysicsObjects.h"
 #include "Physics/RecallPhysicsShapeTypes.h"
 #include "Settings/RecallSimulationSettings.h"
+#include "Settings/JPRPhysicsSettings.h"
 #include "System/Entity/RecallEntitySubsystem.h"
 #include "Utility/Physics/RecallPhysicsUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
@@ -643,22 +644,14 @@ void URecallPhysicsSubsystem::ReleasePhysicsObjects()
 void URecallPhysicsSubsystem::TickPhysics(float DeltaTime)
 {
 #if WITH_JOLT_PHYSICS
-	if (physics_system.IsValid())
+	if (PhysicsSystem.IsValid())
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_TickPhysics);
 		TRACE_CPUPROFILER_EVENT_SCOPE_STR(*FString::Printf(TEXT("URecallPhysicsSubsystem::TickPhysics Update")));
 
-		const URecallSimulationSettings* SimulationSettings = GetDefault<URecallSimulationSettings>();
+		const UJPRPhysicsSettings* PhysicsSettings = GetDefault<UJPRPhysicsSettings>();
 		const float TimeDilatation = Recall::Slowmo::Utils::GetTimeDilatation(this);
-		physics_system->Update(DeltaTime * TimeDilatation, SimulationSettings->CollisionSteps, temp_allocator.Get(), job_system.Get());
-	}
-
-	if (job_system.IsValid())
-	{
-		QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_WaitForThreads);
-		TRACE_CPUPROFILER_EVENT_SCOPE_STR(*FString::Printf(TEXT("URecallPhysicsSubsystem::TickPhysics JobSystemThreadPool::WaitThreads")));
-
-		job_system->WaitThreads();
+		StepPhysics(DeltaTime, PhysicsSettings->CollisionSteps, TimeDilatation);
 	}
 #endif // WITH_JOLT_PHYSICS
 }
@@ -861,19 +854,6 @@ TWeakObjectPtr<const URecallPhysicsLayerDataAsset> URecallPhysicsSubsystem::GetP
 {
 	return PhysicsLayer;
 }
-
-#if WITH_JOLT_PHYSICS
-PhysicsSystem& URecallPhysicsSubsystem::GetPhysicsSystem() const
-{ 
-	check(physics_system.IsValid());
-	return *physics_system.Get(); 
-}
-
-BodyInterface& URecallPhysicsSubsystem::GetBodyInterface() const
-{
-	return GetPhysicsSystem().GetBodyInterface();
-}
-#endif // WITH_JOLT_PHYSICS
 
 void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct& Shape,
 	const FVector& Location, const FQuat& Rotation,
@@ -1230,7 +1210,7 @@ void URecallPhysicsSubsystem::SaveState(JPH::StateRecorder& OutState)
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallPhysicsSubsystem::SaveState"));
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_SaveState);
 
-	GetPhysicsSystem().SaveState(OutState, EStateRecorderState::All, state_recorder_filter.Get());
+	GetPhysicsSystem().SaveState(OutState, EStateRecorderState::All, StateRecorderFilter.Get());
 
 	TArray<FRecallPhysicsBodyHandle> BodyHandles;
 	BodyRefMap.GenerateKeyArray(BodyHandles);
@@ -1256,7 +1236,7 @@ bool URecallPhysicsSubsystem::RestoreState(JPH::StateRecorder& InState)
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallPhysicsSubsystem::RestoreState"));
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_RestoreState);
 
-	if (ensure(GetPhysicsSystem().RestoreState(InState, state_recorder_filter.Get())))
+	if (ensure(GetPhysicsSystem().RestoreState(InState, StateRecorderFilter.Get())))
 	{
 		TArray<FRecallPhysicsBodyHandle> BodyHandles;
 		BodyRefMap.GenerateKeyArray(BodyHandles);
@@ -1302,66 +1282,51 @@ void URecallPhysicsSubsystem::CreatePhysicsSystem()
 		RegisterTypes();
 	}
 	
-	const URecallSimulationSettings* SimulationSettings = GetDefault<URecallSimulationSettings>();
+	const UJPRPhysicsSettings* PhysicsSettings = GetDefault<UJPRPhysicsSettings>();
 
 	// We need a temp allocator for temporary allocations during the physics update. We're
 	// pre-allocating 10 MB to avoid having to do allocations during the physics update. 
 	// B.t.w. 10 MB is way too much for this example but it is a typical value you can use.
 	// If you don't want to pre-allocate you can also use TempAllocatorMalloc to fall back to
 	// malloc / free.
-	temp_allocator = TSharedPtr<TempAllocator>(new TempAllocatorImpl(10 * 1024 * 1024));
+	TempAllocator = TSharedPtr<JPH::TempAllocator>(new TempAllocatorImpl(10 * 1024 * 1024));
 
 	// We need a job system that will execute physics jobs on multiple threads. Typically
 	// you would implement the JobSystem interface yourself and let Jolt Physics run on top
 	// of your own job scheduler. JobSystemThreadPool is an example implementation.
-	job_system = TSharedPtr<JobSystemThreadPool>(new JobSystemThreadPool(
-		cMaxPhysicsJobs, cMaxPhysicsBarriers, SimulationSettings->MaxNumThreads));
+	JobSystem = TSharedPtr<JPH::JobSystemThreadPool>(new JobSystemThreadPool(
+		cMaxPhysicsJobs, cMaxPhysicsBarriers, PhysicsSettings->MaxNumThreads));
 
 	// Create mapping table from object layer to broadphase layer
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
-	broad_phase_layer_interface = TSharedPtr<BroadPhaseLayerInterface>(new FRecallBroadPhaseLayerInterfaceImpl(PhysicsLayer));
+	BroadPhaseLayerInterface = TSharedPtr<JPH::BroadPhaseLayerInterface>(new FRecallBroadPhaseLayerInterfaceImpl(PhysicsLayer));
 
 	/// Class to test if an object can collide with a broadphase layer. Used while finding collision pairs.
-	object_vs_broadphase_layer_filter = TSharedPtr<ObjectVsBroadPhaseLayerFilter>(new FRecallObjectVsBroadPhaseLayerFilter(PhysicsLayer));
+	ObjectVsBroadPhaseLayerFilter = TSharedPtr<JPH::ObjectVsBroadPhaseLayerFilter>(new FRecallObjectVsBroadPhaseLayerFilter(PhysicsLayer));
 
 	/// Filter class to test if two objects can collide based on their object layer. Used while finding collision pairs.
-	object_layer_pair_filter = TSharedPtr<ObjectLayerPairFilter>(new FRecallObjectLayerPairFilter(PhysicsLayer));
+	ObjectLayerPairFilter = TSharedPtr<JPH::ObjectLayerPairFilter>(new FRecallObjectLayerPairFilter(PhysicsLayer));
 
 	/// User callbacks that allow determining which parts of the simulation should be saved by a StateRecorder
-	state_recorder_filter = MakeShared<FRecallStateRecorderFilter>(*this);
+	StateRecorderFilter = MakeShared<FRecallStateRecorderFilter>(*this);
 
 	// Now we can create the actual physics system.
-	physics_system = TSharedPtr<PhysicsSystem>(new PhysicsSystem());
-	physics_system->Init(SimulationSettings->MaxBodies, SimulationSettings->NumBodyMutexes,
-		SimulationSettings->MaxBodyPairs, SimulationSettings->MaxContactConstraints, 
-		*broad_phase_layer_interface.Get(), *object_vs_broadphase_layer_filter.Get(), *object_layer_pair_filter.Get());
+	PhysicsSystem = TSharedPtr<JPH::PhysicsSystem>(new JPH::PhysicsSystem());
+	PhysicsSystem->Init(PhysicsSettings->MaxBodies, PhysicsSettings->NumBodyMutexes,
+		PhysicsSettings->MaxBodyPairs, PhysicsSettings->MaxContactConstraints,
+		*BroadPhaseLayerInterface.Get(), *ObjectVsBroadPhaseLayerFilter.Get(), *ObjectLayerPairFilter.Get());
 
 	// A body activation listener gets notified when bodies activate and go to sleep
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
 	body_activation_listener = MakeShared<FRecallBodyActivationListener>();
-	physics_system->SetBodyActivationListener(body_activation_listener.Get());
+	PhysicsSystem->SetBodyActivationListener(body_activation_listener.Get());
 
 	// A contact listener gets notified when bodies (are about to) collide, and when they separate again.
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
 	contact_listener = MakeShared<FRecallContactListener>();
-	physics_system->SetContactListener(contact_listener.Get());
-#endif // WITH_JOLT_PHYSICS
-}
-
-void URecallPhysicsSubsystem::DeletePhysicsSystem()
-{
-#if WITH_JOLT_PHYSICS
-	// Destroy the factory
-	if (Factory::sInstance != nullptr)
-	{
-		// Unregisters all types with the factory and cleans up the default material
-		UnregisterTypes();
-
-		delete Factory::sInstance;
-		Factory::sInstance = nullptr;
-	}
+	PhysicsSystem->SetContactListener(contact_listener.Get());
 #endif // WITH_JOLT_PHYSICS
 }
 
@@ -1511,7 +1476,7 @@ void URecallPhysicsSubsystem::RunSample()
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
-	physics_system->OptimizeBroadPhase();
+	PhysicsSystem->OptimizeBroadPhase();
 
 	// We simulate the physics world in discrete time steps. 60 Hz is a good rate to update the physics system.
 	const float cDeltaTime = 1.0f / 60.0f;
@@ -1530,7 +1495,7 @@ void URecallPhysicsSubsystem::RunSample()
 			step, position.GetX(), position.GetY(), position.GetZ(), velocity.GetX(), velocity.GetY(), velocity.GetZ());
 
 		// Step the world
-		physics_system->Update(cDeltaTime, CollisionSteps, IntegrationSubSteps, temp_allocator.Get(), job_system.Get());
+		PhysicsSystem->Update(cDeltaTime, CollisionSteps, IntegrationSubSteps, TempAllocator.Get(), JobSystem.Get());
 	}
 
 	// Remove the sphere from the physics system. Note that the sphere itself keeps all of its state and can be re-added at any time.

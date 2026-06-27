@@ -22,6 +22,7 @@ public class RecallPhysicsModule : ModuleRules
 			"Core",
 			"CoreUObject",
 			"JoltPhysics",
+			"JoltPhysicsRuntimeCore",
 			"MassCore",
 			"MassEntity",
 			"MassSpawner",
