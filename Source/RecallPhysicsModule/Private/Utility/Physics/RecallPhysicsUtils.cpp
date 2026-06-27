@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -9,7 +9,7 @@
 
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
-#include "Data/Physics/RecallPhysicsLayerDataAsset.h"
+#include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "Engine/StaticMeshActor.h"
 #include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"

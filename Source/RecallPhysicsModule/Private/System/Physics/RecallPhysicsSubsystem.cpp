@@ -8,7 +8,7 @@
 #include "System/Physics/RecallPhysicsSubsystem.h"
 
 #include "Async/ParallelFor.h"
-#include "Data/Physics/RecallPhysicsLayerDataAsset.h"
+#include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "Desync/RecallDesyncLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Landscape.h"
@@ -33,14 +33,9 @@ DEFINE_LOG_CATEGORY(LogRecallPhysics);
 #include <Jolt/Jolt.h>
 
 // Jolt includes
-#include <Jolt/RegisterTypes.h>
-#include <Jolt/Core/Factory.h>
-#include <Jolt/Core/TempAllocator.h>
-#include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Body/BodyLockMulti.h>
 #include <Jolt/Physics/Constraints/FixedConstraint.h>
-#include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/StateRecorderImpl.h>
 
@@ -88,52 +83,6 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 
 #endif // JPH_ENABLE_ASSERTS
 
-// BroadPhaseLayerInterface implementation
-// This defines a mapping between object and broadphase layers.
-class FRecallBroadPhaseLayerInterfaceImpl final : public BroadPhaseLayerInterface
-{
-public:
-	FRecallBroadPhaseLayerInterfaceImpl(TWeakObjectPtr<const URecallPhysicsLayerDataAsset> inPhysicsLayer)
-	{
-		PhysicsLayer = inPhysicsLayer;
-	}
-
-	virtual uint					GetNumBroadPhaseLayers() const override
-	{
-		if (PhysicsLayer.IsValid())
-		{
-			return PhysicsLayer->GetBroadPhaseLayerCount();
-		}
-		return 0;
-	}
-
-	virtual BroadPhaseLayer			GetBroadPhaseLayer(ObjectLayer inLayer) const override
-	{
-		if (PhysicsLayer.IsValid())
-		{
-			return static_cast<BroadPhaseLayer>(PhysicsLayer->GetObjectBroadPhaseLayerIndex(static_cast<int32>(inLayer)));
-		}
-		return static_cast<BroadPhaseLayer>(0);
-	}
-
-#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
-	virtual const char*				GetBroadPhaseLayerName(BroadPhaseLayer inLayer) const override
-	{
-		if (PhysicsLayer.IsValid())
-		{
-			return TCHAR_TO_ANSI(*PhysicsLayer->GetBroadPhaseLayerName(static_cast<int32>(inLayer.GetValue())).ToString());
-		}
-		else
-		{
-			return "INVALID";
-		}
-	}
-#endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
-
-private:
-	TWeakObjectPtr<const URecallPhysicsLayerDataAsset> PhysicsLayer;
-};
-
 struct FRecallContactEvent
 {
 	FRecallContactEvent(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold)
@@ -168,50 +117,6 @@ struct FRecallContactEvent
 	const Vec3 ImpactNormal2;
 	const uint32 SubShapeID1;
 	const uint32 SubShapeID2;
-};
-
-class FRecallObjectLayerPairFilter : public ObjectLayerPairFilter
-{
-public:
-	FRecallObjectLayerPairFilter(const TWeakObjectPtr<const URecallPhysicsLayerDataAsset>& inPhysicsLayer)
-		: PhysicsLayer(inPhysicsLayer)
-	{
-	}
-
-	/// Returns true if two layers can collide
-	virtual bool			ShouldCollide([[maybe_unused]] ObjectLayer inLayer1, [[maybe_unused]] ObjectLayer inLayer2) const override
-	{
-		if (PhysicsLayer.IsValid())
-		{
-			return PhysicsLayer->CanObjectCollide(static_cast<int32>(inLayer1), static_cast<int32>(inLayer2));
-		}
-		return true;
-	}
-
-private:
-	TWeakObjectPtr<const URecallPhysicsLayerDataAsset> PhysicsLayer;
-};
-
-class FRecallObjectVsBroadPhaseLayerFilter : public ObjectVsBroadPhaseLayerFilter
-{
-public:
-	FRecallObjectVsBroadPhaseLayerFilter(const TWeakObjectPtr<const URecallPhysicsLayerDataAsset>& inPhysicsLayer)
-		: PhysicsLayer(inPhysicsLayer)
-	{
-	}
-
-	// Function that determines if two broadphase layers can collide
-	virtual bool			ShouldCollide([[maybe_unused]] ObjectLayer inLayer1, [[maybe_unused]] BroadPhaseLayer inLayer2) const override
-	{
-		if (PhysicsLayer.IsValid())
-		{
-			return PhysicsLayer->CanObjectCollideWithBroadphase(static_cast<int32>(inLayer1), static_cast<int32>(inLayer2.GetValue()));
-		}
-		return true;
-	}
-
-private:
-	TWeakObjectPtr<const URecallPhysicsLayerDataAsset> PhysicsLayer;
 };
 
 /// User callbacks that allow determining which parts of the simulation should be saved by a StateRecorder
@@ -347,7 +252,7 @@ void URecallPhysicsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		if (const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(World->GetWorldSettings()))
 		{
-			if (const TObjectPtr<URecallPhysicsLayerDataAsset>& OverridePhysicsLayer = WorldSettings->GetOverridePhysicsLayer())
+			if (const TObjectPtr<UJPRPhysicsLayerDataAsset>& OverridePhysicsLayer = WorldSettings->GetOverridePhysicsLayer())
 			{
 				PhysicsLayer = OverridePhysicsLayer;
 			}
@@ -850,7 +755,7 @@ int32 URecallPhysicsSubsystem::GetNumContactEvents() const
 	return 0;
 }
 
-TWeakObjectPtr<const URecallPhysicsLayerDataAsset> URecallPhysicsSubsystem::GetPhysicsLayer() const
+TWeakObjectPtr<const UJPRPhysicsLayerDataAsset> URecallPhysicsSubsystem::GetPhysicsLayer() const
 {
 	return PhysicsLayer;
 }
@@ -1266,67 +1171,22 @@ bool URecallPhysicsSubsystem::RestoreState(JPH::StateRecorder& InState)
 void URecallPhysicsSubsystem::CreatePhysicsSystem()
 {
 #if WITH_JOLT_PHYSICS
-	// Register allocation hook
-	RegisterDefaultAllocator();
-
 	// Install callbacks
 	Trace = TraceImpl;
 	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
-
-	// Create a factory
-	if (Factory::sInstance == nullptr)
-	{
-		Factory::sInstance = new Factory();
-
-		// Register all Jolt physics types
-		RegisterTypes();
-	}
-	
-	const UJPRPhysicsSettings* PhysicsSettings = GetDefault<UJPRPhysicsSettings>();
-
-	// We need a temp allocator for temporary allocations during the physics update. We're
-	// pre-allocating 10 MB to avoid having to do allocations during the physics update. 
-	// B.t.w. 10 MB is way too much for this example but it is a typical value you can use.
-	// If you don't want to pre-allocate you can also use TempAllocatorMalloc to fall back to
-	// malloc / free.
-	TempAllocator = TSharedPtr<JPH::TempAllocator>(new TempAllocatorImpl(10 * 1024 * 1024));
-
-	// We need a job system that will execute physics jobs on multiple threads. Typically
-	// you would implement the JobSystem interface yourself and let Jolt Physics run on top
-	// of your own job scheduler. JobSystemThreadPool is an example implementation.
-	JobSystem = TSharedPtr<JPH::JobSystemThreadPool>(new JobSystemThreadPool(
-		cMaxPhysicsJobs, cMaxPhysicsBarriers, PhysicsSettings->MaxNumThreads));
-
-	// Create mapping table from object layer to broadphase layer
-	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
-	BroadPhaseLayerInterface = TSharedPtr<JPH::BroadPhaseLayerInterface>(new FRecallBroadPhaseLayerInterfaceImpl(PhysicsLayer));
-
-	/// Class to test if an object can collide with a broadphase layer. Used while finding collision pairs.
-	ObjectVsBroadPhaseLayerFilter = TSharedPtr<JPH::ObjectVsBroadPhaseLayerFilter>(new FRecallObjectVsBroadPhaseLayerFilter(PhysicsLayer));
-
-	/// Filter class to test if two objects can collide based on their object layer. Used while finding collision pairs.
-	ObjectLayerPairFilter = TSharedPtr<JPH::ObjectLayerPairFilter>(new FRecallObjectLayerPairFilter(PhysicsLayer));
-
-	/// User callbacks that allow determining which parts of the simulation should be saved by a StateRecorder
-	StateRecorderFilter = MakeShared<FRecallStateRecorderFilter>(*this);
-
-	// Now we can create the actual physics system.
-	PhysicsSystem = TSharedPtr<JPH::PhysicsSystem>(new JPH::PhysicsSystem());
-	PhysicsSystem->Init(PhysicsSettings->MaxBodies, PhysicsSettings->NumBodyMutexes,
-		PhysicsSettings->MaxBodyPairs, PhysicsSettings->MaxContactConstraints,
-		*BroadPhaseLayerInterface.Get(), *ObjectVsBroadPhaseLayerFilter.Get(), *ObjectLayerPairFilter.Get());
 
 	// A body activation listener gets notified when bodies activate and go to sleep
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
 	body_activation_listener = MakeShared<FRecallBodyActivationListener>();
-	PhysicsSystem->SetBodyActivationListener(body_activation_listener.Get());
 
 	// A contact listener gets notified when bodies (are about to) collide, and when they separate again.
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
 	contact_listener = MakeShared<FRecallContactListener>();
-	PhysicsSystem->SetContactListener(contact_listener.Get());
+
+	UJPRPhysicsSubsystem::CreatePhysicsSystem(*PhysicsLayer, body_activation_listener.Get(), contact_listener.Get(),
+		MakeShared<FRecallStateRecorderFilter>(*this));
 #endif // WITH_JOLT_PHYSICS
 }
 
@@ -1382,7 +1242,7 @@ void URecallPhysicsSubsystem::ClearLayerOverride(const FRecallPhysicsBodyHandle&
 
 		if (BodyRef->Body.IsValid())
 		{
-			const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(BodyRef->Params.Layer);
+			const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(BodyRef->Params.Layer);
 #if WITH_JOLT_PHYSICS
 			GetBodyInterface().SetObjectLayer(BodyID(BodyRef->Body->GetBodyID()), (ObjectLayer)Layer);
 #endif // WITH_JOLT_PHYSICS

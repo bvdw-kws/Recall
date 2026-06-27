@@ -103,7 +103,7 @@ public:
 
 	int32 GetNumContactEvents() const;
 
-	TWeakObjectPtr<const class URecallPhysicsLayerDataAsset> GetPhysicsLayer() const;
+	TWeakObjectPtr<const class UJPRPhysicsLayerDataAsset> GetPhysicsLayer() const;
 	bool ShouldRestorePhysicsBody(const uint32 BodyID) const;
 
 	/**
@@ -183,7 +183,7 @@ protected:
 
 protected:
 	UPROPERTY(Transient)
-	TObjectPtr<const class URecallPhysicsLayerDataAsset> PhysicsLayer;
+	TObjectPtr<const class UJPRPhysicsLayerDataAsset> PhysicsLayer;
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class ALandscape> LandscapeActor;
 	UPROPERTY(Transient)

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -7,7 +7,7 @@
 
 #include "RecallPhysicsCommonObjectFactory.h"
 
-#include "Data/Physics/RecallPhysicsLayerDataAsset.h"
+#include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "RecallPhysicsCommonObjects.h"
 #include "RecallPhysicsCommonShapeTypes.h"
 #include "Physics/RecallPhysicsTypes.h"
@@ -20,7 +20,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsBoxObjectFactory::BuildPhysicsObjec
 	
 	SetupPhysicsObject(BoxBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	BoxBody->InitBox(BoxShape.WorldExtents, Params, BodyID, Layer);
 	
 	return BoxBody;
@@ -34,7 +34,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsSphereObjectFactory::BuildPhysicsOb
 	
 	SetupPhysicsObject(SphereBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	SphereBody->InitSphere(SphereShape.RadiusCentimeters, Params, BodyID, Layer);
 	
 	return SphereBody;
@@ -48,7 +48,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsCapsuleObjectFactory::BuildPhysicsO
 	
 	SetupPhysicsObject(CapsuleBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	CapsuleBody->InitCapsule(CapsuleShape.RadiusCentimeters, CapsuleShape.HalfHeightCentimeters, Params, BodyID, Layer);
 	
 	return CapsuleBody;
@@ -62,7 +62,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsMeshObjectFactory::BuildPhysicsObje
 	
 	SetupPhysicsObject(MeshBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	MeshBody->InitMesh(MeshShape, Params, BodyID, Layer);
 	
 	return MeshBody;
@@ -76,7 +76,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsConvexHullObjectFactory::BuildPhysi
 	
 	SetupPhysicsObject(ConvexHullBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	ConvexHullBody->InitConvexHull(ConvexHullShape.Vertices, Params, BodyID, Layer);
 	
 	return ConvexHullBody;
@@ -90,7 +90,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsHeightFieldObjectFactory::BuildPhys
 	
 	SetupPhysicsObject(HeightFieldBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	HeightFieldBody->InitHeightField(HeightFieldShape.SizeX, HeightFieldShape.SizeY, HeightFieldShape.Heights,
 		HeightFieldShape.Scale, Params, BodyID, Layer);
 	
@@ -105,7 +105,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsStaticCompoundObjectFactory::BuildP
 	
 	SetupPhysicsObject(StaticCompoundBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	StaticCompoundBody->InitStaticCompound(StaticCompoundShape, Params, BodyID, Layer);
 	
 	return StaticCompoundBody;

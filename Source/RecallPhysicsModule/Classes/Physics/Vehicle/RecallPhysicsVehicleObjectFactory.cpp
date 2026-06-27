@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -7,7 +7,7 @@
 
 #include "RecallPhysicsVehicleObjectFactory.h"
 
-#include "Data/Physics/RecallPhysicsLayerDataAsset.h"
+#include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "RecallPhysicsVehicleObject.h"
 #include "RecallPhysicsVehicleShapeTypes.h"
 
@@ -19,7 +19,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsVehicleObjectFactory::BuildPhysicsO
 	
 	SetupPhysicsObject(VehicleBody);
 	
-	const int32 Layer = URecallPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
+	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	VehicleBody->InitVehicle(VehicleShape, Params, BodyID, Layer);
 	
 	return VehicleBody;
