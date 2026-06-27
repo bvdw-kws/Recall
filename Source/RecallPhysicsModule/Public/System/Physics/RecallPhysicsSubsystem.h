@@ -7,7 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/WorldSubsystem.h"
+#include "System/JPRPhysicsSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
 #include "Mass/ExternalSubsystemTraits.h"
 #include "Physics/RecallPhysicsBodyHandle.h"
@@ -25,20 +25,12 @@ DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysics, Log, All);
 #if WITH_JOLT_PHYSICS
 namespace JPH
 {
-	class TempAllocator;
-	class PhysicsSystem;
-	class BodyInterface;
 	class Body;
 	class BodyID;
-	class JobSystemThreadPool;
-	class BroadPhaseLayerInterface;
 	class StateRecorder;
 
 	class BroadPhaseLayer;
 	using ObjectLayer = uint16;
-	class ObjectVsBroadPhaseLayerFilter;
-	class ObjectLayerPairFilter;
-	class StateRecorderFilter;
 } // namespace JPH
 
 class FRecallBodyActivationListener;
@@ -50,7 +42,7 @@ class FRecallPhysicsBody;
 struct FRecallPhysicsBodySnapshot;
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsSubsystem : public UWorldSubsystem, public IRecallSimulationReactSystemInterface
+class RECALLPHYSICSMODULE_API URecallPhysicsSubsystem : public UJPRPhysicsSubsystem, public IRecallSimulationReactSystemInterface
 {
 	GENERATED_BODY()
 
@@ -165,14 +157,6 @@ protected:
 
 protected:
 #if WITH_JOLT_PHYSICS
-	TSharedPtr<JPH::TempAllocator> temp_allocator;
-	TSharedPtr<JPH::JobSystemThreadPool> job_system;
-	TSharedPtr<JPH::PhysicsSystem> physics_system;
-	TSharedPtr<JPH::BroadPhaseLayerInterface> broad_phase_layer_interface;
-	TSharedPtr<JPH::ObjectVsBroadPhaseLayerFilter> object_vs_broadphase_layer_filter;
-	TSharedPtr<JPH::ObjectLayerPairFilter> object_layer_pair_filter;
-	TSharedPtr<JPH::StateRecorderFilter> state_recorder_filter;
-
 	TSharedPtr<FRecallBodyActivationListener> body_activation_listener;
 	TSharedPtr<FRecallContactListener> contact_listener;
 #endif // WITH_JOLT_PHYSICS
@@ -219,7 +203,6 @@ protected:
 	void ReleaseBody_Internal(const FRecallPhysicsBodyHandle& Handle, bool bCleanUp = false);
 
 	void CreatePhysicsSystem();
-	void DeletePhysicsSystem();
 	
 	void OnActorsInitialized(const FActorsInitializedParams& Params);
 
@@ -230,9 +213,6 @@ protected:
 #if WITH_JOLT_PHYSICS
 	friend class URecallPhysicsObjectFactory;
 	
-	JPH::PhysicsSystem& GetPhysicsSystem() const;
-	JPH::BodyInterface& GetBodyInterface() const;
-
 	void SaveState(JPH::StateRecorder& OutState);
 	bool RestoreState(JPH::StateRecorder& InState);
 #endif // WITH_JOLT_PHYSICS

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Physics/JPRPhysicsBody.h"
 
 struct FRecallPhysicsBodyParameters;
 
@@ -34,15 +35,18 @@ DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysicsObject, Log, All);
 * These Objects help us to keep track of Jolt Physics shape reference.
 * They also give us some interface to work with Jolt Physics without including all the source files.
 */
-class RECALLPHYSICSMODULE_API FRecallPhysicsBody
+class RECALLPHYSICSMODULE_API FRecallPhysicsBody : public FJPRPhysicsBody
 {
 public:
-	FRecallPhysicsBody() {}
-	virtual ~FRecallPhysicsBody() {}
+	FRecallPhysicsBody() = default;
+	virtual ~FRecallPhysicsBody() override = default;
 
 public:
-	bool IsEnabled() const { return bEnabled; }
-	bool DoesTriggerHitEvents() const { return bTriggerHitEvents; }
+	bool IsEnabled() const;
+	bool DoesTriggerHitEvents() const;
+
+	void SetWorldContextObject(UObject* Object);
+	UObject* GetWorldContextObject() const;
 
 	uint32 GetBodyID() const;
 
@@ -287,17 +291,6 @@ public:
 public:
 	// This will be called before physics system is destroyed
 	virtual void ReleasePhysicsObject();
-
-public:
-	void SetWorldContextObject(UObject* Object) { world_context_object = Object; }
-	UObject* GetWorldContextObject() const { return world_context_object.Get(); }
-
-protected:
-	bool bEnabled{ false };
-	bool bTriggerHitEvents{ true };
-
-private:
-	TWeakObjectPtr<UObject> world_context_object;
 
 #if WITH_JOLT_PHYSICS
 public:

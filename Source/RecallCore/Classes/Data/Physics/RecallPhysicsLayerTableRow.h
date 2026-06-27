@@ -7,16 +7,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataTable.h"
+#include "Physics/JPRPhysicsLayerTableRow.h"
 
 #include "RecallPhysicsLayerTableRow.generated.h"
 
 USTRUCT(BlueprintType)
-struct RECALLCORE_API FRecallPhysicsLayerTableRow : public FTableRowBase
+struct RECALLCORE_API FRecallPhysicsLayerTableRow : public FJPRPhysicsLayerTableRow
 {
 	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere)
-	FText LayerDescription;
 };

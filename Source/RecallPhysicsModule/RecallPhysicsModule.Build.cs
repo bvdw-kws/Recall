@@ -14,7 +14,10 @@ public class RecallPhysicsModule : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Engine" });
+		PublicDependencyModuleNames.AddRange(new string[] {
+			"Engine",
+			"JoltPhysicsRuntime",
+		});
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",

@@ -19,6 +19,7 @@ public class RecallCore : ModuleRules
 			"NetCore", 
 			"GameplayTags",
 			"DeveloperSettings",
+			"JoltPhysicsRuntimeCore",
 		});
 		
 		PrivateDependencyModuleNames.AddRange(new string[] {

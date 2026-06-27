@@ -45,6 +45,26 @@ using namespace std;
 
 DEFINE_LOG_CATEGORY(LogRecallPhysicsObject);
 
+bool FRecallPhysicsBody::IsEnabled() const
+{
+	return FJPRPhysicsBody::IsEnabled();
+}
+
+bool FRecallPhysicsBody::DoesTriggerHitEvents() const
+{
+	return FJPRPhysicsBody::DoesTriggerHitEvents();
+}
+
+void FRecallPhysicsBody::SetWorldContextObject(UObject* Object)
+{
+	FJPRPhysicsBody::SetWorldContextObject(Object);
+}
+
+UObject* FRecallPhysicsBody::GetWorldContextObject() const
+{
+	return FJPRPhysicsBody::GetWorldContextObject();
+}
+
 #if WITH_JOLT_PHYSICS
 void FRecallPhysicsBody::SetupBodyCreationSettings(BodyCreationSettings& body_creation_settings, const FRecallPhysicsBodyParameters& Params)
 {
