@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -86,11 +86,11 @@ static void ApplyWheelSettings(const FRecallPhysicsVehicleWheelSettings& WheelSe
 	CopyCurveFloat(WheelSettings.LongitudinalFriction, w->mLongitudinalFriction, WheelSettings.LongitudinalFrictionScale);
 	CopyCurveFloat(WheelSettings.LateralFriction, w->mLateralFriction, WheelSettings.LateralFrictionScale);
 	
-	if (WheelSettings.SuspensionSpring.Mode == ERecallPhysicsSpringMode::FrequencyAndDamping)
+	if (WheelSettings.SuspensionSpring.Mode == EJPRPhysicsSpringMode::FrequencyAndDamping)
 	{
 		w->mSuspensionSpring = SpringSettings(ESpringMode::FrequencyAndDamping, WheelSettings.SuspensionSpring.Frequency, WheelSettings.SuspensionSpring.Damping);
 	}
-	else if (WheelSettings.SuspensionSpring.Mode == ERecallPhysicsSpringMode::StiffnessAndDamping)
+	else if (WheelSettings.SuspensionSpring.Mode == EJPRPhysicsSpringMode::StiffnessAndDamping)
 	{
 		w->mSuspensionSpring = SpringSettings(ESpringMode::StiffnessAndDamping, WheelSettings.SuspensionSpring.Stiffness, WheelSettings.SuspensionSpring.Damping);
 	}
@@ -108,7 +108,7 @@ struct FRecallPhysicsVehicleWheelOffset
 	bool bIsFrontWheel = false;
 };
 
-void FRecallPhysicsVehicleBody::InitVehicle(const FRecallPhysicsVehicleShape& VehicleShape, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+void FRecallPhysicsVehicleBody::InitVehicle(const FRecallPhysicsVehicleShape& VehicleShape, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 	const FVector half_size = UnrealToJoltPhysicsScale(FVector(VehicleShape.Length, VehicleShape.Width, VehicleShape.Height) * 0.5f);

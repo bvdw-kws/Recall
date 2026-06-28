@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,8 +16,8 @@ struct FRecallPhysicsCapsuleShape;
 class RECALLPHYSICSMODULE_API FRecallPhysicsCapsuleBody : public FRecallPhysicsBody
 {
 public:
-	void InitCapsule(float Radius, float HalfHeight, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
-	void InitCapsule(const FRecallPhysicsCapsuleShape& CapsuleShape, const FRecallPhysicsBodyParameters& Params,
+	void InitCapsule(float Radius, float HalfHeight, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
+	void InitCapsule(const FRecallPhysicsCapsuleShape& CapsuleShape, const FJPRPhysicsBodyParameters& Params,
 		uint32 InBodyID, int32 Layer);
 
 public:
@@ -31,7 +31,7 @@ public:
 class RECALLPHYSICSMODULE_API FRecallPhysicsSphereBody : public FRecallPhysicsBody
 {
 public:
-	void InitSphere(float Radius, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
+	void InitSphere(float Radius, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
 
 public:
 	virtual void DrawDebugShape(const UWorld* World, const FColor& Color) const override;
@@ -44,7 +44,7 @@ public:
 class RECALLPHYSICSMODULE_API FRecallPhysicsBoxBody : public FRecallPhysicsBody
 {
 public:
-	void InitBox(const FVector& Extents, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
+	void InitBox(const FVector& Extents, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
 
 public:
 	virtual void DrawDebugShape(const UWorld* World, const FColor& Color) const override;
@@ -57,7 +57,7 @@ public:
 class RECALLPHYSICSMODULE_API FRecallPhysicsMeshBody : public FRecallPhysicsBody
 {
 public:
-	void InitMesh(const struct FRecallPhysicsMeshShape& MeshShape, const FRecallPhysicsBodyParameters& Params,
+	void InitMesh(const struct FRecallPhysicsMeshShape& MeshShape, const FJPRPhysicsBodyParameters& Params,
 		uint32 InBodyID, int32 Layer);
 
 public:
@@ -73,7 +73,7 @@ private:
 class RECALLPHYSICSMODULE_API FRecallPhysicsStaticCompoundBody : public FRecallPhysicsBody
 {
 public:
-	void InitStaticCompound(const struct FRecallPhysicsStaticCompoundShape& StaticCompoundShape, const FRecallPhysicsBodyParameters& Params,
+	void InitStaticCompound(const struct FRecallPhysicsStaticCompoundShape& StaticCompoundShape, const FJPRPhysicsBodyParameters& Params,
 		uint32 InBodyID, int32 Layer);
 
 public:
@@ -99,7 +99,7 @@ private:
 class RECALLPHYSICSMODULE_API FRecallPhysicsConvexHullBody : public FRecallPhysicsBody
 {
 public:
-	void InitConvexHull(const TArray<FVector3f>& WorldVertices, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
+	void InitConvexHull(const TArray<FVector3f>& WorldVertices, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
 
 public:
 	virtual void DrawDebugShape(const UWorld* World, const FColor& Color) const override;
@@ -113,7 +113,7 @@ class RECALLPHYSICSMODULE_API FRecallPhysicsHeightFieldBody : public FRecallPhys
 {
 public:
 	void InitHeightField(int32 SizeX, int32 SizeY, const TArray<float>& Heights, const FVector& Scale,
-		const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
+		const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
 
 public:
 	virtual void DrawDebugShape(const UWorld* World, const FColor& Color) const override;

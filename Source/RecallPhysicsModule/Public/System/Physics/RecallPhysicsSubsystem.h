@@ -48,7 +48,7 @@ class RECALLPHYSICSMODULE_API URecallPhysicsSubsystem : public UJPRPhysicsSubsys
 
 public:
 	template<typename T=FRecallPhysicsShape>
-	FRecallPhysicsBodyHandle CreateShape(const FMassEntityHandle& Entity, const T& Shape, const FRecallPhysicsBodyParameters& Params)
+	FRecallPhysicsBodyHandle CreateShape(const FMassEntityHandle& Entity, const T& Shape, const FJPRPhysicsBodyParameters& Params)
 	{
 		// Make sure that we do not call this outside of the simulation.
 		CheckSimulationProcessingPhase();
@@ -93,7 +93,7 @@ public:
 	void ClearLayerOverride(const FRecallPhysicsBodyHandle& Handle);
 	bool HasLayerOverride(const FRecallPhysicsBodyHandle& Handle) const;
 
-	void SetMotionType(const FRecallPhysicsBodyHandle& Handle, ERecallPhysicsMotionType MotionType, ERecallPhysicsActivation ActivationMode = ERecallPhysicsActivation::Activate);
+	void SetMotionType(const FRecallPhysicsBodyHandle& Handle, EJPRPhysicsMotionType MotionType, EJPRPhysicsActivation ActivationMode = EJPRPhysicsActivation::Activate);
 	void ResetMotionType(const FRecallPhysicsBodyHandle& Handle);
 
 	void GenerateHitEvents(const TSet<FRecallPhysicsBodyHandle>& GeneratesHitEventsBodyHandles);
@@ -146,7 +146,7 @@ protected:
 		const FQuat& Rotation, const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction);
 
 	void CreateShape_Internal(const FMassEntityHandle& Entity, const FInstancedStruct& Shape,
-		const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FRecallPhysicsBodyParameters& Params,
+		const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FJPRPhysicsBodyParameters& Params,
 		FRecallPhysicsBodyHandle& Handle);
 	void CheckSimulationProcessingPhase() const;
 	
@@ -166,10 +166,10 @@ protected:
 		FMassEntityHandle Entity;
 		TSharedPtr<FRecallPhysicsBody> Body;
 		FInstancedStruct Shape;
-		FRecallPhysicsBodyParameters Params;
+		FJPRPhysicsBodyParameters Params;
 		bool bRestoreBody = true;
 		TUniquePtr<uint16> LayerOverride;
-		TUniquePtr<ERecallPhysicsMotionType> MotionTypeOverride;
+		TUniquePtr<EJPRPhysicsMotionType> MotionTypeOverride;
 	};
 	TMap<FRecallPhysicsBodyHandle, FRecallPhysicsBodyRef> BodyRefMap;
 	TMap<uint32, FRecallPhysicsBodyHandle> BodyHandleMap;

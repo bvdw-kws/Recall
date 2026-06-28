@@ -65,8 +65,8 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsBodyFragment : public FMassFragment
 	UPROPERTY(VisibleAnywhere, meta=(Bitmask, BitmaskEnum="/Script/RecallPhysicsModule.ERecallPhysicsBodyStartParameters"))
 	uint8 StartParameters = 0;
 	
-	UPROPERTY(VisibleAnywhere, meta=(Bitmask, BitmaskEnum="/Script/RecallPhysicsModule.ERecallPhysicsTransformCopyParameters"))
-	uint8 TransformCopy = static_cast<uint8>(ERecallPhysicsTransformCopyParameters::All);	
+	UPROPERTY(VisibleAnywhere, meta=(Bitmask, BitmaskEnum="/Script/RecallPhysicsModule.EJPRPhysicsTransformCopyParameters"))
+	uint8 TransformCopy = static_cast<uint8>(EJPRPhysicsTransformCopyParameters::All);	
 
 	FORCEINLINE bool ShouldStartEnabled() const
 	{
@@ -80,16 +80,16 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsBodyFragment : public FMassFragment
 	
 	FORCEINLINE bool ShouldCopyPositionAndRotation() const
 	{
-		return EnumHasAnyFlags(TransformCopy, ERecallPhysicsTransformCopyParameters::CopyLocationAndRotation);
+		return EnumHasAnyFlags(TransformCopy, EJPRPhysicsTransformCopyParameters::CopyLocationAndRotation);
 	}
 	
 	FORCEINLINE bool ShouldCopyPosition() const
 	{
-		return EnumHasAnyFlags(TransformCopy, ERecallPhysicsTransformCopyParameters::CopyLocation);
+		return EnumHasAnyFlags(TransformCopy, EJPRPhysicsTransformCopyParameters::CopyLocation);
 	}
 	
 	FORCEINLINE bool ShouldCopyRotation() const
 	{
-		return EnumHasAnyFlags(TransformCopy, ERecallPhysicsTransformCopyParameters::CopyRotation);
+		return EnumHasAnyFlags(TransformCopy, EJPRPhysicsTransformCopyParameters::CopyRotation);
 	}
 };

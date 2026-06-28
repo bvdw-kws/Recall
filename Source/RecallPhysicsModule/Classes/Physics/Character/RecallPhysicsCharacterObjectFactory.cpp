@@ -14,7 +14,7 @@
 #include "Physics/RecallPhysicsTypes.h"
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsCharacterObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsCharacter& CharacterShape = Shape.Get<FRecallPhysicsCharacter>();
 	const TSharedPtr<FRecallPhysicsCharacterBody> CharacterBody = MakeShared<FRecallPhysicsCharacterBody>();
@@ -28,7 +28,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsCharacterObjectFactory::BuildPhysic
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsCharacterVirtualObjectFactory::BuildPhysicsObject(uint32 BodyID,
-	const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+	const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsCharacterVirtual& CharacterVirtualShape = Shape.Get<FRecallPhysicsCharacterVirtual>();
 	const TSharedPtr<FRecallPhysicsCharacterVirtualBody> CharacterBody = MakeShared<FRecallPhysicsCharacterVirtualBody>();

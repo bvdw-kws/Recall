@@ -9,26 +9,6 @@
 #include "CoreMinimal.h"
 #include "Physics/JPRPhysicsBody.h"
 
-struct FRecallPhysicsBodyParameters;
-
-#ifndef WITH_JOLT_PHYSICS
-#define WITH_JOLT_PHYSICS 0
-#endif // WITH_JOLT_PHYSICS
-
-#if WITH_JOLT_PHYSICS
-namespace JPH
-{
-	class Body;
-	class BodyID;
-	class BodyInterface;
-	class PhysicsSystem;
-	class StateRecorder;
-	class SphereShape;
-	class BodyCreationSettings;
-	class TempAllocator;
-} // namespace JPH
-#endif // WITH_JOLT_PHYSICS
-
 DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysicsObject, Log, All);
 
 /**
@@ -42,32 +22,6 @@ public:
 	virtual ~FRecallPhysicsBody() override = default;
 
 public:
-	bool IsEnabled() const;
-	bool DoesTriggerHitEvents() const;
-	uint32 GetBodyID() const;
-	void SetActive(bool bActive);
-	virtual void Activate() override;
-	virtual void Desactivate() override;
-	virtual void ReleasePhysicsObject() override;
-
-	virtual void SetPosition(const FVector& Position) const override;
-	virtual void SetRotation(const FQuat& Rotation) const override;
-	virtual void GetPositionAndRotation(FVector& OutPosition, FQuat& OutRotation) const override;
-	virtual void SetPositionAndRotation(const FVector& Position, const FQuat& Rotation) const override;
-	void GetPosition(FVector& OutPosition) const;
-	FTransform GetTransform() const;
-	void SetRotation(const FRotator& Rotation) const;
-	void GetRotation(FQuat& OutRotation) const;
-	FVector GetForwardVector() const;
-	FVector GetRightVector() const;
-	bool CollideShape(const FVector& Position, uint32& OutContactBodyID, FVector& OutContactPosition, FVector& OutContactNormal) const;
-	bool ShapeCast(const FVector& Position, const FVector& Direction, float Distance,
-		uint32& OutContactBodyID, FVector& OutContactPosition, FVector& OutContactNormal) const;
-	float GetMass() const;
-
-	void SetWorldContextObject(UObject* Object);
-	UObject* GetWorldContextObject() const;
-
 	/* Velocity */
 
 	/**
@@ -135,10 +89,6 @@ public:
 	 */
 	FVector GetAngularVelocity() const;
 
-#if !UE_BUILD_SHIPPING
-	virtual void DumpObject() const;
-#endif // !UE_BUILD_SHIPPING
-
 	/**
 	 * Adds to the linear velocity of this body.
 	 * @param LinearVelocity Velocity to add (cm/s)
@@ -166,38 +116,4 @@ public:
 	 * @note May differ from GetForwardVector in physics objects with special movement handling.
 	 */
 	virtual FVector GetMovementForwardVector() const;
-
-	/**
-	 * Draws a debug visualization of this body's shape in the world.
-	 * @param World The world context for debug drawing
-	 * @param Color Color to draw in
-	 * @note Only available in non-shipping builds.
-	 */
-	virtual void DrawDebugShape(const UWorld* World, const FColor& Color) const {}
-
-	/**
-	 * Draws debug information about this body (velocities, forces, etc).
-	 * @param World The world context for debug drawing
-	 * @param Color Color to draw in
-	 * @note Only available in non-shipping builds.
-	 */
-	virtual void DrawDebugInfo(const UWorld* World, const FColor& Color) const {}
-
-#if WITH_JOLT_PHYSICS
-public:
-	virtual void SaveState(JPH::StateRecorder& State) {}
-	virtual void RestoreState(JPH::StateRecorder& State) {}
-	
-	/**
-	 * Helper method to save a FVector to the state recorder.
-	 */
-	static void SaveVector(JPH::StateRecorder& State, const FVector& Vec);
-	
-	/**
-	 * Helper method to restore a FVector from the state recorder.
-	 */
-	static void RestoreVector(JPH::StateRecorder& State, FVector& Vec);
-protected:
-	static void SetupBodyCreationSettings(JPH::BodyCreationSettings& body_creation_settings, const FRecallPhysicsBodyParameters& Params);
-#endif // WITH_JOLT_PHYSICS
 };

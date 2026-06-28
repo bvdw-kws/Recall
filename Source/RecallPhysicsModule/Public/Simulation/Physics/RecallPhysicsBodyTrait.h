@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -27,7 +27,7 @@ public:
 
 public:
 	static void BuildBodyTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World,
-		ERecallPhysicsBodyStartParameters StartParams, ERecallPhysicsTransformCopyParameters TransformCopyParams,
+		ERecallPhysicsBodyStartParameters StartParams, EJPRPhysicsTransformCopyParameters TransformCopyParams,
 		const FVector& Extents, bool bIsStatic = false);
 	
 protected:
@@ -40,8 +40,8 @@ protected:
 	bool bStartsEnabled = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Collision)
-	ERecallPhysicsTransformCopyParameters TransformCopy = ERecallPhysicsTransformCopyParameters::All;
+	EJPRPhysicsTransformCopyParameters TransformCopy = EJPRPhysicsTransformCopyParameters::All;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Collision)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 };

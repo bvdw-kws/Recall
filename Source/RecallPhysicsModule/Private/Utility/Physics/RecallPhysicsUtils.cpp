@@ -386,7 +386,7 @@ void GenerateSplineMeshAlongSpline(
 }
 
 void InitializePhysicsBody(FMassExecutionContext& Context, const FMassEntityHandle& Entity,
-	URecallPhysicsSubsystem& PhysicsSystem, const FRecallPhysicsBodyFragment& BodyFragment, const FRecallPhysicsBodyParameters& BodyParams)
+	URecallPhysicsSubsystem& PhysicsSystem, const FRecallPhysicsBodyFragment& BodyFragment, const FJPRPhysicsBodyParameters& BodyParams)
 {
 	const TWeakPtr<FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
 

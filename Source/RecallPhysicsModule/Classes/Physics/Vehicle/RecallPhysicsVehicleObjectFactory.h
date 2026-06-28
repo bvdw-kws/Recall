@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -17,5 +17,5 @@ class RECALLPHYSICSMODULE_API URecallPhysicsVehicleObjectFactory : public URecal
 
 public:
 	TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const override;
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };

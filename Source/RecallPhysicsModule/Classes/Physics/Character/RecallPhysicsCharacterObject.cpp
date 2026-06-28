@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -91,7 +91,7 @@ void FRecallPhysicsCharacterBody::RestoreState(StateRecorder& State)
 #endif // WITH_JOLT_PHYSICS
 
 void FRecallPhysicsCharacterBody::InitCharacter(const FRecallPhysicsCharacter& CharacterShape,
-	const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 InLayer)
+	const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 InLayer)
 {
 #if WITH_JOLT_PHYSICS
 	const TSharedPtr<BodyID> NewBodyID(new BodyID(InBodyID));

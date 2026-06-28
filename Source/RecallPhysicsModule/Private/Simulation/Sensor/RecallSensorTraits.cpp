@@ -38,12 +38,12 @@ void URecallSensorTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCon
 
 		const FRecallSensorSettings& Settings = Sensors[SensorName];
 
-		FRecallPhysicsBodyParameters Params;
-		Params.MotionType = ERecallPhysicsMotionType::Dynamic;
+		FJPRPhysicsBodyParameters Params;
+		Params.MotionType = EJPRPhysicsMotionType::Dynamic;
 		Params.Layer = Settings.SensorLayer;
 		Params.bIsSensor = true;
 		Params.GravityFactor = 0.0f;
-		Params.OverrideMassProperties = ERecallPhysicsOverrideMassProperties::MassAndInertiaProvided;
+		Params.OverrideMassProperties = EJPRPhysicsOverrideMassProperties::MassAndInertiaProvided;
 		Params.MassPropertiesOverride.Mass = 0.001f;
 
 		FRecallSensorInstanceParameters& Instance = SharedFragment.InstanceParameters.AddDefaulted_GetRef();

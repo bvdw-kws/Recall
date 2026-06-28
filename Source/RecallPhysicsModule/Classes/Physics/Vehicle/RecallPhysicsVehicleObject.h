@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -23,7 +23,7 @@ namespace JPH
 class RECALLPHYSICSMODULE_API FRecallPhysicsVehicleBody : public FRecallPhysicsBody
 {
 public:
-	void InitVehicle(const FRecallPhysicsVehicleShape& VehicleShape, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
+	void InitVehicle(const FRecallPhysicsVehicleShape& VehicleShape, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);
 	
 	void SetDriverInput(float Forward, float Right, float Brake, float HandBrake);
 	void GetDriverInput(float& OutForward, float& OutRight, float& OutBrake, float& OutHandBrake) const;

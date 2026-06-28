@@ -774,8 +774,8 @@ FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Inter
 	const FVector& Location, const FQuat& Rotation,
 	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction)
 {
-	FRecallPhysicsBodyParameters Params;
-	Params.MotionType = ERecallPhysicsMotionType::Static;
+	FJPRPhysicsBodyParameters Params;
+	Params.MotionType = EJPRPhysicsMotionType::Static;
 	Params.Friction = Friction;
 	Params.bAllowDynamicOrKinematic = true;
 	if (PhysicsLayer)
@@ -823,7 +823,7 @@ URecallPhysicsObjectFactory* URecallPhysicsSubsystem::CreateShapeFactory(
 }
 
 void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Entity, const FInstancedStruct& Shape,
-	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FRecallPhysicsBodyParameters& Params,
+	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FJPRPhysicsBodyParameters& Params,
 	FRecallPhysicsBodyHandle& Handle)
 {
 	// checkf(Entity.IsSet(),
@@ -1250,7 +1250,7 @@ void URecallPhysicsSubsystem::ClearLayerOverride(const FRecallPhysicsBodyHandle&
 	}
 }
 
-void URecallPhysicsSubsystem::SetMotionType(const FRecallPhysicsBodyHandle& Handle, ERecallPhysicsMotionType MotionType, ERecallPhysicsActivation ActivationMode /*= ERecallPhysicsActivation::Activate*/)
+void URecallPhysicsSubsystem::SetMotionType(const FRecallPhysicsBodyHandle& Handle, EJPRPhysicsMotionType MotionType, EJPRPhysicsActivation ActivationMode /*= EJPRPhysicsActivation::Activate*/)
 {
 	FScopeLock Lock(&DataGuard);
 	if (FRecallPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
@@ -1277,7 +1277,7 @@ void URecallPhysicsSubsystem::SetMotionType(const FRecallPhysicsBodyHandle& Hand
 			}
 			else
 			{
-				BodyRef->MotionTypeOverride = MakeUnique<ERecallPhysicsMotionType>(MotionType);
+				BodyRef->MotionTypeOverride = MakeUnique<EJPRPhysicsMotionType>(MotionType);
 			}
 
 			GetBodyInterface().SetMotionType(bodyID, (EMotionType)MotionType, (EActivation)ActivationMode);

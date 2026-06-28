@@ -31,7 +31,7 @@ struct FRecallPhysicsBodySnapshot
 	FInstancedStruct Shape;
 
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 
 	UPROPERTY(VisibleAnywhere)
 	bool bUseLayerOverride{ false };
@@ -43,7 +43,7 @@ struct FRecallPhysicsBodySnapshot
 	bool bUseMotionTypeOverride{ false };
 
 	UPROPERTY(VisibleAnywhere)
-	ERecallPhysicsMotionType MotionTypeOverride{ ERecallPhysicsMotionType::MAX };
+	EJPRPhysicsMotionType MotionTypeOverride{ EJPRPhysicsMotionType::MAX };
 };
 
 USTRUCT()

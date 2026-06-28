@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -51,7 +51,7 @@ using namespace std;
 #endif // WITH_JOLT_PHYSICS
 
 // FRecallPhysicsSphereBody Begin
-void FRecallPhysicsSphereBody::InitSphere(float Radius, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+void FRecallPhysicsSphereBody::InitSphere(float Radius, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 	BodyCreationSettings sphere_settings(new SphereShape(Radius * UnrealToJoltPhysicsUnitScale), RVec3::sZero(), Quat::sIdentity(), (EMotionType)Params.MotionType, (ObjectLayer)Layer);
@@ -91,7 +91,7 @@ void FRecallPhysicsSphereBody::DrawDebugShape(const UWorld* World, const FColor&
 // FRecallPhysicsSphereBody End
 
 // FRecallPhysicsBoxBody Begin
-void FRecallPhysicsBoxBody::InitBox(const FVector& Extents, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+void FRecallPhysicsBoxBody::InitBox(const FVector& Extents, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 	const FVector PhysicsExtents = UnrealToJoltPhysicsScale(Extents);
@@ -135,7 +135,7 @@ void FRecallPhysicsBoxBody::DrawDebugShape(const UWorld* World, const FColor& Co
 // FRecallPhysicsBoxBody End
 
 // FRecallPhysicsCapsuleBody Begin
-void FRecallPhysicsCapsuleBody::InitCapsule(float Radius, float HalfHeight, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+void FRecallPhysicsCapsuleBody::InitCapsule(float Radius, float HalfHeight, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 	BodyCreationSettings capsule_settings(new CapsuleShape(HalfHeight * UnrealToJoltPhysicsUnitScale, Radius * UnrealToJoltPhysicsUnitScale), RVec3::sZero(), Quat::sIdentity(), (EMotionType)Params.MotionType, (ObjectLayer)Layer);
@@ -149,7 +149,7 @@ void FRecallPhysicsCapsuleBody::InitCapsule(float Radius, float HalfHeight, cons
 }
 
 void FRecallPhysicsCapsuleBody::InitCapsule(const FRecallPhysicsCapsuleShape& CapsuleShape,
-	const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+	const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 	InitCapsule(CapsuleShape.RadiusCentimeters, CapsuleShape.HalfHeightCentimeters, Params, InBodyID, Layer);
 }
@@ -224,7 +224,7 @@ static MeshShapeSettings* CreateMeshShapeSettings(const FRecallPhysicsMeshShape&
 }
 #endif // WITH_JOLT_PHYSICS
 
-void FRecallPhysicsMeshBody::InitMesh(const FRecallPhysicsMeshShape& MeshShape, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+void FRecallPhysicsMeshBody::InitMesh(const FRecallPhysicsMeshShape& MeshShape, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
@@ -240,7 +240,7 @@ void FRecallPhysicsMeshBody::InitMesh(const FRecallPhysicsMeshShape& MeshShape, 
 
 	SetupBodyCreationSettings(body_creation_settings, Params);
 	
-	if (Params.MotionType != ERecallPhysicsMotionType::Static || Params.bAllowDynamicOrKinematic)
+	if (Params.MotionType != EJPRPhysicsMotionType::Static || Params.bAllowDynamicOrKinematic)
 	{
 		body_creation_settings.mOverrideMassProperties = EOverrideMassProperties::MassAndInertiaProvided;
 		body_creation_settings.mMassPropertiesOverride.SetMassAndInertiaOfSolidBox(Vec3::sReplicate(1.0f), 1000.0f);
@@ -308,7 +308,7 @@ void FRecallPhysicsMeshBody::DrawDebugShape(const UWorld* World, const FColor& C
 
 // FRecallPhysicsStaticCompoundBody Begin
 void FRecallPhysicsStaticCompoundBody::InitStaticCompound(
-	const struct FRecallPhysicsStaticCompoundShape& StaticCompoundShape, const FRecallPhysicsBodyParameters& Params,
+	const struct FRecallPhysicsStaticCompoundShape& StaticCompoundShape, const FJPRPhysicsBodyParameters& Params,
 	uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
@@ -352,7 +352,7 @@ void FRecallPhysicsStaticCompoundBody::InitStaticCompound(
 
 	SetupBodyCreationSettings(body_creation_settings, Params);
 	
-	if (Params.MotionType != ERecallPhysicsMotionType::Static || Params.bAllowDynamicOrKinematic)
+	if (Params.MotionType != EJPRPhysicsMotionType::Static || Params.bAllowDynamicOrKinematic)
 	{
 		body_creation_settings.mOverrideMassProperties = EOverrideMassProperties::MassAndInertiaProvided;
 		body_creation_settings.mMassPropertiesOverride.SetMassAndInertiaOfSolidBox(Vec3::sReplicate(1.0f), 1000.0f);
@@ -450,7 +450,7 @@ void FRecallPhysicsStaticCompoundBody::DrawDebugShape(const UWorld* World, const
 // FRecallPhysicsStaticCompoundBody End
 
 // FRecallPhysicsConvexHullBody Begin
-void FRecallPhysicsConvexHullBody::InitConvexHull(const TArray<FVector3f>& WorldVertices, const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+void FRecallPhysicsConvexHullBody::InitConvexHull(const TArray<FVector3f>& WorldVertices, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 	JPH::Array<Vec3> vertices;
@@ -544,7 +544,7 @@ void FRecallPhysicsConvexHullBody::DrawDebugShape(const UWorld* World, const FCo
 
 // FRecallPhysicsHeightFieldBody Begin
 void FRecallPhysicsHeightFieldBody::InitHeightField(int32 SizeX, int32 SizeY, const TArray<float>& Heights, const FVector& Scale,
-	const FRecallPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
+	const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer)
 {
 #if WITH_JOLT_PHYSICS
 	ensureAlwaysMsgf(SizeX == SizeY, TEXT("%hs Height Field should be a square"), __FUNCTION__);

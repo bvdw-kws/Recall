@@ -13,7 +13,7 @@
 #include "Physics/RecallPhysicsTypes.h"
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsBoxObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsBoxShape& BoxShape = Shape.Get<FRecallPhysicsBoxShape>();
 	const TSharedPtr<FRecallPhysicsBoxBody> BoxBody = MakeShared<FRecallPhysicsBoxBody>();
@@ -27,7 +27,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsBoxObjectFactory::BuildPhysicsObjec
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsSphereObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsSphereShape& SphereShape = Shape.Get<FRecallPhysicsSphereShape>();
 	const TSharedPtr<FRecallPhysicsSphereBody> SphereBody = MakeShared<FRecallPhysicsSphereBody>();
@@ -41,7 +41,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsSphereObjectFactory::BuildPhysicsOb
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsCapsuleObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsCapsuleShape& CapsuleShape = Shape.Get<FRecallPhysicsCapsuleShape>();
 	const TSharedPtr<FRecallPhysicsCapsuleBody> CapsuleBody = MakeShared<FRecallPhysicsCapsuleBody>();
@@ -55,7 +55,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsCapsuleObjectFactory::BuildPhysicsO
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsMeshObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsMeshShape& MeshShape = Shape.Get<FRecallPhysicsMeshShape>();
 	const TSharedPtr<FRecallPhysicsMeshBody> MeshBody = MakeShared<FRecallPhysicsMeshBody>();
@@ -69,7 +69,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsMeshObjectFactory::BuildPhysicsObje
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsConvexHullObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsConvexHullShape& ConvexHullShape = Shape.Get<FRecallPhysicsConvexHullShape>();
 	const TSharedPtr<FRecallPhysicsConvexHullBody> ConvexHullBody = MakeShared<FRecallPhysicsConvexHullBody>();
@@ -83,7 +83,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsConvexHullObjectFactory::BuildPhysi
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsHeightFieldObjectFactory::BuildPhysicsObject(
-		uint32 BodyID, const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsHeightFieldShape& HeightFieldShape = Shape.Get<FRecallPhysicsHeightFieldShape>();
 	const TSharedPtr<FRecallPhysicsHeightFieldBody> HeightFieldBody = MakeShared<FRecallPhysicsHeightFieldBody>();
@@ -98,7 +98,7 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsHeightFieldObjectFactory::BuildPhys
 }
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsStaticCompoundObjectFactory::BuildPhysicsObject(uint32 BodyID,
-	const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+	const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsStaticCompoundShape& StaticCompoundShape = Shape.Get<FRecallPhysicsStaticCompoundShape>();
 	const TSharedPtr<FRecallPhysicsStaticCompoundBody> StaticCompoundBody = MakeShared<FRecallPhysicsStaticCompoundBody>();

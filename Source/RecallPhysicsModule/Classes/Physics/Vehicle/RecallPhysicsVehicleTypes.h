@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -64,7 +64,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsVehicleWheelSettings
 	 * Settings for the suspension spring
 	 */
 	UPROPERTY(EditAnywhere)
-	FRecallPhysicsSpringSettings SuspensionSpring { ERecallPhysicsSpringMode::FrequencyAndDamping, 1.5f, 0.0f, 0.5f };
+	FJPRPhysicsSpringSettings SuspensionSpring { EJPRPhysicsSpringMode::FrequencyAndDamping, 1.5f, 0.0f, 0.5f };
 	
 	/**
 	 * Radius of the wheel

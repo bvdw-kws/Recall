@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Van de Walle Bastien
+// Copyright (C) 2024 Van de Walle Bastien
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -21,7 +21,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsBoxShapeFragment : public FMassCons
 	FRecallPhysicsBoxShape Shape;
 	
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 };
 
 USTRUCT()
@@ -33,7 +33,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsSphereShapeFragment : public FMassC
 	FRecallPhysicsSphereShape Shape;
 	
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 };
 
 USTRUCT()
@@ -45,7 +45,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsCapsuleFragment : public FMassConst
 	FRecallPhysicsCapsuleShape Shape;
 	
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 };
 
 USTRUCT()
@@ -69,7 +69,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsMeshConstSharedFragment : public FM
 	TArray<int32> Triangles;
 	
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 
 	UPROPERTY(VisibleAnywhere)
 	bool bConvexHull = true;
@@ -93,5 +93,5 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsHeightFieldConstSharedFragment : pu
 	FQuat Rotation = FQuat::Identity;
 	
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 };

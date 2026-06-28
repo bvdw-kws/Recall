@@ -43,7 +43,7 @@ struct RECALLPHYSICSMODULE_API FRecallSensorInstanceParameters
 	FRecallPhysicsSphereShape Shape;
 
 	UPROPERTY(VisibleAnywhere)
-	FRecallPhysicsBodyParameters Params;
+	FJPRPhysicsBodyParameters Params;
 
 	UPROPERTY(VisibleAnywhere)
 	FVector Offset = FVector::ZeroVector;

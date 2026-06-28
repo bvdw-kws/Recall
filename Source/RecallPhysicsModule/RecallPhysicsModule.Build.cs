@@ -17,12 +17,12 @@ public class RecallPhysicsModule : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Engine",
 			"JoltPhysicsRuntime",
+			"JoltPhysicsRuntimeCore",
 		});
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
 			"JoltPhysics",
-			"JoltPhysicsRuntimeCore",
 			"MassCore",
 			"MassEntity",
 			"MassSpawner",

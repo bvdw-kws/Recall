@@ -12,7 +12,7 @@
 #include "RecallPhysicsVehicleShapeTypes.h"
 
 TSharedPtr<FRecallPhysicsBody> URecallPhysicsVehicleObjectFactory::BuildPhysicsObject(uint32 BodyID,
-	const FInstancedStruct& Shape, const FRecallPhysicsBodyParameters& Params) const
+	const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsVehicleShape& VehicleShape = Shape.Get<FRecallPhysicsVehicleShape>();
 	const TSharedPtr<FRecallPhysicsVehicleBody> VehicleBody = MakeShared<FRecallPhysicsVehicleBody>();
