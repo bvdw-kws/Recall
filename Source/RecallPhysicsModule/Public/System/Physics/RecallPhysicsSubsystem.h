@@ -94,11 +94,16 @@ public:
 	virtual void TickPhysics(float DeltaTime);
 
 public:
-	// UWorldSubsystem implementation Begin
+	// USubsystem implementation Begin
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-	// UWorldSubsystem implementation End
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	// USubsystem implementation End
 
+	// FTickableGameObject implementation Begin
+	virtual bool IsTickable() const override { return false; }
+	// FTickableGameObject implementation End
+	
 	// IRecallSimulationReactSystemInterface implementation Begin
 	virtual void Start(const FRecallSimulationStartParams& Params) override;
 	virtual int32 GetStartOrderPriority() const override { return Recall::SimReactSystem::StartOrder::HighPriority; }

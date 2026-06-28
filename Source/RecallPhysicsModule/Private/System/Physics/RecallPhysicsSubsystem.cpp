@@ -47,6 +47,11 @@ void URecallPhysicsSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+bool URecallPhysicsSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+	return UWorldSubsystem::ShouldCreateSubsystem(Outer);
+}
+
 void URecallPhysicsSubsystem::Start(const FRecallSimulationStartParams& Params)
 {
 	if (PhysicsLayer)
