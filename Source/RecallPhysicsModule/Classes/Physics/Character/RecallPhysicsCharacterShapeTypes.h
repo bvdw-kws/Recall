@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Physics/RecallPhysicsShapeTypes.h"
+#include "Physics/JPRPhysicsShapeTypes.h"
 
 #include "RecallPhysicsCharacterShapeTypes.generated.h"
 
@@ -32,7 +32,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsCharacterCapsule
 };
 
 USTRUCT(BlueprintType)
-struct RECALLPHYSICSMODULE_API FRecallPhysicsCharacter : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsCharacter : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 	
@@ -57,7 +57,7 @@ public:
 
 
 USTRUCT(BlueprintType)
-struct RECALLPHYSICSMODULE_API FRecallPhysicsCharacterVirtual : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsCharacterVirtual : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 	

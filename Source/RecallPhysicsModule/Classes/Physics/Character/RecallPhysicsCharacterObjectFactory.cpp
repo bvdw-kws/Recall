@@ -13,13 +13,13 @@
 #include "RecallPhysicsCharacterVirtualObject.h"
 #include "Physics/RecallPhysicsTypes.h"
 
-TSharedPtr<FRecallPhysicsBody> URecallPhysicsCharacterObjectFactory::BuildPhysicsObject(
+TSharedPtr<FJPRPhysicsBody> URecallPhysicsCharacterObjectFactory::BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsCharacter& CharacterShape = Shape.Get<FRecallPhysicsCharacter>();
 	const TSharedPtr<FRecallPhysicsCharacterBody> CharacterBody = MakeShared<FRecallPhysicsCharacterBody>();
 	
-	SetupPhysicsObject(CharacterBody);
+	SetupPhysicsObject(Outer, CharacterBody);
 	
 	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	CharacterBody->InitCharacter(CharacterShape, Params, BodyID, Layer);
@@ -27,13 +27,13 @@ TSharedPtr<FRecallPhysicsBody> URecallPhysicsCharacterObjectFactory::BuildPhysic
 	return CharacterBody;
 }
 
-TSharedPtr<FRecallPhysicsBody> URecallPhysicsCharacterVirtualObjectFactory::BuildPhysicsObject(uint32 BodyID,
-	const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
+TSharedPtr<FJPRPhysicsBody> URecallPhysicsCharacterVirtualObjectFactory::BuildPhysicsObject(UObject* Outer,
+	uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsCharacterVirtual& CharacterVirtualShape = Shape.Get<FRecallPhysicsCharacterVirtual>();
 	const TSharedPtr<FRecallPhysicsCharacterVirtualBody> CharacterBody = MakeShared<FRecallPhysicsCharacterVirtualBody>();
 	
-	SetupPhysicsObject(CharacterBody);
+	SetupPhysicsObject(Outer, CharacterBody);
 	
 	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	CharacterBody->InitCharacterVirtual(CharacterVirtualShape, Params, BodyID, Layer);

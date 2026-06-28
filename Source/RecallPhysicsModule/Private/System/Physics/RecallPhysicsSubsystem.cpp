@@ -12,11 +12,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Landscape.h"
 #include "RecallPhysicsSnapshot.h"
-#include "Physics/Factory/RecallPhysicsObjectFactory.h"
+#include "Physics/JPRPhysicsObjectFactory.h"
 #include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "Physics/JPRPhysicsMath.h"
 #include "Physics/RecallPhysicsObjects.h"
-#include "Physics/RecallPhysicsShapeTypes.h"
+#include "Physics/JPRPhysicsShapeTypes.h"
 #include "Settings/JPRPhysicsSettings.h"
 #include "System/Entity/RecallEntitySubsystem.h"
 #include "Utility/Physics/RecallPhysicsUtils.h"
@@ -212,7 +212,7 @@ void URecallPhysicsSubsystem::Restore(const FRecallSnapshotContext& Context, con
 	{
 		check(NewHandle.IsValid());
 		const FRecallPhysicsBodySnapshot& BodySnapshot = InData->Bodies[NewHandle];
-		const FRecallPhysicsShape& Shape = BodySnapshot.Shape.Get<FRecallPhysicsShape>();
+		const FJPRPhysicsShape& Shape = BodySnapshot.Shape.Get<FJPRPhysicsShape>();
 
 		CreateShape_Internal(BodySnapshot.Entity, BodySnapshot.Shape, Shape.FactoryClass, BodySnapshot.Params, NewHandle);
 	}
@@ -521,7 +521,7 @@ TWeakObjectPtr<const UJPRPhysicsLayerDataAsset> URecallPhysicsSubsystem::GetPhys
 
 void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct& Shape,
 	const FVector& Location, const FQuat& Rotation,
-	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction)
+	const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, float Friction)
 {
 	checkf(!Recall::Simulation::Utils::HasSimulationStarted(this),
 		TEXT("%hs Cannot create static body after simulation has started"), __FUNCTION__);
@@ -531,7 +531,7 @@ void URecallPhysicsSubsystem::CreateStaticShape_Internal(const FInstancedStruct&
 
 FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Internal(const FInstancedStruct& Shape,
 	const FVector& Location, const FQuat& Rotation,
-	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction)
+	const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, float Friction)
 {
 	FJPRPhysicsBodyParameters Params;
 	Params.MotionType = EJPRPhysicsMotionType::Static;
@@ -545,44 +545,22 @@ FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Inter
 	constexpr FMassEntityHandle StaticDummyEntity;
 	const FRecallPhysicsBodyHandle Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
 
-	const URecallPhysicsObjectFactory* Factory = CreateShapeFactory(FactoryClass);
-	const TSharedPtr<FRecallPhysicsBody> Body = Factory->BuildPhysicsObject(Handle.SerialNumber, Shape, Params);
+	const UJPRPhysicsObjectFactory* Factory = FactoryClass->GetDefaultObject<UJPRPhysicsObjectFactory>();
+	const TSharedPtr<FJPRPhysicsBody> Body = Factory->BuildPhysicsObject(this, Handle.SerialNumber, Shape, Params);
 	if (Body.IsValid())
 	{
 		Body->SetPositionAndRotation(Location, Rotation);
 		Body->Activate();
 	}
 
-	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
+	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, StaticCastSharedPtr<FRecallPhysicsBody>(Body), Shape, Params });
 	BodyHandleMap.Add(Handle.SerialNumber, Handle);
 
 	return Handle;
 }
 
-URecallPhysicsObjectFactory* URecallPhysicsSubsystem::CreateShapeFactory(
-	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass)
-{
-	if (IsInGameThread())
-	{
-		return NewObject<URecallPhysicsObjectFactory>(this, FactoryClass);
-	}
-	else
-	{
-		// Guard against GC interference
-		FGCScopeGuard GCGuard;
-		URecallPhysicsObjectFactory* Factory = NewObject<URecallPhysicsObjectFactory>(this, FactoryClass);
-
-		// Clear the async flag
-		AsyncTask(ENamedThreads::GameThread, [Factory]() mutable {
-			Factory->ClearInternalFlags(EInternalObjectFlags::Async);
-		});
-
-		return Factory;
-	}
-}
-
 void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Entity, const FInstancedStruct& Shape,
-	const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FJPRPhysicsBodyParameters& Params,
+	const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, const FJPRPhysicsBodyParameters& Params,
 	FRecallPhysicsBodyHandle& Handle)
 {
 	// checkf(Entity.IsSet(),
@@ -613,10 +591,10 @@ void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Enti
 		Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
 	}
 
-	const URecallPhysicsObjectFactory* Factory = CreateShapeFactory(FactoryClass);	
-	const TSharedPtr<FRecallPhysicsBody> Body = Factory->BuildPhysicsObject(Handle.SerialNumber, Shape, Params);
+	const UJPRPhysicsObjectFactory* Factory = FactoryClass->GetDefaultObject<UJPRPhysicsObjectFactory>();	
+	const TSharedPtr<FJPRPhysicsBody> Body = Factory->BuildPhysicsObject(this, Handle.SerialNumber, Shape, Params);
 
-	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ Entity, Body, Shape, Params, bRestoreBody });
+	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ Entity, StaticCastSharedPtr<FRecallPhysicsBody>(Body), Shape, Params, bRestoreBody });
 	BodyHandleMap.Add(Handle.SerialNumber, Handle);
 }
 

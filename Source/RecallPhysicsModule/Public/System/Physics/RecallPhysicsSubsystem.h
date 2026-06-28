@@ -14,7 +14,7 @@
 #include "Physics/RecallPhysicsConstrainHandle.h"
 #include "Physics/RecallPhysicsHitEvent.h"
 #include "Physics/RecallPhysicsTypes.h"
-#include "Physics/RecallPhysicsShapeTypes.h"
+#include "Physics/JPRPhysicsShapeTypes.h"
 #include "StructUtils/InstancedStruct.h"
 #include "Mass/EntityHandle.h"
 
@@ -22,7 +22,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysics, Log, All);
 
-class URecallPhysicsObjectFactory;
+class UJPRPhysicsObjectFactory;
 class FRecallPhysicsBody;
 struct FRecallPhysicsBodySnapshot;
 
@@ -32,7 +32,7 @@ class RECALLPHYSICSMODULE_API URecallPhysicsSubsystem : public UJPRPhysicsSubsys
 	GENERATED_BODY()
 
 public:
-	template<typename T=FRecallPhysicsShape>
+	template<typename T=FJPRPhysicsShape>
 	FRecallPhysicsBodyHandle CreateShape(const FMassEntityHandle& Entity, const T& Shape, const FJPRPhysicsBodyParameters& Params)
 	{
 		// Make sure that we do not call this outside of the simulation.
@@ -43,13 +43,13 @@ public:
 		return Handle;
 	}
 
-	template<typename T=FRecallPhysicsShape>
+	template<typename T=FJPRPhysicsShape>
 	void CreateStaticShape(const T& Shape, const FVector& Location, const FQuat& Rotation, float Friction)
 	{
 		CreateStaticShape_Internal(FInstancedStruct::Make<T>(Shape), Location, Rotation, Shape.FactoryClass, Friction);
 	}
 
-	template<typename T=FRecallPhysicsShape>
+	template<typename T=FJPRPhysicsShape>
 	FRecallPhysicsBodyHandle CreateMutableStaticShape(const T& Shape, const FVector& Location, const FQuat& Rotation, float Friction)
 	{
 		return CreateMutableStaticShape_Internal(FInstancedStruct::Make<T>(Shape), Location, Rotation, Shape.FactoryClass, Friction);
@@ -115,16 +115,14 @@ protected:
 	virtual bool ShouldRestorePhysicsBody(const uint32 BodyID) const override;
 	// UJPRPhysicsSubsystem implementation End
 
-	URecallPhysicsObjectFactory* CreateShapeFactory(const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass);
-	
 	void CreateStaticShape_Internal(const FInstancedStruct& Shape, const FVector& Location, const FQuat& Rotation,
-		const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction);
+		const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, float Friction);
 
 	FRecallPhysicsBodyHandle CreateMutableStaticShape_Internal(const FInstancedStruct& Shape, const FVector& Location,
-		const FQuat& Rotation, const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, float Friction);
+		const FQuat& Rotation, const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, float Friction);
 
 	void CreateShape_Internal(const FMassEntityHandle& Entity, const FInstancedStruct& Shape,
-		const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass, const FJPRPhysicsBodyParameters& Params,
+		const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, const FJPRPhysicsBodyParameters& Params,
 		FRecallPhysicsBodyHandle& Handle);
 	void CheckSimulationProcessingPhase() const;
 	
@@ -176,7 +174,7 @@ protected:
 	void OnActorsInitialized(const FActorsInitializedParams& Params);
 
 	FRecallPhysicsBodySnapshot TakeBodySnapshot(const FRecallPhysicsBodyHandle& Handle) const;
-	friend class URecallPhysicsObjectFactory;
+	friend class UJPRPhysicsObjectFactory;
 
 };
 

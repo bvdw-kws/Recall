@@ -6,26 +6,26 @@
 
 #pragma once
 
-#include "Physics/Factory/RecallPhysicsObjectFactory.h"
+#include "Physics/JPRPhysicsObjectFactory.h"
 
 #include "RecallPhysicsCharacterObjectFactory.generated.h"
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsCharacterObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsCharacterObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsCharacterVirtualObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsCharacterVirtualObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };

@@ -6,76 +6,76 @@
 
 #pragma once
 
-#include "Physics/Factory/RecallPhysicsObjectFactory.h"
+#include "Physics/JPRPhysicsObjectFactory.h"
 
 #include "RecallPhysicsCommonObjectFactory.generated.h"
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsBoxObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsBoxObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsSphereObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsSphereObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsCapsuleObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsCapsuleObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsMeshObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsMeshObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer,
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsConvexHullObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsConvexHullObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer, 
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsHeightFieldObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsHeightFieldObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer, 
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };
 
 UCLASS()
-class RECALLPHYSICSMODULE_API URecallPhysicsStaticCompoundObjectFactory : public URecallPhysicsObjectFactory
+class RECALLPHYSICSMODULE_API URecallPhysicsStaticCompoundObjectFactory : public UJPRPhysicsObjectFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FRecallPhysicsBody> BuildPhysicsObject(
+	virtual TSharedPtr<FJPRPhysicsBody> BuildPhysicsObject(UObject* Outer, 
 		uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const override;
 };

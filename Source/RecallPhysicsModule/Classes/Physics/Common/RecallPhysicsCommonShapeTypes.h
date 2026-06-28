@@ -7,12 +7,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Physics/RecallPhysicsShapeTypes.h"
+#include "Physics/JPRPhysicsShapeTypes.h"
 
 #include "RecallPhysicsCommonShapeTypes.generated.h"
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsBoxShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsBoxShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 
@@ -25,7 +25,7 @@ public:
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsSphereShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsSphereShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 	
@@ -40,7 +40,7 @@ public:
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsCapsuleShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsCapsuleShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 	
@@ -86,7 +86,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsMeshShapeSettings
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsMeshShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsMeshShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 	
@@ -105,7 +105,7 @@ public:
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsConvexHullShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsConvexHullShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 
@@ -118,7 +118,7 @@ public:
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsHeightFieldShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsHeightFieldShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 	
@@ -142,7 +142,7 @@ public:
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsStaticCompoundSubShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsStaticCompoundSubShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 
@@ -157,7 +157,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsStaticCompoundSubShape : public FRe
 };
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsStaticCompoundShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsStaticCompoundShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 

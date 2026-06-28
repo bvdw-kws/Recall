@@ -11,13 +11,13 @@
 #include "RecallPhysicsVehicleObject.h"
 #include "RecallPhysicsVehicleShapeTypes.h"
 
-TSharedPtr<FRecallPhysicsBody> URecallPhysicsVehicleObjectFactory::BuildPhysicsObject(uint32 BodyID,
-	const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
+TSharedPtr<FJPRPhysicsBody> URecallPhysicsVehicleObjectFactory::BuildPhysicsObject(UObject* Outer,
+	uint32 BodyID, const FInstancedStruct& Shape, const FJPRPhysicsBodyParameters& Params) const
 {
 	const FRecallPhysicsVehicleShape& VehicleShape = Shape.Get<FRecallPhysicsVehicleShape>();
 	const TSharedPtr<FRecallPhysicsVehicleBody> VehicleBody = MakeShared<FRecallPhysicsVehicleBody>();
 	
-	SetupPhysicsObject(VehicleBody);
+	SetupPhysicsObject(Outer, VehicleBody);
 	
 	const int32 Layer = UJPRPhysicsLayerDataAsset::GetLayerIndex(Params.Layer);
 	VehicleBody->InitVehicle(VehicleShape, Params, BodyID, Layer);

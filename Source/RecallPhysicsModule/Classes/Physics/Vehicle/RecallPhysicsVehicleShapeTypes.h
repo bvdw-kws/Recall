@@ -8,12 +8,12 @@
 
 #include "CoreMinimal.h"
 #include "RecallPhysicsVehicleTypes.h"
-#include "Physics/RecallPhysicsShapeTypes.h"
+#include "Physics/JPRPhysicsShapeTypes.h"
 
 #include "RecallPhysicsVehicleShapeTypes.generated.h"
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FRecallPhysicsVehicleShape : public FRecallPhysicsShape
+struct RECALLPHYSICSMODULE_API FRecallPhysicsVehicleShape : public FJPRPhysicsShape
 {
 	GENERATED_BODY()
 
