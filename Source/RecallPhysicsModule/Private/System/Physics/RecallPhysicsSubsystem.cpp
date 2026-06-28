@@ -541,8 +541,6 @@ FJPRPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Internal
 	const FVector& Location, const FQuat& Rotation,
 	const TSubclassOf<UJPRPhysicsObjectFactory>& FactoryClass, float Friction)
 {
-	CheckPhysicsAccess();
-	
 	FJPRPhysicsBodyParameters Params;
 	Params.MotionType = EJPRPhysicsMotionType::Static;
 	Params.Friction = Friction;
@@ -555,8 +553,7 @@ FJPRPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Internal
 	constexpr FMassEntityHandle StaticDummyEntity;
 	const FJPRPhysicsBodyHandle Handle = FJPRPhysicsBodyHandle{ ++SerialNumberGenerator };
 
-	const UJPRPhysicsObjectFactory* Factory = FactoryClass->GetDefaultObject<UJPRPhysicsObjectFactory>();
-	const TSharedPtr<FJPRPhysicsBody> Body = Factory->BuildPhysicsObject(this, Handle.SerialNumber, Shape, Params);
+	const TSharedPtr<FJPRPhysicsBody> Body = CreateBodyFromShape(Handle.SerialNumber, Shape, FactoryClass, Params);
 	if (Body.IsValid())
 	{
 		Body->SetPositionAndRotation(Location, Rotation);
@@ -603,11 +600,46 @@ void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Enti
 		Handle = FJPRPhysicsBodyHandle{ ++SerialNumberGenerator };
 	}
 
-	const UJPRPhysicsObjectFactory* Factory = FactoryClass->GetDefaultObject<UJPRPhysicsObjectFactory>();	
-	const TSharedPtr<FJPRPhysicsBody> Body = Factory->BuildPhysicsObject(this, Handle.SerialNumber, Shape, Params);
+	const TSharedPtr<FJPRPhysicsBody> Body = CreateBodyFromShape(Handle.SerialNumber, Shape, FactoryClass, Params);
 
 	BodyRefMap.Add(Handle, FJPRPhysicsBodyRef{ Entity, Body, Shape, Params, bRestoreBody });
 	BodyHandleMap.Add(Handle.SerialNumber, Handle);
+}
+
+int32 URecallPhysicsSubsystem::GetNumPendingContactEvents() const
+{
+	return Super::GetNumPendingContactEvents();
+}
+
+void URecallPhysicsSubsystem::SetBodyObjectLayer(const uint32 BodyID, const uint16 Layer)
+{
+	Super::SetBodyObjectLayer(BodyID, Layer);
+}
+
+EJPRPhysicsMotionType URecallPhysicsSubsystem::GetBodyMotionType(const uint32 BodyID) const
+{
+	return Super::GetBodyMotionType(BodyID);
+}
+
+void URecallPhysicsSubsystem::SetBodyMotionType(const uint32 BodyID, const EJPRPhysicsMotionType MotionType,
+	const EJPRPhysicsActivation ActivationMode)
+{
+	Super::SetBodyMotionType(BodyID, MotionType, ActivationMode);
+}
+
+bool URecallPhysicsSubsystem::CreateFixedConstraint(const uint32 BodyID1, const uint32 BodyID2, const bool bActivate)
+{
+	return Super::CreateFixedConstraint(BodyID1, BodyID2, bActivate);
+}
+
+void URecallPhysicsSubsystem::RemoveFixedConstraints(const uint32 BodyID1, const uint32 BodyID2)
+{
+	Super::RemoveFixedConstraints(BodyID1, BodyID2);
+}
+
+TArray<FJPRContactEvent> URecallPhysicsSubsystem::ConsumeContactEvents()
+{
+	return Super::ConsumeContactEvents();
 }
 
 void URecallPhysicsSubsystem::CheckSimulationProcessingPhase() const

@@ -104,6 +104,13 @@ protected:
 	virtual bool ShouldGenerateHitEvent(const uint32 BodyID) const;
 	
 	// UJPRPhysicsSubsystem implementation Begin
+	virtual void SetBodyObjectLayer(uint32 BodyID, uint16 Layer) override;
+	virtual EJPRPhysicsMotionType GetBodyMotionType(uint32 BodyID) const override;
+	virtual void SetBodyMotionType(uint32 BodyID, EJPRPhysicsMotionType MotionType, EJPRPhysicsActivation ActivationMode) override;
+	virtual bool CreateFixedConstraint(uint32 BodyID1, uint32 BodyID2, bool bActivate) override;
+	virtual void RemoveFixedConstraints(uint32 BodyID1, uint32 BodyID2) override;
+	virtual TArray<FJPRContactEvent> ConsumeContactEvents() override;
+	virtual int32 GetNumPendingContactEvents() const override;
 	virtual bool ShouldRestorePhysicsBody(const uint32 BodyID) const override;
 	// UJPRPhysicsSubsystem implementation End
 
@@ -166,7 +173,6 @@ protected:
 	void OnActorsInitialized(const FActorsInitializedParams& Params);
 
 	FJPRPhysicsBodySnapshot TakeBodySnapshot(const FJPRPhysicsBodyHandle& Handle) const;
-	friend class UJPRPhysicsObjectFactory;
 
 };
 
