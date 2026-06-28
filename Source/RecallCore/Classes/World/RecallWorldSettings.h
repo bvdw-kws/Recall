@@ -9,22 +9,14 @@
 #include "GameFramework/WorldSettings.h"
 #include "RecallWorldSettings.generated.h"
 
-class UJPRPhysicsLayerDataAsset;
-
 UCLASS()
 class RECALLCORE_API ARecallWorldSettings : public AWorldSettings
 {
 	GENERATED_BODY()
 
 public:
-	TObjectPtr<UJPRPhysicsLayerDataAsset> GetOverridePhysicsLayer() const { return OverridePhysicsLayer; }
-
 	// Set the default course for this map
 	UPROPERTY(EditAnywhere, Category=Race, meta=(AllowedClasses="/Script/RecallArcadeRaceCore.RecallArcadeCourseAsset"))
 	FSoftObjectPath DefaultCourseAsset;
-	
-protected:
-	// Override the default physics layer asset
-	UPROPERTY(EditAnywhere, Category=JoltPhysics)
-	TObjectPtr<UJPRPhysicsLayerDataAsset> OverridePhysicsLayer;
+
 };

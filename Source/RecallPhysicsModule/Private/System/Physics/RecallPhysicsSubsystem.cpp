@@ -8,16 +8,15 @@
 #include "System/Physics/RecallPhysicsSubsystem.h"
 
 #include "Async/ParallelFor.h"
-#include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "Desync/RecallDesyncLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Landscape.h"
 #include "RecallPhysicsSnapshot.h"
 #include "Physics/Factory/RecallPhysicsObjectFactory.h"
+#include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "Physics/JPRPhysicsMath.h"
 #include "Physics/RecallPhysicsObjects.h"
 #include "Physics/RecallPhysicsShapeTypes.h"
-#include "Settings/RecallSimulationSettings.h"
 #include "Settings/JPRPhysicsSettings.h"
 #include "System/Entity/RecallEntitySubsystem.h"
 #include "Utility/Physics/RecallPhysicsUtils.h"
@@ -27,69 +26,6 @@
 
 DEFINE_LOG_CATEGORY(LogRecallPhysics);
 
-#if WITH_JOLT_PHYSICS
-// The Jolt headers don't include Jolt.h. Always include Jolt.h before including any other Jolt header.
-// You can use Jolt.h in your precompiled header to speed up compilation.
-#include <Jolt/Jolt.h>
-
-// Jolt includes
-#include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Physics/StateRecorderImpl.h>
-
-// STL includes
-#include <iostream>
-#include <cstdarg>
-#include <thread>
-
-// Disable common warnings triggered by Jolt, you can use JPH_SUPPRESS_WARNING_PUSH / JPH_SUPPRESS_WARNING_POP to store and restore the warning state
-JPH_SUPPRESS_WARNINGS
-
-// All Jolt symbols are in the JPH namespace
-using namespace JPH;
-
-// If you want your code to compile using single or double precision write 0.0_r to get a Real value that compiles to double or float depending if JPH_DOUBLE_PRECISION is set or not.
-using namespace JPH::literals;
-
-// We're also using STL classes in this example
-using namespace std;
-
-// Callback for traces, connect this to your own trace function if you have one
-static void TraceImpl(const char* inFMT, ...)
-{
-	// Format the message
-	va_list list;
-	va_start(list, inFMT);
-	char buffer[1024];
-	vsnprintf(buffer, sizeof(buffer), inFMT, list);
-	va_end(list);
-
-	// Print to the TTY
-	cout << buffer << endl;
-}
-
-#ifdef JPH_ENABLE_ASSERTS
-
-// Callback for asserts, connect this to your own assert handler if you have one
-static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
-{
-	UE_LOG(LogRecallPhysics, Error, TEXT("%s:%s: (%d) %s"), *FString(inExpression), *FString(inFile), inLine, *FString(inMessage));
-
-	UE_DEBUG_BREAK();
-	return true;
-};
-
-#endif // JPH_ENABLE_ASSERTS
-
-struct FRecallPhysicsHit
-{
-	const Body*			mBody = nullptr;
-	SubShapeID			mSubShapeID2;
-	RVec3				mContactPosition;
-	Vec3				mContactNormal;
-	float				mPenetrationDepth;
-};
-#endif // WITH_JOLT_PHYSICS
-
 void URecallPhysicsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -97,36 +33,18 @@ void URecallPhysicsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	EntitySystem = UWorld::GetSubsystem<URecallEntitySubsystem>(GetWorld());
 	
-	const URecallSimulationSettings* SimulationSettings = GetDefault<URecallSimulationSettings>();
-	PhysicsLayer = SimulationSettings->DefaultLayer.LoadSynchronous();
-
-	if (const UWorld* World = GetWorld())
-	{
-		if (const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(World->GetWorldSettings()))
-		{
-			if (const TObjectPtr<UJPRPhysicsLayerDataAsset>& OverridePhysicsLayer = WorldSettings->GetOverridePhysicsLayer())
-			{
-				PhysicsLayer = OverridePhysicsLayer;
-			}
-		}
-	}
-
 	FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &ThisClass::OnActorsInitialized);
-
-	CreatePhysicsSystem();
 }
 
 void URecallPhysicsSubsystem::Deinitialize()
 {
-	Super::Deinitialize();
-
 	EntitySystem.Reset();
-	PhysicsLayer = nullptr;
 
 	FWorldDelegates::OnWorldInitializedActors.RemoveAll(this);
 
 	ReleasePhysicsObjects();
-	DeletePhysicsSystem();
+	
+	Super::Deinitialize();
 }
 
 void URecallPhysicsSubsystem::Start(const FRecallSimulationStartParams& Params)
@@ -177,20 +95,20 @@ void URecallPhysicsSubsystem::Save(const FRecallSnapshotContext& Context, FInsta
 			{
 			case 0: // Save State
 			{
-#if WITH_JOLT_PHYSICS
-				StateRecorderImpl State;
-				SaveState(State);
-
-				const std::string Data = State.GetData();
-				const std::vector<char> Bytes(Data.begin(), Data.end());
-
-				Snasphot.Data.SetNumUninitialized(Bytes.size());
-
-				for (int32 ByteIndex = 0; ByteIndex < Bytes.size(); ByteIndex++)
+				TArray<FRecallPhysicsBodyHandle> BodyHandles;
+				BodyRefMap.GenerateKeyArray(BodyHandles);
+				BodyHandles.Sort([](const FRecallPhysicsBodyHandle& Left, const FRecallPhysicsBodyHandle& Right)
 				{
-					Snasphot.Data[ByteIndex] = Bytes[ByteIndex];
+					return Left.SerialNumber < Right.SerialNumber;
+				});
+
+				TArray<TSharedPtr<FJPRPhysicsBody>> Bodies;
+				Bodies.Reserve(BodyHandles.Num());
+				for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
+				{
+					Bodies.Add(BodyRefMap.FindChecked(BodyHandle).Body);
 				}
-#endif // WITH_JOLT_PHYSICS
+				Snasphot.Data = SavePhysicsState(Bodies);
 			}
 			break;
 
@@ -344,13 +262,20 @@ void URecallPhysicsSubsystem::Restore(const FRecallSnapshotContext& Context, con
 		CreateFixedConstrain(ConstrainSnapshot.Body1, ConstrainSnapshot.Body2);
 	}
 
-#if WITH_JOLT_PHYSICS
-	StateRecorderImpl State;
-	State.WriteBytes(InData->Data.GetData(), InData->Data.Num());
-	State.Rewind();
+	TArray<FRecallPhysicsBodyHandle> BodyHandles;
+	BodyRefMap.GenerateKeyArray(BodyHandles);
+	BodyHandles.Sort([](const FRecallPhysicsBodyHandle& Left, const FRecallPhysicsBodyHandle& Right)
+	{
+		return Left.SerialNumber < Right.SerialNumber;
+	});
 
-	RestoreState(State);
-#endif // WITH_JOLT_PHYSICS
+	TArray<TSharedPtr<FJPRPhysicsBody>> Bodies;
+	Bodies.Reserve(BodyHandles.Num());
+	for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
+	{
+		Bodies.Add(BodyRefMap.FindChecked(BodyHandle).Body);
+	}
+	RestorePhysicsState(InData->Data, Bodies);
 }
 
 FRecallPhysicsBodySnapshot URecallPhysicsSubsystem::TakeBodySnapshot(const FRecallPhysicsBodyHandle& Handle) const
@@ -400,8 +325,7 @@ void URecallPhysicsSubsystem::ReleasePhysicsObjects()
 
 void URecallPhysicsSubsystem::TickPhysics(float DeltaTime)
 {
-#if WITH_JOLT_PHYSICS
-	if (PhysicsSystem.IsValid())
+	if (HasPhysicsSystem())
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_TickPhysics);
 		TRACE_CPUPROFILER_EVENT_SCOPE_STR(*FString::Printf(TEXT("URecallPhysicsSubsystem::TickPhysics Update")));
@@ -410,7 +334,6 @@ void URecallPhysicsSubsystem::TickPhysics(float DeltaTime)
 		const float TimeDilatation = Recall::Slowmo::Utils::GetTimeDilatation(this);
 		StepPhysics(DeltaTime, PhysicsSettings->CollisionSteps, TimeDilatation);
 	}
-#endif // WITH_JOLT_PHYSICS
 }
 
 bool URecallPhysicsSubsystem::ShouldGenerateHitEvent(const uint32 BodyID) const
@@ -451,7 +374,6 @@ void URecallPhysicsSubsystem::GenerateHitEvents(const TSet<FRecallPhysicsBodyHan
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_GenerateHitEvents);
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallPhysicsSubsystem::GenerateHitEvents"));
 
-#if WITH_JOLT_PHYSICS
 	auto TryPushHitEvent = [&](uint32 HitID, const uint32 Body1ID, const uint32 Body2ID, const FVector& Velocity,
 		const FVector& ImpactPoint, const FVector& ImpactNormal, bool bHitStatic, bool bHitSensor)
 	{
@@ -544,7 +466,6 @@ void URecallPhysicsSubsystem::GenerateHitEvents(const TSet<FRecallPhysicsBodyHan
 			}
 		);
 	}
-#endif // WITH_JOLT_PHYSICS
 
 #if RECALL_DESYNC_LOG
 	TArray<FRecallPhysicsBodyHandle> BodyHandles;
@@ -795,177 +716,6 @@ TWeakPtr<const FRecallPhysicsBody> URecallPhysicsSubsystem::GetBody(const FRecal
 	}
 
 	return nullptr;
-}
-
-/*
-bool URecallPhysicsSubsystem::CastShape(const FRecallPhysicsBodyHandle& Handle, const FIntVector& Direction, TArray<FRecallPhysicsCastShapeResult>& OutHits) const
-{
-	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_CastShape);
-
-	const TWeakPtr<const FRecallPhysicsBody> Body = GetBody(Handle);
-	if (!Body.IsValid())
-	{
-		return false;
-	}
-
-#if WITH_JOLT_PHYSICS
-	const BodyID body_id(Body.Pin()->GetBodyID());
-	const ShapeRefC ShapeRef = GetBodyInterface().GetShape(body_id);
-	const Shape* Shape = ShapeRef.GetPtr();
-	if (Shape == nullptr)
-	{
-		return false;
-	}
-
-	FVector WorldPos = FVector::ZeroVector;
-	Body.Pin()->GetPosition(WorldPos);
-
-	check(ViewPlaneSystem.IsValid());
-	const FVector WorldDirection = ViewPlaneSystem->GetUnrealVectorAlongViewPlane(WorldPos, RecallToUnreal(Direction));
-	const FVector PhysicsDirection = UnrealToJoltPhysics(WorldDirection);
-
-	const RMat44 start = GetBodyInterface().GetCenterOfMassTransform(body_id);
-	const Vec3 dir(PhysicsDirection.X, PhysicsDirection.Y, PhysicsDirection.Z);
-
-	// Settings for the cast
-	ShapeCastSettings settings;
-	settings.mBackFaceModeTriangles = EBackFaceMode::IgnoreBackFaces;
-	settings.mBackFaceModeConvex = EBackFaceMode::IgnoreBackFaces;
-	settings.mActiveEdgeMode = EActiveEdgeMode::CollideOnlyWithActive;
-	settings.mUseShrunkenShapeAndConvexRadius = true;
-	settings.mReturnDeepestPoint = false;
-
-	// Cast shape
-	const TArray<ObjectLayer> Layers = { (ObjectLayer)ERecallPhysicsLayer::STATIC, (ObjectLayer)ERecallPhysicsLayer::EDGE_WALL_SIDE };
-	const RShapeCast shape_cast(Shape, Vec3::sReplicate(1.0f), start, dir);
-	FRecallPhysicsCollector collector(GetPhysicsSystem(), body_id, shape_cast, Layers);
-	GetPhysicsSystem().GetNarrowPhaseQuery().CastShape(shape_cast, settings, start.GetTranslation(), collector);
-
-	OutHits.Reserve(OutHits.Num() + collector.mHitEvents.Num());
-
-	for (const FRecallPhysicsHit& hit_event : collector.mHitEvents)
-	{
-		if (ensure(hit_event.mBody != nullptr) == false) continue;
-
-		const uint32 HitBodyID = hit_event.mBody->GetID().GetIndexAndSequenceNumber();
-
-		// Check walls and if they should trigger hit event or not.
-		const TSharedPtr<FRecallPhysicsBody> HitWallBody = WallBodies.FindRef(HitBodyID);
-		if (HitWallBody.IsValid() && HitWallBody->DoesTriggerHitEvents() == false)
-		{
-			continue;
-		}
-
-		FRecallPhysicsCastShapeResult Hit;
-
-		if (const FRecallPhysicsBodyHandle* HitBodyHandle = BodyHandleMap.Find(HitBodyID))
-		{
-			const TWeakPtr<const FRecallPhysicsBody> HitBody = GetBody(*HitBodyHandle);
-			if (ensure(HitBody.IsValid()) && HitBody.Pin()->DoesTriggerHitEvents() == false)
-			{
-				continue;
-			}
-
-			Hit.HitBodyHandle = *HitBodyHandle;
-		}
-
-		const FVector PhysicsHitPos(hit_event.mContactPosition.GetX(), hit_event.mContactPosition.GetY(), hit_event.mContactPosition.GetZ());
-		const FVector WorldHitPos = JoltPhysicsToUnreal(PhysicsHitPos);
-
-		Hit.HitLocation = ViewPlaneSystem->GetSimLocationFromWorldPosition(WorldHitPos);
-
-		const FVector PhysicsNormal(hit_event.mContactNormal.GetX(), hit_event.mContactNormal.GetY(), hit_event.mContactNormal.GetZ());
-		const FVector WorldNormal = JoltPhysicsToUnreal(PhysicsNormal) / JoltPhysicsToUnrealUnitScale;
-
-		const FIntVector SimNormal = ViewPlaneSystem->GetSimVectorFromWorldVector(WorldPos, WorldNormal);
-
-		Hit.HitNormal.X = FMath::RoundToInt((double)SimNormal.X / (double)UnrealToRecallUnitScale);
-		Hit.HitNormal.Y = FMath::RoundToInt((double)SimNormal.Y / (double)UnrealToRecallUnitScale);
-		Hit.HitNormal.Z = FMath::RoundToInt((double)SimNormal.Z / (double)UnrealToRecallUnitScale);
-
-		const double SimPenetration = (double)hit_event.mPenetrationDepth * JoltPhysicsToUnrealUnitScale * UnrealToJoltPhysicsUnitScale;
-
-		Hit.HitPenetration.X = -(double)SimNormal.X * SimPenetration / (double)UnrealToRecallUnitScale;
-		Hit.HitPenetration.Y = -(double)SimNormal.Y * SimPenetration / (double)UnrealToRecallUnitScale;
-		Hit.HitPenetration.Z = -(double)SimNormal.Z * SimPenetration / (double)UnrealToRecallUnitScale;
-
-		OutHits.Add(Hit);
-	}
-
-	return OutHits.Num() > 0;
-#endif // WITH_JOLT_PHYSICS
-}
-*/
-
-#if WITH_JOLT_PHYSICS
-void URecallPhysicsSubsystem::SaveState(JPH::StateRecorder& OutState)
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallPhysicsSubsystem::SaveState"));
-	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_SaveState);
-
-	GetPhysicsSystem().SaveState(OutState, EStateRecorderState::All, StateRecorderFilter.Get());
-
-	TArray<FRecallPhysicsBodyHandle> BodyHandles;
-	BodyRefMap.GenerateKeyArray(BodyHandles);
-
-	BodyHandles.Sort([](const FRecallPhysicsBodyHandle& lHandle, const FRecallPhysicsBodyHandle& rHandle)
-		{
-			return lHandle.SerialNumber < rHandle.SerialNumber;
-		}
-	);
-
-	for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
-	{
-		const FRecallPhysicsBodyRef& BoydRef = BodyRefMap[BodyHandle];
-		if (ensure(BoydRef.Body.IsValid()))
-		{
-			BoydRef.Body->SaveState(OutState);
-		}
-	}
-}
-
-bool URecallPhysicsSubsystem::RestoreState(JPH::StateRecorder& InState)
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallPhysicsSubsystem::RestoreState"));
-	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_RestoreState);
-
-	if (ensure(GetPhysicsSystem().RestoreState(InState, StateRecorderFilter.Get())))
-	{
-		TArray<FRecallPhysicsBodyHandle> BodyHandles;
-		BodyRefMap.GenerateKeyArray(BodyHandles);
-
-		BodyHandles.Sort([](const FRecallPhysicsBodyHandle& lHandle, const FRecallPhysicsBodyHandle& rHandle)
-			{
-				return lHandle.SerialNumber < rHandle.SerialNumber;
-			}
-		);
-
-		for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
-		{
-			const FRecallPhysicsBodyRef& BoydRef = BodyRefMap[BodyHandle];
-			if (ensure(BoydRef.Body.IsValid()))
-			{
-				BoydRef.Body->RestoreState(InState);
-			}
-		}
-
-		return true;
-	}
-
-	return false;
-}
-#endif // WITH_JOLT_PHYSICS
-
-void URecallPhysicsSubsystem::CreatePhysicsSystem()
-{
-#if WITH_JOLT_PHYSICS
-	// Install callbacks
-	Trace = TraceImpl;
-	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
-
-	UJPRPhysicsSubsystem::CreatePhysicsSystem(*PhysicsLayer,
-		[this](const uint32 BodyID) { return ShouldRestorePhysicsBody(BodyID); });
-#endif // WITH_JOLT_PHYSICS
 }
 
 void URecallPhysicsSubsystem::OnActorsInitialized(const FActorsInitializedParams& Params)

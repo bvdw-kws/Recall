@@ -22,19 +22,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysics, Log, All);
 
-#if WITH_JOLT_PHYSICS
-namespace JPH
-{
-	class Body;
-	class BodyID;
-	class StateRecorder;
-
-	class BroadPhaseLayer;
-	using ObjectLayer = uint16;
-} // namespace JPH
-
-#endif // WITH_JOLT_PHYSICS
-
 class URecallPhysicsObjectFactory;
 class FRecallPhysicsBody;
 struct FRecallPhysicsBodySnapshot;
@@ -102,26 +89,15 @@ public:
 	int32 GetNumContactEvents() const;
 
 	TWeakObjectPtr<const class UJPRPhysicsLayerDataAsset> GetPhysicsLayer() const;
-	bool ShouldRestorePhysicsBody(const uint32 BodyID) const;
-
-	/**
-	 * Casts for hits from physics body's handle's center-of-mass in the Direction specified
-	 * 
-	 * @param Handle Handle to the physics body to cast from
-	 * @param Direction (Recall Units) Direction and length of the cast (anything beyond this length will not be reported as a hit)
-	 * @param OutHits Output of hit bodies
-	 * @return Returns true if anything was hit
-	 */
-	// bool CastShape(const FRecallPhysicsBodyHandle& Handle, const FIntVector& Direction, TArray<FRecallPhysicsCastShapeResult>& OutHits) const;
 
 public:
 	virtual void TickPhysics(float DeltaTime);
 
-protected:
+public:
 	// UWorldSubsystem implementation Begin
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-	// UWorldSubsystem implementation Begin
+	// UWorldSubsystem implementation End
 
 	// IRecallSimulationReactSystemInterface implementation Begin
 	virtual void Start(const FRecallSimulationStartParams& Params) override;
@@ -134,6 +110,10 @@ protected:
 protected:
 	virtual void ReleasePhysicsObjects();
 	virtual bool ShouldGenerateHitEvent(const uint32 BodyID) const;
+	
+	// UJPRPhysicsSubsystem implementation Begin
+	virtual bool ShouldRestorePhysicsBody(const uint32 BodyID) const override;
+	// UJPRPhysicsSubsystem implementation End
 
 	URecallPhysicsObjectFactory* CreateShapeFactory(const TSubclassOf<URecallPhysicsObjectFactory>& FactoryClass);
 	
@@ -176,8 +156,6 @@ protected:
 
 protected:
 	UPROPERTY(Transient)
-	TObjectPtr<const class UJPRPhysicsLayerDataAsset> PhysicsLayer;
-	UPROPERTY(Transient)
 	TWeakObjectPtr<class ALandscape> LandscapeActor;
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class URecallEntitySubsystem> EntitySystem;
@@ -195,18 +173,10 @@ protected:
 
 	void ReleaseBody_Internal(const FRecallPhysicsBodyHandle& Handle, bool bCleanUp = false);
 
-	void CreatePhysicsSystem();
-	
 	void OnActorsInitialized(const FActorsInitializedParams& Params);
 
 	FRecallPhysicsBodySnapshot TakeBodySnapshot(const FRecallPhysicsBodyHandle& Handle) const;
-	
-#if WITH_JOLT_PHYSICS
 	friend class URecallPhysicsObjectFactory;
-	
-	void SaveState(JPH::StateRecorder& OutState);
-	bool RestoreState(JPH::StateRecorder& InState);
-#endif // WITH_JOLT_PHYSICS
 
 };
 

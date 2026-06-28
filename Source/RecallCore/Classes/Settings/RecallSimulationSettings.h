@@ -23,13 +23,6 @@ class RECALLCORE_API URecallSimulationSettings : public UDeveloperSettingsBacked
 public:
 	URecallSimulationSettings(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	/**
-	 * Default asset to be used for the physics layer of this project.
-	 * It is possible to override the physics layer asset from the world settings directly.
-	 */
-	UPROPERTY(EditAnywhere, config, Category=JoltPhysics)
-	TSoftObjectPtr<class UJPRPhysicsLayerDataAsset> DefaultLayer;
-
 	UPROPERTY(EditAnywhere, config, Category="Desync|Log")
 	bool bUseDesyncLog = true;
 

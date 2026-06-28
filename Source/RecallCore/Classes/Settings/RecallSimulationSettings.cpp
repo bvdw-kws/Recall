@@ -7,12 +7,7 @@
 
 #include "RecallSimulationSettings.h"
 
-#include "Physics/JPRPhysicsLayerDataAsset.h"
-#include "UObject/ConstructorHelpers.h"
-
 URecallSimulationSettings::URecallSimulationSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {	
-	static ConstructorHelpers::FObjectFinder<UJPRPhysicsLayerDataAsset> DefaultLayerAsset(TEXT("/Recall/DataAssets/Physics/DA_PhysicsLayer_Default"));
-	DefaultLayer = DefaultLayerAsset.Object;
 }
