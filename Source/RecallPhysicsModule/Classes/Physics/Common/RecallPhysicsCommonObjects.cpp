@@ -13,6 +13,7 @@
 #include "RecallPhysicsCommonShapeTypes.h"
 #include "Physics/RecallPhysicsTypes.h"
 #include "Physics/JPRPhysicsMath.h"
+#include "Utility/Math/RecallMathUtils.h"
 
 #if WITH_JOLT_PHYSICS
 // The Jolt headers don't include Jolt.h. Always include Jolt.h before including any other Jolt header.
@@ -82,7 +83,7 @@ void FRecallPhysicsSphereBody::DrawDebugShape(const UWorld* World, const FColor&
 
 		if (GetBodyInterface().GetMotionType(*body_id.Get()) != EMotionType::Static)
 		{
-			const FVector WorldVel = GetLinearVelocity();
+			const FVector WorldVel = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
 			DrawDebugString(World, WorldPosition, FString::Printf(TEXT("Vel: %s"), *WorldVel.ToString()));
 		}
 	}
@@ -126,7 +127,7 @@ void FRecallPhysicsBoxBody::DrawDebugShape(const UWorld* World, const FColor& Co
 
 		if (GetBodyInterface().GetMotionType(*body_id.Get()) != EMotionType::Static)
 		{
-			const FVector WorldVel = GetLinearVelocity();
+			const FVector WorldVel = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
 			DrawDebugString(World, WorldPosition, FString::Printf(TEXT("Vel: %s"), *WorldVel.ToString()));
 		}
 	}
@@ -178,7 +179,7 @@ void FRecallPhysicsCapsuleBody::DrawDebugShape(const UWorld* World, const FColor
 
 		if (GetBodyInterface().GetMotionType(*body_id.Get()) != EMotionType::Static)
 		{
-			const FVector WorldVel = GetLinearVelocity();
+			const FVector WorldVel = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
 			DrawDebugString(World, WorldPosition, FString::Printf(TEXT("Vel: %s"), *WorldVel.ToString()));
 		}
 	}
@@ -297,7 +298,7 @@ void FRecallPhysicsMeshBody::DrawDebugShape(const UWorld* World, const FColor& C
 		
 		if (GetBodyInterface().GetMotionType(*body_id.Get()) != EMotionType::Static)
 		{
-			const FVector WorldVel = GetLinearVelocity();
+			const FVector WorldVel = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
 			DrawDebugString(World, WorldPosition, FString::Printf(TEXT("Vel: %s"), *WorldVel.ToString()));
 		}		
 	}
@@ -534,7 +535,7 @@ void FRecallPhysicsConvexHullBody::DrawDebugShape(const UWorld* World, const FCo
 
 		if (GetBodyInterface().GetMotionType(*body_id.Get()) != EMotionType::Static)
 		{
-			const FVector WorldVel = GetLinearVelocity();
+			const FVector WorldVel = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
 			DrawDebugString(World, WorldPosition, FString::Printf(TEXT("Vel: %s"), *WorldVel.ToString()));
 		}
 	}

@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Landscape.h"
 #include "RecallPhysicsSnapshot.h"
+#include "Physics/JPRPhysicsBody.h"
 #include "Physics/JPRPhysicsObjectFactory.h"
 #include "Physics/JPRPhysicsLayerDataAsset.h"
 #include "Physics/JPRPhysicsMath.h"
@@ -228,7 +229,7 @@ void URecallPhysicsSubsystem::Restore(const FRecallSnapshotContext& Context, con
 		const FRecallPhysicsBodyHandle& Handle = RestorePair.Key;
 
 		const FRecallPhysicsBodyRef& BodyRef = BodyRefMap.FindChecked(Handle);
-		const TSharedPtr<FRecallPhysicsBody>& Body = BodyRef.Body;
+		const TSharedPtr<FJPRPhysicsBody>& Body = BodyRef.Body;
 		check(Body.IsValid());
 		
 		const FRecallPhysicsBodySnapshot& BodySnapshot = RestorePair.Value;
@@ -348,7 +349,7 @@ bool URecallPhysicsSubsystem::ShouldGenerateHitEvent(const uint32 BodyID) const
 	// Some custom colliders may not be registered in this map but still generate hit events
 	if (const FRecallPhysicsBodyHandle* BodyHandlePtr = BodyHandleMap.Find(BodyID))
 	{
-		const TWeakPtr<const FRecallPhysicsBody> BodyPtr = GetBody(*BodyHandlePtr);
+		const FConstRecallPhysicsBodyView BodyPtr = GetBody(*BodyHandlePtr);
 		if (BodyPtr.IsValid() && BodyPtr.Pin()->DoesTriggerHitEvents() == false)
 		{
 			return false;
@@ -562,7 +563,7 @@ FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Inter
 		Body->Activate();
 	}
 
-	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, StaticCastSharedPtr<FRecallPhysicsBody>(Body), Shape, Params });
+	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
 	BodyHandleMap.Add(Handle.SerialNumber, Handle);
 
 	return Handle;
@@ -605,7 +606,7 @@ void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Enti
 	const UJPRPhysicsObjectFactory* Factory = FactoryClass->GetDefaultObject<UJPRPhysicsObjectFactory>();	
 	const TSharedPtr<FJPRPhysicsBody> Body = Factory->BuildPhysicsObject(this, Handle.SerialNumber, Shape, Params);
 
-	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ Entity, StaticCastSharedPtr<FRecallPhysicsBody>(Body), Shape, Params, bRestoreBody });
+	BodyRefMap.Add(Handle, FRecallPhysicsBodyRef{ Entity, Body, Shape, Params, bRestoreBody });
 	BodyHandleMap.Add(Handle.SerialNumber, Handle);
 }
 
@@ -616,8 +617,8 @@ void URecallPhysicsSubsystem::CheckSimulationProcessingPhase() const
 
 void URecallPhysicsSubsystem::CreateFixedConstrain(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2)
 {
-	const TWeakPtr<const FRecallPhysicsBody> Body1 = GetBody(Handle1);
-	const TWeakPtr<const FRecallPhysicsBody> Body2 = GetBody(Handle2);
+	const FConstRecallPhysicsBodyView Body1 = GetBody(Handle1);
+	const FConstRecallPhysicsBodyView Body2 = GetBody(Handle2);
 
 	if (!Body1.IsValid() || !Body2.IsValid())
 	{
@@ -681,7 +682,7 @@ void URecallPhysicsSubsystem::ReleaseBody_Internal(const FRecallPhysicsBodyHandl
 	}
 }
 
-TWeakPtr<FRecallPhysicsBody> URecallPhysicsSubsystem::GetMutableBody(const FRecallPhysicsBodyHandle& Handle)
+FRecallPhysicsBodyView URecallPhysicsSubsystem::GetMutableBody(const FRecallPhysicsBodyHandle& Handle)
 {
 	CheckPhysicsAccess();
 	
@@ -691,14 +692,14 @@ TWeakPtr<FRecallPhysicsBody> URecallPhysicsSubsystem::GetMutableBody(const FReca
 	{
 		if (const FRecallPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
 		{
-			return BodyRef->Body.ToWeakPtr();
+			return FRecallPhysicsBodyView(BodyRef->Body.ToWeakPtr());
 		}
 	}
 
 	return nullptr;
 }
 
-TWeakPtr<const FRecallPhysicsBody> URecallPhysicsSubsystem::GetBody(const FRecallPhysicsBodyHandle& Handle) const
+FConstRecallPhysicsBodyView URecallPhysicsSubsystem::GetBody(const FRecallPhysicsBodyHandle& Handle) const
 {
 	CheckPhysicsAccess();
 	
@@ -706,7 +707,7 @@ TWeakPtr<const FRecallPhysicsBody> URecallPhysicsSubsystem::GetBody(const FRecal
 	{
 		if (const FRecallPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
 		{
-			return StaticCastWeakPtr<const FRecallPhysicsBody>(TWeakPtr<FRecallPhysicsBody>(BodyRef->Body));
+			return FConstRecallPhysicsBodyView(BodyRef->Body.ToWeakPtr());
 		}
 	}
 

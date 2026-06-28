@@ -18,6 +18,7 @@ public class RecallPhysicsModule : ModuleRules
 			"Engine",
 			"JoltPhysicsRuntime",
 			"JoltPhysicsRuntimeCore",
+			"RecallSimulation",
 		});
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",
@@ -27,7 +28,6 @@ public class RecallPhysicsModule : ModuleRules
 			"MassEntity",
 			"MassSpawner",
 			"RecallCore",
-			"RecallSimulation",
 			"RecallSignals",
 			"Landscape",
 			"ProceduralMeshComponent",

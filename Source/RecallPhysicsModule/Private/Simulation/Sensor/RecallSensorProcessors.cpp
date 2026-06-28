@@ -117,7 +117,7 @@ void URecallSensorAttachmentProcessor::Execute(FMassEntityManager& EntityManager
 			for (int32 SensorIndex = 0; SensorIndex < SensorFragment.BodyHandles.Num(); SensorIndex++)
 			{
 				const FRecallPhysicsBodyHandle& SensorBodyHandle = SensorFragment.BodyHandles[SensorIndex];
-				const TWeakPtr<FRecallPhysicsBody> SensorBody = PhysicsSystem.GetMutableBody(SensorBodyHandle);
+				const FRecallPhysicsBodyView SensorBody = PhysicsSystem.GetMutableBody(SensorBodyHandle);
 
 				if (ensureMsgf(SensorBody.IsValid(), TEXT("Body does not exist.")) == false)
 				{
@@ -127,7 +127,7 @@ void URecallSensorAttachmentProcessor::Execute(FMassEntityManager& EntityManager
 				const FRecallTransformFragment& TransformFragment = TransformList[EntityIndex];
 				const FVector Position = TransformFragment.Position + TransformFragment.Rotation.RotateVector(SensorSharedFragment.InstanceParameters[SensorIndex].Offset);
 
-				SensorBody.Pin()->SetPosition(Position);
+				SensorBody.SetPosition(Position);
 				SensorBody.Pin()->Activate();
 			}
 		});

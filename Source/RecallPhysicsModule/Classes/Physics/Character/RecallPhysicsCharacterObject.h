@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Physics/RecallPhysicsObjects.h"
+#include "Physics/JPRPhysicsBody.h"
 #include "RecallPhysicsCharacterTypes.h"
 
 struct FRecallPhysicsCharacter;
@@ -21,7 +21,7 @@ namespace JPH
 /**
 * Wrapper Object for JPH::Character.
 */
-class RECALLPHYSICSMODULE_API FRecallPhysicsCharacterBody : public FRecallPhysicsBody
+class RECALLPHYSICSMODULE_API FRecallPhysicsCharacterBody : public FJPRPhysicsBody
 {
 public:
 	void InitCharacter(const FRecallPhysicsCharacter& CharacterShape,

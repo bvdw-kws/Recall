@@ -8,6 +8,7 @@
 
 #include "RecallPhysicsVehicleShapeTypes.h"
 #include "Physics/RecallPhysicsObjects.h"
+#include "Physics/JPRPhysicsBody.h"
 #include "RecallPhysicsVehicleTypes.h"
 
 #if WITH_JOLT_PHYSICS
@@ -20,7 +21,7 @@ namespace JPH
 /**
 * Wrapper Object for JPH::VehicleConstraintSettings.
 */
-class RECALLPHYSICSMODULE_API FRecallPhysicsVehicleBody : public FRecallPhysicsBody
+class RECALLPHYSICSMODULE_API FRecallPhysicsVehicleBody : public FJPRPhysicsBody
 {
 public:
 	void InitVehicle(const FRecallPhysicsVehicleShape& VehicleShape, const FJPRPhysicsBodyParameters& Params, uint32 InBodyID, int32 Layer);

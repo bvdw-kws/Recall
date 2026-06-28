@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "System/JPRPhysicsSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
 #include "Mass/ExternalSubsystemTraits.h"
 #include "Physics/RecallPhysicsBodyHandle.h"
+#include "Physics/RecallPhysicsObjects.h"
 #include "Physics/RecallPhysicsConstrainHandle.h"
 #include "Physics/RecallPhysicsHitEvent.h"
 #include "Physics/RecallPhysicsTypes.h"
@@ -23,7 +23,6 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysics, Log, All);
 
 class UJPRPhysicsObjectFactory;
-class FRecallPhysicsBody;
 struct FRecallPhysicsBodySnapshot;
 
 UCLASS()
@@ -59,20 +58,8 @@ public:
 	void RemoveAllConstrains(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
 
 	void ReleaseBody(const FRecallPhysicsBodyHandle& Handle);
-	TWeakPtr<FRecallPhysicsBody> GetMutableBody(const FRecallPhysicsBodyHandle& Handle);
-	TWeakPtr<const FRecallPhysicsBody> GetBody(const FRecallPhysicsBodyHandle& Handle) const;
-
-	template<typename T>
-	TWeakPtr<T> GetMutableBody(const FRecallPhysicsBodyHandle& Handle)
-	{
-		return StaticCastWeakPtr<T>(GetMutableBody(Handle));
-	}
-	
-	template<typename T>
-	TWeakPtr<const T> GetBody(const FRecallPhysicsBodyHandle& Handle)
-	{
-		return StaticCastWeakPtr<T>(GetMutableBody(Handle));
-	}
+	FRecallPhysicsBodyView GetMutableBody(const FRecallPhysicsBodyHandle& Handle);
+	FConstRecallPhysicsBodyView GetBody(const FRecallPhysicsBodyHandle& Handle) const;
 
 	void SetLayerOverride(const FRecallPhysicsBodyHandle& Handle, uint16 Layer);
 	void ClearLayerOverride(const FRecallPhysicsBodyHandle& Handle);
@@ -140,7 +127,7 @@ protected:
 	struct FRecallPhysicsBodyRef
 	{
 		FMassEntityHandle Entity;
-		TSharedPtr<FRecallPhysicsBody> Body;
+		TSharedPtr<FJPRPhysicsBody> Body;
 		FInstancedStruct Shape;
 		FJPRPhysicsBodyParameters Params;
 		bool bRestoreBody = true;
@@ -167,7 +154,7 @@ protected:
 	mutable FCriticalSection HitEventGuard;
 
 	template<typename ShapeType>
-	FRecallPhysicsBodyHandle RegisterPhysicsBody(const FMassEntityHandle& Entity, const TSharedPtr<FRecallPhysicsBody>& Body, const ShapeType& Shape)
+	FRecallPhysicsBodyHandle RegisterPhysicsBody(const FMassEntityHandle& Entity, const TSharedPtr<FJPRPhysicsBody>& Body, const ShapeType& Shape)
 	{
 		FRecallPhysicsBodyHandle Handle;
 		RegisterPhysicsBody_Internal(Entity, Body, FInstancedStruct::Make<ShapeType>(Shape), Handle);

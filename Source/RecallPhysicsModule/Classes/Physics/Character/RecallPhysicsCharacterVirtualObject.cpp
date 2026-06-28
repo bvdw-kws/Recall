@@ -56,21 +56,20 @@ struct FRecallPhysicsCharacterVirtualBodyShapeContainer
 // FRecallPhysicsCharacterVirtualBody Begin
 void FRecallPhysicsCharacterVirtualBody::Activate()
 {
-	FRecallPhysicsBody::Activate();
+	FJPRPhysicsBody::Activate();
 }
 
 void FRecallPhysicsCharacterVirtualBody::Desactivate()
 {
-	FRecallPhysicsBody::Desactivate();
+	FJPRPhysicsBody::Desactivate();
 }
 
-void FRecallPhysicsCharacterVirtualBody::AddLinearVelocity(const FVector& LinearVelocity)
+void FRecallPhysicsCharacterVirtualBody::AddLinearVelocityPerSecond(const FVector& LinearVelocity)
 {
 #if WITH_JOLT_PHYSICS
 	if (character.IsValid())
 	{
-		const FVector LinearVelocityPerSecond = Recall::Math::Utils::UnitsPerFrameToPerSecond(LinearVelocity);
-		const FVector PhysicsVelocity = UnrealToJoltPhysics(LinearVelocityPerSecond);
+		const FVector PhysicsVelocity = UnrealToJoltPhysics(LinearVelocity);
 		const Vec3 Vel(PhysicsVelocity.X, PhysicsVelocity.Y, PhysicsVelocity.Z);
 
 		character->SetLinearVelocity(character->GetLinearVelocity() + Vel);
@@ -78,13 +77,12 @@ void FRecallPhysicsCharacterVirtualBody::AddLinearVelocity(const FVector& Linear
 #endif // WITH_JOLT_PHYSICS
 }
 
-void FRecallPhysicsCharacterVirtualBody::SetLinearVelocity(const FVector& LinearVelocity)
+void FRecallPhysicsCharacterVirtualBody::SetLinearVelocityPerSecond(const FVector& LinearVelocity)
 {
 #if WITH_JOLT_PHYSICS
 	if (character.IsValid())
 	{
-		const FVector LinearVelocityPerSecond = Recall::Math::Utils::UnitsPerFrameToPerSecond(LinearVelocity);
-		const FVector PhysicsVelocity = UnrealToJoltPhysics(LinearVelocityPerSecond);
+		const FVector PhysicsVelocity = UnrealToJoltPhysics(LinearVelocity);
 		const Vec3 Vel(PhysicsVelocity.X, PhysicsVelocity.Y, PhysicsVelocity.Z);
 
 		character->SetLinearVelocity(Vel);
@@ -92,7 +90,7 @@ void FRecallPhysicsCharacterVirtualBody::SetLinearVelocity(const FVector& Linear
 #endif // WITH_JOLT_PHYSICS
 }
 
-FVector FRecallPhysicsCharacterVirtualBody::GetLinearVelocity() const
+FVector FRecallPhysicsCharacterVirtualBody::GetLinearVelocityPerSecond() const
 {
 #if WITH_JOLT_PHYSICS
 	if (character.IsValid())
@@ -100,11 +98,11 @@ FVector FRecallPhysicsCharacterVirtualBody::GetLinearVelocity() const
 		const Vec3 PhysicsVelocity = character->GetLinearVelocity();
 		const FVector WorldVelocity = JoltPhysicsToUnreal(FVector(PhysicsVelocity.GetX(), PhysicsVelocity.GetY(), PhysicsVelocity.GetZ()));
 
-		return Recall::Math::Utils::UnitsPerSecondToPerFrame(WorldVelocity);
+		return WorldVelocity;
 	}
 #endif // WITH_JOLT_PHYSICS
 
-	return FRecallPhysicsBody::GetLinearVelocity();
+	return FJPRPhysicsBody::GetLinearVelocityPerSecond();
 }
 
 void FRecallPhysicsCharacterVirtualBody::SetPosition(const FVector& Position) const
@@ -160,7 +158,7 @@ void FRecallPhysicsCharacterVirtualBody::GetPositionAndRotation(FVector& OutPosi
 	}
 #endif // WITH_JOLT_PHYSICS
 	
-	FRecallPhysicsBody::GetPositionAndRotation(OutPosition, OutRotation);
+	FJPRPhysicsBody::GetPositionAndRotation(OutPosition, OutRotation);
 }
 
 void FRecallPhysicsCharacterVirtualBody::ReleasePhysicsObject()

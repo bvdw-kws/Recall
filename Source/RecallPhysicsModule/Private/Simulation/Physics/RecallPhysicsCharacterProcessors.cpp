@@ -119,8 +119,8 @@ void URecallPhysicsCharacterPostSimulationProcessor::Execute(FMassEntityManager&
 		{
 			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 
-			const TWeakPtr<FRecallPhysicsCharacterBody> PhysicsBody = StaticCastWeakPtr<FRecallPhysicsCharacterBody>(
-				PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle));
+			const FRecallPhysicsBodyView BodyView = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+			const TWeakPtr<FRecallPhysicsCharacterBody> PhysicsBody = BodyView.GetBody<FRecallPhysicsCharacterBody>();
 			if (!ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")))
 			{
 				return;
@@ -233,8 +233,8 @@ void URecallPhysicsCharacterVirtualUpdateProcessor::Execute(FMassEntityManager& 
 			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			FRecallPhysicsCharacterFragment& CharacterFragment = CharacterList[EntityIndex];
 
-			const TWeakPtr<FRecallPhysicsCharacterVirtualBody> PhysicsBody = StaticCastWeakPtr<FRecallPhysicsCharacterVirtualBody>(
-				PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle));
+			const FRecallPhysicsBodyView BodyView = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+			const TWeakPtr<FRecallPhysicsCharacterVirtualBody> PhysicsBody = BodyView.GetBody<FRecallPhysicsCharacterVirtualBody>();
 			if (!ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")))
 			{
 				continue;

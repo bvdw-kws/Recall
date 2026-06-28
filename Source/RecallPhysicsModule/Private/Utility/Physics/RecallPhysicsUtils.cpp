@@ -388,7 +388,7 @@ void GenerateSplineMeshAlongSpline(
 void InitializePhysicsBody(FMassExecutionContext& Context, const FMassEntityHandle& Entity,
 	URecallPhysicsSubsystem& PhysicsSystem, const FRecallPhysicsBodyFragment& BodyFragment, const FJPRPhysicsBodyParameters& BodyParams)
 {
-	const TWeakPtr<FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+	const FRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
 
 	if (ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")) == false)
 	{
@@ -398,7 +398,7 @@ void InitializePhysicsBody(FMassExecutionContext& Context, const FMassEntityHand
 	if (BodyFragment.ShouldStartEnabled())
 	{
 		PhysicsBody.Pin()->Activate();
-		PhysicsBody.Pin()->SetLinearVelocity(BodyFragment.StartVelocity);
+		PhysicsBody.SetLinearVelocity(BodyFragment.StartVelocity);
 	}
 	else
 	{
@@ -456,10 +456,10 @@ void Teleport(const FMassEntityManager& EntityManager, const FMassEntityHandle& 
 	// Update physics body if present
 	if (const FRecallPhysicsBodyFragment* PhysicsBodyFragment = EntityView.GetFragmentDataPtr<FRecallPhysicsBodyFragment>())
 	{
-		const TWeakPtr<FRecallPhysicsBody> PhysicsBody = PhysicsSubsystem.GetMutableBody(PhysicsBodyFragment->BodyHandle);
+		const FRecallPhysicsBodyView PhysicsBody = PhysicsSubsystem.GetMutableBody(PhysicsBodyFragment->BodyHandle);
 		if (PhysicsBody.IsValid())
 		{
-			PhysicsBody.Pin()->SetPosition(NewPosition);
+			PhysicsBody.SetPosition(NewPosition);
 		}
 	}
 }

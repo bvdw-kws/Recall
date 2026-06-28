@@ -44,12 +44,12 @@ using namespace std;
 // FRecallPhysicsCharacterBody Begin
 void FRecallPhysicsCharacterBody::Activate()
 {
-	FRecallPhysicsBody::Activate();
+	FJPRPhysicsBody::Activate();
 }
 
 void FRecallPhysicsCharacterBody::Desactivate()
 {
-	FRecallPhysicsBody::Desactivate();
+	FJPRPhysicsBody::Desactivate();
 }
 
 void FRecallPhysicsCharacterBody::ReleasePhysicsObject()

@@ -37,7 +37,7 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 
-			const TWeakPtr<const FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetBody(BodyFragment.BodyHandle);
+			const FConstRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetBody(BodyFragment.BodyHandle);
 			if (ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")) == false)
 			{
 				continue;
@@ -50,9 +50,9 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 
 			FVector Position = FVector::ZeroVector;
 			FQuat Rotation = FQuat::Identity;
-			PhysicsBody.Pin()->GetPositionAndRotation(Position, Rotation);
+			PhysicsBody.GetPositionAndRotation(Position, Rotation);
 
-			const FVector Velocity = PhysicsBody.Pin()->GetLinearVelocity();
+			const FVector Velocity = PhysicsBody.GetLinearVelocity();
 			
 			RECALL_DESYNC_LOG_STR(Context.GetWorld(), PhysicsObject,
 				FString::Printf(TEXT("(%s) %s (%s) Position: %s, Rotation: %s, Velocity: %s"),
@@ -83,7 +83,7 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 		{
 			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 
-			const TWeakPtr<const FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetBody(BodyFragment.BodyHandle);
+			const FConstRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetBody(BodyFragment.BodyHandle);
 			if (ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")) == false)
 			{
 				continue;
@@ -161,7 +161,7 @@ void URecallPhysicsInitializerProcessor::Execute(FMassEntityManager& EntityManag
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
-			const TWeakPtr<FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+			const FRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
 
 			if (ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")) == false)
 			{
@@ -170,7 +170,7 @@ void URecallPhysicsInitializerProcessor::Execute(FMassEntityManager& EntityManag
 
 			const FRecallTransformFragment& TransformFragment = TransformList[EntityIndex];
 
-			PhysicsBody.Pin()->SetPositionAndRotation(TransformFragment.Position, TransformFragment.Rotation);
+			PhysicsBody.SetPositionAndRotation(TransformFragment.Position, TransformFragment.Rotation);
 		}
 
 		InitializedEntities.Append(Context.GetEntities());
@@ -327,7 +327,7 @@ void URecallPhysicsCopyLocationProcessor::Execute(FMassEntityManager& EntityMana
 			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			FRecallTransformFragment& TransformFragment = TransformList[EntityIndex];
 
-			const TWeakPtr<FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+			const FRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
 
 			if (!ensureMsgf(PhysicsBody.IsValid(),
 				TEXT("%hs Body does not exist."), __FUNCTION__))
@@ -342,15 +342,15 @@ void URecallPhysicsCopyLocationProcessor::Execute(FMassEntityManager& EntityMana
 
 			if (BodyFragment.ShouldCopyPositionAndRotation())
 			{
-				PhysicsBody.Pin()->GetPositionAndRotation(TransformFragment.Position, TransformFragment.Rotation);
+				PhysicsBody.GetPositionAndRotation(TransformFragment.Position, TransformFragment.Rotation);
 			}
 			else if (BodyFragment.ShouldCopyPosition())
 			{
-				PhysicsBody.Pin()->GetPosition(TransformFragment.Position);
+				PhysicsBody.GetPosition(TransformFragment.Position);
 			}
 			else if (BodyFragment.ShouldCopyRotation())
 			{
-				PhysicsBody.Pin()->GetRotation(TransformFragment.Rotation);
+				PhysicsBody.GetRotation(TransformFragment.Rotation);
 			}
 		});
 	});
@@ -576,7 +576,7 @@ void URecallPhysicsRepresentationProcessor::Execute(FMassEntityManager& EntityMa
 				FColor ActivatedColor = FColor::Blue,
 				FColor DeactivatedColor = FColor::Red)
 			{
-				const TWeakPtr<const FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetBody(BodyHandle);
+				const FConstRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetBody(BodyHandle);
 
 				if (PhysicsBody.IsValid())
 				{
@@ -620,7 +620,7 @@ void URecallPhysicsRepresentationProcessor::Execute(FMassEntityManager& EntityMa
 
 			if (Recall::Physics::Utils::ShouldDebugShowInfos())
 			{
-				const TWeakPtr<const FRecallPhysicsBody> PhysicsBody = PhysicsSystem.GetBody(BodyFragment.BodyHandle);
+				const FConstRecallPhysicsBodyView PhysicsBody = PhysicsSystem.GetBody(BodyFragment.BodyHandle);
 				if (PhysicsBody.IsValid())
 				{
 					PhysicsBody.Pin()->DrawDebugInfo(Context.GetWorld(), FColor::Green);

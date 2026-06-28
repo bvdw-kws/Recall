@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Physics/RecallPhysicsObjects.h"
+#include "Physics/JPRPhysicsBody.h"
 #include "RecallPhysicsCharacterTypes.h"
 
 struct FRecallPhysicsCharacterVirtual;
@@ -22,7 +22,7 @@ namespace JPH
 /**
 * Wrapper Object for JPH::CharacterVirtual.
 */
-class RECALLPHYSICSMODULE_API FRecallPhysicsCharacterVirtualBody : public FRecallPhysicsBody
+class RECALLPHYSICSMODULE_API FRecallPhysicsCharacterVirtualBody : public FJPRPhysicsBody
 {
 public:
 	void InitCharacterVirtual(const FRecallPhysicsCharacterVirtual& CharacterVirtualShape,
@@ -39,9 +39,9 @@ public:
 	virtual void Activate() override;
 	virtual void Desactivate() override;
 	
-	virtual void AddLinearVelocity(const FVector& LinearVelocity) override;
-	virtual void SetLinearVelocity(const FVector& LinearVelocity) override;
-	virtual FVector GetLinearVelocity() const override;
+	virtual void AddLinearVelocityPerSecond(const FVector& LinearVelocity) override;
+	virtual void SetLinearVelocityPerSecond(const FVector& LinearVelocity) override;
+	virtual FVector GetLinearVelocityPerSecond() const override;
 	virtual void SetPosition(const FVector& Position) const override;
 	virtual void SetRotation(const FQuat& Rotation) const override;
 	virtual void SetPositionAndRotation(const FVector& Position, const FQuat& Rotation) const override;

@@ -256,7 +256,8 @@ void FRecallPhysicsVehicleBody::DrawDebugShape(const UWorld* World, const FColor
 		if (GetBodyInterface().GetMotionType(*body_id.Get()) != EMotionType::Static)
 		{
 			FString DebugString;
-			DebugString += FString::Printf(TEXT("Vel: %s\n"), *GetLinearVelocity().ToString());
+			const FVector Velocity = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
+			DebugString += FString::Printf(TEXT("Vel: %s\n"), *Velocity.ToString());
 			
 			DrawDebugString(World, WorldPosition, DebugString);
 		}
@@ -351,7 +352,7 @@ void FRecallPhysicsVehicleBody::GetDriverInput(float& OutForward, float& OutRigh
 
 FVector FRecallPhysicsVehicleBody::GetSpeedKilometersPerHour(const UWorld* World) const
 {
-	const FVector WorldVelocity = GetLinearVelocity();
+	const FVector WorldVelocity = Recall::Math::Utils::UnitsPerSecondToPerFrame(GetLinearVelocityPerSecond());
 	const FVector VelocityCentimetersPerSecond = Recall::Math::Utils::UnitsPerFrameToKilometersPerHour(WorldVelocity);
 	return VelocityCentimetersPerSecond;
 }
