@@ -38,8 +38,9 @@ protected:
 	// FTickableGameObject implementation End
 
 private:
-	UPROPERTY(Transient)
+#ifdef WITH_DEBUG_MENU
 	TWeakObjectPtr<class UDebugMenuSubsystem> DebugMenuSubsystem;
+#endif // WITH_DEBUG_MENU
 	UPROPERTY(Transient)
 	bool bIsJustPressedGamepadSpecialLeft{ false };
 	UPROPERTY(Transient)

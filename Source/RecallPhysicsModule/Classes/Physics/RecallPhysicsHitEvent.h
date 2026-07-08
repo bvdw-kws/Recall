@@ -23,7 +23,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsHitEvent
 
 	/* Body handle of the collider we hit. */
 	UPROPERTY(VisibleAnywhere, Transient)
-	FJPRPhysicsBodyHandle ColliderBodyHandle;
+	FRecallPhysicsBodyHandle ColliderBodyHandle;
 
 	/* Entity of the collider we hit. */
 	UPROPERTY(VisibleAnywhere, Transient)

@@ -16,7 +16,7 @@ class USplineMeshComponent;
 struct FMassEntityHandle;
 struct FMassEntityManager;
 struct FMassExecutionContext;
-struct FJPRPhysicsBodyFragment;
+struct FRecallPhysicsBodyFragment;
 struct FJPRPhysicsBodyParameters;
 
 namespace ESplineCoordinateSpace
@@ -90,7 +90,7 @@ extern RECALLPHYSICSMODULE_API void CreateStaticMeshEntity(URecallPhysicsSubsyst
  * Helper method to setup a newly created physics body's base values from its fragments.
  */
 extern RECALLPHYSICSMODULE_API void InitializePhysicsBody(FMassExecutionContext& Context, const FMassEntityHandle& Entity,
-	URecallPhysicsSubsystem& PhysicsSystem, const FJPRPhysicsBodyFragment& BodyFragment, const FJPRPhysicsBodyParameters& BodyParams);
+	URecallPhysicsSubsystem& PhysicsSystem, const FRecallPhysicsBodyFragment& BodyFragment, const FJPRPhysicsBodyParameters& BodyParams);
 
 /**
  * Teleports an entity to a new position, updating both transform fragment and physics body

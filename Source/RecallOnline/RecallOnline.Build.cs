@@ -19,13 +19,11 @@ public class RecallOnline : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
-			"DebugMenu",
 			"MassEntity",
             "MassSpawner",
 			"RecallFrontend",
 			"RecallSimulation",
 			"RecallSnapshot",
-			"DebugMenu",
 			"InputCore",
 			"EnhancedInput",
 			"NetCore",
@@ -41,6 +39,11 @@ public class RecallOnline : ModuleRules
 		if (bWithMultiWorld)
 		{
 			PrivateDependencyModuleNames.Add("MultiWorld");
+		}
+
+		if (Target.EnablePlugins.Contains("DebugMenu"))
+		{
+			PrivateDependencyModuleNames.Add("DebugMenu");
 		}
 
 		// Uncomment if you are using Slate UI

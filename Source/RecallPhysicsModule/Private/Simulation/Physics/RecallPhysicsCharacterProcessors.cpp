@@ -38,7 +38,7 @@ void URecallCharacterFragmentConstructor::InitializeInternal(UObject& Owner,
 void URecallCharacterFragmentConstructor::ConfigureQueries(
 	const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FJPRPhysicsCharacterShapeConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -53,13 +53,13 @@ void URecallCharacterFragmentConstructor::Execute(FMassEntityManager& EntityMana
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		const auto& Character = Context.GetConstSharedFragment<FJPRPhysicsCharacterShapeConstSharedFragment>();
 
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			BodyFragment.BodyHandle = PhysicsSystem.CreateShape(Entity, Character.Shape, Character.Params);
@@ -91,7 +91,7 @@ void URecallPhysicsCharacterPostSimulationProcessor::InitializeInternal(UObject&
 
 void URecallPhysicsCharacterPostSimulationProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FJPRPhysicsCharacterFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FJPRPhysicsCharacterShapeConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
@@ -112,14 +112,14 @@ void URecallPhysicsCharacterPostSimulationProcessor::Execute(FMassEntityManager&
 		
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 
-		const TConstArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetFragmentView<FJPRPhysicsBodyFragment>();
+		const TConstArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetFragmentView<FRecallPhysicsBodyFragment>();
 		const TArrayView<FJPRPhysicsCharacterFragment> CharacterList = Context.GetMutableFragmentView<FJPRPhysicsCharacterFragment>();
 
 		ParallelFor(Context.GetNumEntities(), [&PhysicsSystem, &BodyList, &CharacterList](int32 EntityIndex)
 		{
-			const FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 
-			const FJPRPhysicsBodyView BodyView = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+			const FRecallPhysicsBodyView BodyView = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
 			const TWeakPtr<FJPRPhysicsCharacterBody> PhysicsBody = BodyView.GetBody<FJPRPhysicsCharacterBody>();
 			if (!ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")))
 			{
@@ -155,7 +155,7 @@ void URecallCharacterVirtualFragmentConstructor::InitializeInternal(UObject& Own
 void URecallCharacterVirtualFragmentConstructor::ConfigureQueries(
 	const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FJPRPhysicsCharacterVirtualShapeConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -170,13 +170,13 @@ void URecallCharacterVirtualFragmentConstructor::Execute(FMassEntityManager& Ent
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		const auto& Character = Context.GetConstSharedFragment<FJPRPhysicsCharacterVirtualShapeConstSharedFragment>();
 
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			BodyFragment.BodyHandle = PhysicsSystem.CreateShape(Entity, Character.Shape, Character.Params);
@@ -208,7 +208,7 @@ void URecallPhysicsCharacterVirtualUpdateProcessor::InitializeInternal(UObject& 
 void URecallPhysicsCharacterVirtualUpdateProcessor::ConfigureQueries(
 	const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FJPRPhysicsCharacterFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FJPRPhysicsCharacterVirtualShapeConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
@@ -223,17 +223,17 @@ void URecallPhysicsCharacterVirtualUpdateProcessor::Execute(FMassEntityManager& 
 	{
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 
-		const TConstArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetFragmentView<FJPRPhysicsBodyFragment>();
+		const TConstArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetFragmentView<FRecallPhysicsBodyFragment>();
 		const TArrayView<FJPRPhysicsCharacterFragment> CharacterList = Context.GetMutableFragmentView<FJPRPhysicsCharacterFragment>();
 
 		const float DeltaTime = Context.GetDeltaTimeSeconds();
 			
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
-			const FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			const FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			FJPRPhysicsCharacterFragment& CharacterFragment = CharacterList[EntityIndex];
 
-			const FJPRPhysicsBodyView BodyView = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
+			const FRecallPhysicsBodyView BodyView = PhysicsSystem.GetMutableBody(BodyFragment.BodyHandle);
 			const TWeakPtr<FJPRPhysicsCharacterVirtualBody> PhysicsBody = BodyView.GetBody<FJPRPhysicsCharacterVirtualBody>();
 			if (!ensureMsgf(PhysicsBody.IsValid(), TEXT("Body does not exist.")))
 			{

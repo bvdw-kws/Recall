@@ -17,7 +17,7 @@ void URecallSensorTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCon
 	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
 
 	BuildContext.RequireFragment<FRecallTransformFragment>();
-	BuildContext.RequireFragment<FJPRPhysicsBodyFragment>();
+	BuildContext.RequireFragment<FRecallPhysicsBodyFragment>();
 	BuildContext.RequireFragment<FRecallPhysicsSensorFragment>();
 
 	BuildContext.AddFragment<FRecallSensorFragment>();

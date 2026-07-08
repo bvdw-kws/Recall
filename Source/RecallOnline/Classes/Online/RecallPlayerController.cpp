@@ -24,10 +24,13 @@
 #include "Online/RecallPawn.h"
 #include "Online/RecallPlayerState_InGame.h"
 #include "Online/RecallGameMode.h"
-#include "System/Debug/DebugMenuSubsystem.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Utility/Gameplay/RecallGameplayStatics.h"
+
+#ifdef WITH_DEBUG_MENU
+#include "System/Debug/DebugMenuSubsystem.h"
+#endif // WITH_DEBUG_MENU
 
 ARecallPlayerController::ARecallPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -45,12 +48,14 @@ void ARecallPlayerController::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+#ifdef WITH_DEBUG_MENU
 	DebugMenuSystem = UGameInstance::GetSubsystem<UDebugMenuSubsystem>(GetGameInstance());
 
 	if (DebugMenuSystem.IsValid())
 	{
 		DebugMenuSystem->OnToggleDebugMenu.AddUObject(this, &ThisClass::OnToggleDebugMenu);
 	}
+#endif // WITH_DEBUG_MENU
 }
 
 void ARecallPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -366,12 +371,14 @@ void ARecallPlayerController::OnPossessBotAction(const FInputActionValue& Value)
 
 bool ARecallPlayerController::IsLockInput() const
 {
+#ifdef WITH_DEBUG_MENU
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	if (DebugMenuSystem.IsValid() && DebugMenuSystem->IsMenuOpened())
 	{
 		return true;
 	}
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+#endif // WITH_DEBUG_MENU
 
 	if (URecallGameplayStatics::IsRestoringGameSimulation(this))
 	{

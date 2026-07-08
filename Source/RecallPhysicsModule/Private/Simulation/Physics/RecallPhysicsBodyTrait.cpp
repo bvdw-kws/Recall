@@ -45,7 +45,7 @@ void URecallPhysicsBodyTrait::BuildBodyTemplate(FMassEntityTemplateBuildContext&
 {
 	BuildContext.RequireFragment<FRecallTransformFragment>();
 
-	FJPRPhysicsBodyFragment& BodyFragment = BuildContext.AddFragment_GetRef<FJPRPhysicsBodyFragment>();
+	FRecallPhysicsBodyFragment& BodyFragment = BuildContext.AddFragment_GetRef<FRecallPhysicsBodyFragment>();
 	BodyFragment.Extents = Extents;
 	BodyFragment.StartParameters = static_cast<uint8>(StartParams);
 	BodyFragment.TransformCopy = static_cast<uint8>(TransformCopyParams);

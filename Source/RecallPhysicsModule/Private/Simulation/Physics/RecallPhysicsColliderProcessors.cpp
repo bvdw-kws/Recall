@@ -23,7 +23,7 @@ URecallBodyFragmentDestructor::URecallBodyFragmentDestructor()
 	: EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
-	ObservedTypes.Add(FJPRPhysicsBodyFragment::StaticStruct());
+	ObservedTypes.Add(FRecallPhysicsBodyFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
@@ -34,7 +34,7 @@ void URecallBodyFragmentDestructor::InitializeInternal(UObject& Owner, const TSh
 
 void URecallBodyFragmentDestructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FRecallPhysicsSensorFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -46,12 +46,12 @@ void URecallBodyFragmentDestructor::Execute(FMassEntityManager& EntityManager, F
 	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 		const TArrayView<FRecallPhysicsSensorFragment> SensorList = Context.GetMutableFragmentView<FRecallPhysicsSensorFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			FRecallPhysicsSensorFragment& SensorFragment = SensorList[EntityIndex];
 
 			SensorFragment.RemoveSensor(BodyFragment.BodyHandle);
@@ -67,7 +67,7 @@ URecallBoxShapeFragmentConstructor::URecallBoxShapeFragmentConstructor()
 	: EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
-	ObservedTypes.Add(FJPRPhysicsBodyFragment::StaticStruct());
+	ObservedTypes.Add(FRecallPhysicsBodyFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -78,7 +78,7 @@ void URecallBoxShapeFragmentConstructor::InitializeInternal(UObject& Owner, cons
 
 void URecallBoxShapeFragmentConstructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FJPRPhysicsBoxShapeFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -92,13 +92,13 @@ void URecallBoxShapeFragmentConstructor::Execute(FMassEntityManager& EntityManag
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		const FJPRPhysicsBoxShapeFragment& BoxShape = Context.GetConstSharedFragment<FJPRPhysicsBoxShapeFragment>();
 
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			BodyFragment.BodyHandle = PhysicsSystem.CreateShape(Entity, BoxShape.Shape, BoxShape.Params);
@@ -116,7 +116,7 @@ URecallSphereShapeFragmentConstructor::URecallSphereShapeFragmentConstructor()
 	: EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
-	ObservedTypes.Add(FJPRPhysicsBodyFragment::StaticStruct());
+	ObservedTypes.Add(FRecallPhysicsBodyFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -127,7 +127,7 @@ void URecallSphereShapeFragmentConstructor::InitializeInternal(UObject& Owner, c
 
 void URecallSphereShapeFragmentConstructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FJPRPhysicsSphereShapeFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -141,13 +141,13 @@ void URecallSphereShapeFragmentConstructor::Execute(FMassEntityManager& EntityMa
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		const FJPRPhysicsSphereShapeFragment& SphereShape = Context.GetConstSharedFragment<FJPRPhysicsSphereShapeFragment>();
 
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			BodyFragment.BodyHandle = PhysicsSystem.CreateShape(Entity, SphereShape.Shape, SphereShape.Params);
@@ -165,7 +165,7 @@ URecallCapsuleShapeFragmentConstructor::URecallCapsuleShapeFragmentConstructor()
 	: EntityQuery(*this)
 {
 	ExecutionFlags = (int32)EProcessorExecutionFlags::All;
-	ObservedTypes.Add(FJPRPhysicsBodyFragment::StaticStruct());
+	ObservedTypes.Add(FRecallPhysicsBodyFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -176,7 +176,7 @@ void URecallCapsuleShapeFragmentConstructor::InitializeInternal(UObject& Owner, 
 
 void URecallCapsuleShapeFragmentConstructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FRecallPhysicsCapsuleFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -190,13 +190,13 @@ void URecallCapsuleShapeFragmentConstructor::Execute(FMassEntityManager& EntityM
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		const FRecallPhysicsCapsuleFragment& CapsuleShape = Context.GetConstSharedFragment<FRecallPhysicsCapsuleFragment>();
 
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			BodyFragment.BodyHandle = PhysicsSystem.CreateShape(Entity, CapsuleShape.Shape, CapsuleShape.Params);
@@ -225,9 +225,9 @@ void URecallMeshShapeFragmentProcessor::InitializeInternal(UObject& Owner, const
 
 void URecallMeshShapeFragmentProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FRecallPhysicsMeshFragment>(EMassFragmentAccess::ReadOnly);
-	EntityQuery.AddTagRequirement<FJPRPhysicsBodyInitializedTransformTag>(EMassFragmentPresence::None);
+	EntityQuery.AddTagRequirement<FRecallPhysicsBodyInitializedTransformTag>(EMassFragmentPresence::None);
 	EntityQuery.AddConstSharedRequirement<FRecallPhysicsMeshConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -241,7 +241,7 @@ void URecallMeshShapeFragmentProcessor::Execute(FMassEntityManager& EntityManage
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		const FRecallPhysicsMeshConstSharedFragment& MeshConstSharedFragment = Context.GetConstSharedFragment<FRecallPhysicsMeshConstSharedFragment>();
 
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 		const TConstArrayView<FRecallPhysicsMeshFragment> MeshList = Context.GetFragmentView<FRecallPhysicsMeshFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
@@ -249,7 +249,7 @@ void URecallMeshShapeFragmentProcessor::Execute(FMassEntityManager& EntityManage
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
 			const FRecallPhysicsMeshFragment& MeshFragment = MeshList[EntityIndex];
 
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			// Scale mesh
@@ -304,8 +304,8 @@ void URecallHeightFieldShapeFragmentProcessor::InitializeInternal(UObject& Owner
 void URecallHeightFieldShapeFragmentProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FRecallTransformFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddTagRequirement<FJPRPhysicsBodyInitializedTransformTag>(EMassFragmentPresence::None);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddTagRequirement<FRecallPhysicsBodyInitializedTransformTag>(EMassFragmentPresence::None);
 	EntityQuery.AddConstSharedRequirement<FRecallPhysicsHeightFieldConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
 }
@@ -324,7 +324,7 @@ void URecallHeightFieldShapeFragmentProcessor::Execute(FMassEntityManager& Entit
 		
 		URecallPhysicsSubsystem& PhysicsSystem = Context.GetMutableSubsystemChecked<URecallPhysicsSubsystem>();
 		
-		const TArrayView<FJPRPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FJPRPhysicsBodyFragment>();
+		const TArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetMutableFragmentView<FRecallPhysicsBodyFragment>();
 		const TArrayView<FRecallTransformFragment> TransformList = Context.GetMutableFragmentView<FRecallTransformFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
@@ -335,7 +335,7 @@ void URecallHeightFieldShapeFragmentProcessor::Execute(FMassEntityManager& Entit
 			TransformFragment.Position = HeightFieldConstSharedFragment.Location;
 			TransformFragment.Rotation = HeightFieldConstSharedFragment.Rotation;
 			
-			FJPRPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
+			FRecallPhysicsBodyFragment& BodyFragment = BodyList[EntityIndex];
 			check(BodyFragment.BodyHandle.IsValid() == false);
 
 			BodyFragment.BodyHandle = PhysicsSystem.CreateShape(Entity,

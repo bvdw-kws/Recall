@@ -42,6 +42,11 @@ TSharedPtr<const FJPRPhysicsBody> FConstRecallPhysicsBodyView::Pin() const
 	return Body.Pin();
 }
 
+bool FConstRecallPhysicsBodyView::IsEnabled() const
+{
+	return Pin()->IsEnabled();
+}
+
 FVector FConstRecallPhysicsBodyView::GetLinearVelocity() const
 {
 	return ToPerFrame(Pin()->GetLinearVelocityPerSecond());
@@ -79,62 +84,62 @@ void FConstRecallPhysicsBodyView::GetPositionAndRotation(FVector& OutPosition, F
 }
 
 //----------------------------------------------------------------------//
-// FJPRPhysicsBodyView
+// FRecallPhysicsBodyView
 //----------------------------------------------------------------------//
-FJPRPhysicsBodyView::FJPRPhysicsBodyView(const TWeakPtr<FJPRPhysicsBody>& InBody) : FConstRecallPhysicsBodyView(InBody)
+FRecallPhysicsBodyView::FRecallPhysicsBodyView(const TWeakPtr<FJPRPhysicsBody>& InBody) : FConstRecallPhysicsBodyView(InBody)
 {
 }
 
-TSharedPtr<FJPRPhysicsBody> FJPRPhysicsBodyView::Pin() const
+TSharedPtr<FJPRPhysicsBody> FRecallPhysicsBodyView::Pin() const
 {
 	return ConstCastSharedPtr<FJPRPhysicsBody>(Body.Pin());
 }
 
-void FJPRPhysicsBodyView::AddLinearVelocity(const FVector& Velocity) const
+void FRecallPhysicsBodyView::AddLinearVelocity(const FVector& Velocity) const
 {
 	Pin()->AddLinearVelocityPerSecond(ToPerSecond(Velocity));
 }
 
-void FJPRPhysicsBodyView::AddLinearAndAngularVelocity(const FVector& Linear, const FVector& Angular) const
+void FRecallPhysicsBodyView::AddLinearAndAngularVelocity(const FVector& Linear, const FVector& Angular) const
 {
 	Pin()->AddLinearAndAngularVelocityPerSecond(ToPerSecond(Linear), ToPerSecond(Angular));
 }
 
-void FJPRPhysicsBodyView::SetLinearAndAngularVelocity(const FVector& Linear, const FVector& Angular) const
+void FRecallPhysicsBodyView::SetLinearAndAngularVelocity(const FVector& Linear, const FVector& Angular) const
 {
 	Pin()->SetLinearAndAngularVelocityPerSecond(ToPerSecond(Linear), ToPerSecond(Angular));
 }
 
-void FJPRPhysicsBodyView::SetLinearVelocity(const FVector& Velocity) const
+void FRecallPhysicsBodyView::SetLinearVelocity(const FVector& Velocity) const
 {
 	Pin()->SetLinearVelocityPerSecond(ToPerSecond(Velocity));
 }
 
-void FJPRPhysicsBodyView::SetAngularVelocity(const FVector& Velocity) const
+void FRecallPhysicsBodyView::SetAngularVelocity(const FVector& Velocity) const
 {
 	Pin()->SetAngularVelocityPerSecond(ToPerSecond(Velocity));
 }
 
-void FJPRPhysicsBodyView::AddImpulse(const FVector& ForceNewton, bool bIgnoreMass) const
+void FRecallPhysicsBodyView::AddImpulse(const FVector& ForceNewton, bool bIgnoreMass) const
 {
 	const double Mass = bIgnoreMass ? 1.0 : Pin()->GetMass();
 	AddLinearVelocity(ToPerFrame(ForceNewton) * 100.0 / Mass);
 }
 
-void FJPRPhysicsBodyView::SetLinearVelocityFromImpulse(const FVector& ForceNewton, bool bIgnoreMass) const
+void FRecallPhysicsBodyView::SetLinearVelocityFromImpulse(const FVector& ForceNewton, bool bIgnoreMass) const
 {
 	const double Mass = bIgnoreMass ? 1.0 : Pin()->GetMass();
 	SetLinearVelocity(ToPerFrame(ForceNewton) * 100.0 / Mass);
 }
 
-void FJPRPhysicsBodyView::SetLinearVelocity2DFromImpulse(const FVector& ForceNewton, bool bIgnoreMass) const
+void FRecallPhysicsBodyView::SetLinearVelocity2DFromImpulse(const FVector& ForceNewton, bool bIgnoreMass) const
 {
 	const double Mass = bIgnoreMass ? 1.0 : Pin()->GetMass();
 	const FVector Velocity = ToPerFrame(ForceNewton) * 100.0 / Mass;
 	SetLinearVelocity2D(FVector2D(Velocity.X, Velocity.Y));
 }
 
-void FJPRPhysicsBodyView::SetLinearVelocity2D(const FVector2D& Velocity) const
+void FRecallPhysicsBodyView::SetLinearVelocity2D(const FVector2D& Velocity) const
 {
 	FVector Current = GetLinearVelocity();
 	Current.X = Velocity.X;
@@ -142,29 +147,29 @@ void FJPRPhysicsBodyView::SetLinearVelocity2D(const FVector2D& Velocity) const
 	SetLinearVelocity(Current);
 }
 
-void FJPRPhysicsBodyView::SetLinearZVelocity(float Velocity) const
+void FRecallPhysicsBodyView::SetLinearZVelocity(float Velocity) const
 {
 	FVector Current = GetLinearVelocity();
 	Current.Z = Velocity;
 	SetLinearVelocity(Current);
 }
 
-void FJPRPhysicsBodyView::SetPosition(const FVector& Position) const
+void FRecallPhysicsBodyView::SetPosition(const FVector& Position) const
 {
 	Pin()->SetPosition(Position);
 }
 
-void FJPRPhysicsBodyView::SetRotation(const FQuat& Rotation) const
+void FRecallPhysicsBodyView::SetRotation(const FQuat& Rotation) const
 {
 	Pin()->SetRotation(Rotation);
 }
 
-void FJPRPhysicsBodyView::SetRotation(const FRotator& Rotation) const
+void FRecallPhysicsBodyView::SetRotation(const FRotator& Rotation) const
 {
 	Pin()->SetRotation(Rotation);
 }
 
-void FJPRPhysicsBodyView::SetPositionAndRotation(const FVector& Position, const FQuat& Rotation) const
+void FRecallPhysicsBodyView::SetPositionAndRotation(const FVector& Position, const FQuat& Rotation) const
 {
 	Pin()->SetPositionAndRotation(Position, Rotation);
 }

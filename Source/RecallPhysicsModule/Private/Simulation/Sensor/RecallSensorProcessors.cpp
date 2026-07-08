@@ -57,7 +57,7 @@ void URecallSensorDestructor::Execute(FMassEntityManager& EntityManager, FMassEx
 			FRecallPhysicsSensorFragment& SensorPhysicsFragment = SensorPhysicsList[EntityIndex];
 			FRecallSensorFragment& SensorFragment = SensorList[EntityIndex];
 
-			for (FJPRPhysicsBodyHandle& BodyHandle : SensorFragment.BodyHandles)
+			for (FRecallPhysicsBodyHandle& BodyHandle : SensorFragment.BodyHandles)
 			{
 				SensorPhysicsFragment.RemoveSensor(BodyHandle);
 				PhysicsSystem.ReleaseBody(BodyHandle);
@@ -87,7 +87,7 @@ void URecallSensorAttachmentProcessor::InitializeInternal(UObject& Owner, const 
 void URecallSensorAttachmentProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FRecallTransformFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FJPRPhysicsBodyFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FRecallPhysicsBodyFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FRecallSensorFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddConstSharedRequirement<FRecallSensorConstSharedFragment>();
 	EntityQuery.AddSubsystemRequirement<URecallPhysicsSubsystem>(EMassFragmentAccess::ReadWrite);
@@ -116,8 +116,8 @@ void URecallSensorAttachmentProcessor::Execute(FMassEntityManager& EntityManager
 
 			for (int32 SensorIndex = 0; SensorIndex < SensorFragment.BodyHandles.Num(); SensorIndex++)
 			{
-				const FJPRPhysicsBodyHandle& SensorBodyHandle = SensorFragment.BodyHandles[SensorIndex];
-				const FJPRPhysicsBodyView SensorBody = PhysicsSystem.GetMutableBody(SensorBodyHandle);
+				const FRecallPhysicsBodyHandle& SensorBodyHandle = SensorFragment.BodyHandles[SensorIndex];
+				const FRecallPhysicsBodyView SensorBody = PhysicsSystem.GetMutableBody(SensorBodyHandle);
 
 				if (ensureMsgf(SensorBody.IsValid(), TEXT("Body does not exist.")) == false)
 				{

@@ -131,8 +131,9 @@ protected:
 	void OnPossessBotAction(const FInputActionValue& Value);
 
 protected:
-	UPROPERTY(Transient)
+#ifdef WITH_DEBUG_MENU
 	TWeakObjectPtr<class UDebugMenuSubsystem> DebugMenuSystem;
+#endif // WITH_DEBUG_MENU
 
 	UPROPERTY(Transient)
 	FRecallInput CurrentInput;

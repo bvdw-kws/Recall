@@ -28,7 +28,9 @@
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 #include "Engine/GameInstance.h"
+#ifdef WITH_DEBUG_MENU
 #include "System/Debug/DebugMenuSubsystem.h"
+#endif // WITH_DEBUG_MENU
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 
 static const FString ReplayExtension(TEXT("replay"));

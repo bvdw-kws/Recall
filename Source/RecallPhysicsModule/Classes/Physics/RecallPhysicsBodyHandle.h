@@ -13,7 +13,7 @@
 #define INVALID_PHYSICS_BODY_SERIAL_NUMBER 0
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FJPRPhysicsBodyHandle
+struct RECALLPHYSICSMODULE_API FRecallPhysicsBodyHandle
 {
 	GENERATED_BODY()
 
@@ -30,15 +30,15 @@ struct RECALLPHYSICSMODULE_API FJPRPhysicsBodyHandle
 		return IsSet();
 	}
 
-	friend uint32 GetTypeHash(const FJPRPhysicsBodyHandle& Handle)
+	friend uint32 GetTypeHash(const FRecallPhysicsBodyHandle& Handle)
 	{
 		return Handle.SerialNumber;
 	}
 
-	static FJPRPhysicsBodyHandle Invalid() { return FJPRPhysicsBodyHandle(); }
+	static FRecallPhysicsBodyHandle Invalid() { return FRecallPhysicsBodyHandle(); }
 
-	bool operator!=(const FJPRPhysicsBodyHandle& Other) const { return !(*this == Other); }
-	bool operator==(const FJPRPhysicsBodyHandle& Other) const
+	bool operator!=(const FRecallPhysicsBodyHandle& Other) const { return !(*this == Other); }
+	bool operator==(const FRecallPhysicsBodyHandle& Other) const
 	{
 		return SerialNumber == Other.SerialNumber;
 	}

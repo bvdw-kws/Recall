@@ -8,16 +8,18 @@
 #include "RecallDebugMenuSubsystem.h"
 
 #include "Async/Async.h"
-#include "Debug/DebugMenuInterface.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "RecallFrontendUtils.h"
 #include "Online/RecallPlayerState_InGame.h"
-#include "System/Debug/DebugMenuSubsystem.h"
 #include "System/Simulation/RecallSimulationControllerInterface.h"
-#include "UObject/ConstructorHelpers.h"
 #include "Utility/Replay/RecallReplayUtils.h"
 #include "Utility/Snapshot/RecallSnapshotFileUtils.h"
+
+#ifdef WITH_DEBUG_MENU
+#include "Debug/DebugMenuInterface.h"
+#include "System/Debug/DebugMenuSubsystem.h"
+#endif // WITH_DEBUG_MENU
 
 UE_DISABLE_OPTIMIZATION
 
@@ -29,9 +31,9 @@ URecallDebugMenuSubsystem::URecallDebugMenuSubsystem()
 void URecallDebugMenuSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+
+#ifdef WITH_DEBUG_MENU
 	Collection.InitializeDependency<UDebugMenuSubsystem>();
-	
-#if WITH_DEBUG_MENU
 	DebugMenuSubsystem = UGameInstance::GetSubsystem<UDebugMenuSubsystem>(GetGameInstance());
 	if (DebugMenuSubsystem.IsValid())
 	{
@@ -45,7 +47,7 @@ void URecallDebugMenuSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void URecallDebugMenuSubsystem::Deinitialize()
 {
-#if WITH_DEBUG_MENU
+#ifdef WITH_DEBUG_MENU
 	DebugMenuSubsystem.Reset();
 	
 	FWorldDelegates::OnPostWorldInitialization.RemoveAll(this);
@@ -55,7 +57,7 @@ void URecallDebugMenuSubsystem::Deinitialize()
 
 void URecallDebugMenuSubsystem::Tick(float DeltaTime)
 {
-#if WITH_DEBUG_MENU
+#ifdef WITH_DEBUG_MENU
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_DebugMenu_Tick);
 
 	if (!DebugMenuSubsystem.IsValid())
@@ -87,7 +89,7 @@ TStatId URecallDebugMenuSubsystem::GetStatId() const
 
 void URecallDebugMenuSubsystem::OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS)
 {
-#if WITH_DEBUG_MENU
+#ifdef WITH_DEBUG_MENU
 	if (World &&
 		World == GetWorld() &&
 		World->IsGameWorld() &&
@@ -99,7 +101,7 @@ void URecallDebugMenuSubsystem::OnPostWorldInit(UWorld* World, const UWorld::Ini
 
 void URecallDebugMenuSubsystem::OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
 {
-#if WITH_DEBUG_MENU
+#ifdef WITH_DEBUG_MENU
 	if (World &&
 		World == GetWorld() &&
 		World->IsGameWorld() &&
@@ -137,10 +139,12 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 		PlayerController->WasInputKeyJustPressed(EKeys::NumPadFour) ||
 		PlayerController->WasInputKeyJustPressed(EKeys::Insert))
 	{
+#ifdef WITH_DEBUG_MENU
 		if (ReplayHandle.IsValid())
 		{
 			ReplayHandle.Pin()->Exec(PlayerController);
 		}
+#endif // WITH_DEBUG_MENU
 	}
 
 	// Quick Save
@@ -148,10 +152,12 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 		PlayerController->WasInputKeyJustPressed(EKeys::NumPadSeven) ||
 		PlayerController->WasInputKeyJustPressed(EKeys::Home))
 	{
+#ifdef WITH_DEBUG_MENU
 		if (QuickSaveHandle.IsValid())
 		{
 			QuickSaveHandle.Pin()->Exec(PlayerController);
 		}
+#endif // WITH_DEBUG_MENU
 	}
 
 	// Prevent player from using quick load during replay.
@@ -159,10 +165,12 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 		PlayerController->WasInputKeyJustPressed(EKeys::NumPadNine) ||
 		PlayerController->WasInputKeyJustPressed(EKeys::End))
 	{
+#ifdef WITH_DEBUG_MENU
 		if (QuickLoadHandle.IsValid())
 		{
 			QuickLoadHandle.Pin()->Exec(PlayerController);
 		}
+#endif // WITH_DEBUG_MENU
 	}
 
 	// Pause
@@ -170,10 +178,12 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 		PlayerController->WasInputKeyJustPressed(EKeys::NumPadZero) ||
 		PlayerController->WasInputKeyJustPressed(EKeys::PageUp))
 	{
+#ifdef WITH_DEBUG_MENU
 		if (PauseHandle.IsValid())
 		{
 			PauseHandle.Pin()->Exec(PlayerController);
 		}
+#endif // WITH_DEBUG_MENU
 	}
 
 	// Step
@@ -181,10 +191,12 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 		PlayerController->WasInputKeyJustPressed(EKeys::Add) ||
 		PlayerController->WasInputKeyJustPressed(EKeys::PageDown))
 	{
+#ifdef WITH_DEBUG_MENU
 		if (StepHandle.IsValid())
 		{
 			StepHandle.Pin()->Exec(PlayerController);
 		}
+#endif // WITH_DEBUG_MENU
 	}
 
 	// Possess P2
@@ -195,30 +207,36 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 			if (PlayerController->WasInputKeyJustPressed(EKeys::NumPadThree) ||
 				(bIsHoldGamepadLeftTrigger && bIsJustPressedGamepadSpecialLeft)) // LT + Back
 			{
+#ifdef WITH_DEBUG_MENU
 				if (PossessPlayerTwoHandle.IsValid())
 				{
 					PossessPlayerTwoHandle.Pin()->Exec(PlayerController);
 				}
+#endif // WITH_DEBUG_MENU
 
 				bIsHoldGamepadSpecialLeft = false;
 			}
 
 			if (PlayerController->WasInputKeyJustPressed(EKeys::NumPadOne))
 			{
+#ifdef WITH_DEBUG_MENU
 				if (OnePlayerHandle.IsValid())
 				{
 					OnePlayerHandle.Pin()->Exec(PlayerController);
 				}
+#endif // WITH_DEBUG_MENU
 			}
 		}
 		else
 		{
 			if (PlayerController->WasInputKeyJustPressed(EKeys::NumPadTwo))
 			{
+#ifdef WITH_DEBUG_MENU
 				if (TwoPlayerHandle.IsValid())
 				{
 					TwoPlayerHandle.Pin()->Exec(PlayerController);
 				}
+#endif // WITH_DEBUG_MENU
 			}
 		}
 	}
@@ -226,10 +244,12 @@ void URecallDebugMenuSubsystem::CheckPlayerOneShortcuts(APlayerController* Playe
 	// Reset
 	if (PlayerController->WasInputKeyJustPressed(EKeys::Comma))
 	{
+#ifdef WITH_DEBUG_MENU
 		if (ResetHandle.IsValid())
 		{
 			ResetHandle.Pin()->Exec(PlayerController);
 		}
+#endif // WITH_DEBUG_MENU
 	}
 
 	bIsJustPressedGamepadSpecialLeft = false;
@@ -249,10 +269,12 @@ void URecallDebugMenuSubsystem::CheckPlayerTwoShortcuts(APlayerController* Playe
 			PlayerController->IsInputKeyDown(EKeys::Gamepad_Special_Left) &&
 			PlayerController->IsInputKeyDown(EKeys::Gamepad_Special_Right))
 		{
+#ifdef WITH_DEBUG_MENU
 			if (OnePlayerHandle.IsValid())
 			{
 				OnePlayerHandle.Pin()->Exec(PlayerController);
 			}
+#endif // WITH_DEBUG_MENU
 		}
 	}
 }
@@ -289,7 +311,7 @@ bool URecallDebugMenuSubsystem::IsSimulationPaused() const
 
 void URecallDebugMenuSubsystem::RefreshDebugMenu()
 {
-#if WITH_DEBUG_MENU
+#ifdef WITH_DEBUG_MENU
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_DebugMenu_Refresh);
 
 	if (LoadReplayHandle.IsValid())
@@ -331,7 +353,7 @@ void URecallDebugMenuSubsystem::RefreshDebugMenu()
 
 void URecallDebugMenuSubsystem::CreateDebugMenuItems(IDebugMenu& DebugMenu)
 {
-#if WITH_DEBUG_MENU
+#ifdef WITH_DEBUG_MENU
 	// AI
 	{
 		DebugMenu.AddItem_Bool(TEXT("AI"), "State Tree Debug", false, TEXT("recall.AI.DebugStateTreeInWorld"));

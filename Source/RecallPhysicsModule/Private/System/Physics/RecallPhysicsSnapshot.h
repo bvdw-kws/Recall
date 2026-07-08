@@ -58,7 +58,7 @@ struct FRecallPhysicsSnapshot
 	uint32 SerialNumberGenerator{ INVALID_PHYSICS_BODY_SERIAL_NUMBER };
 
 	UPROPERTY(VisibleAnywhere)
-	TMap<FJPRPhysicsBodyHandle, FJPRPhysicsBodySnapshot> Bodies;
+	TMap<FRecallPhysicsBodyHandle, FJPRPhysicsBodySnapshot> Bodies;
 	
 	UPROPERTY(VisibleAnywhere)
 	TSet<FRecallPhysicsConstrainHandle> Constrains;

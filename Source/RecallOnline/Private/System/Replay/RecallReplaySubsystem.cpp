@@ -23,7 +23,9 @@
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 #include "Engine/GameInstance.h"
+#ifdef WITH_DEBUG_MENU
 #include "System/Debug/DebugMenuSubsystem.h"
+#endif // WITH_DEBUG_MENU
 
 static FAutoConsoleCommandWithWorldAndArgs CVarRecallInstantReplay(
 	TEXT("recall.replay.InstantReplay"),
@@ -464,6 +466,7 @@ void URecallReplaySubsystem::OnFrameStart(uint32 Frame)
 	{
 		if (Frame == 0) // Start
 		{
+#ifdef WITH_DEBUG_MENU
 			if (const UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this))
 			{
 				if (const UDebugMenuSubsystem* DebugMenuSystem = GameInstance->GetSubsystem<UDebugMenuSubsystem>())
@@ -471,6 +474,7 @@ void URecallReplaySubsystem::OnFrameStart(uint32 Frame)
 					DebugMenuSystem->SaveDebugMenu(DebugMenu);
 				}
 			}
+#endif // WITH_DEBUG_MENU
 		}
 
 		if (bDebugReplayAutoSave)

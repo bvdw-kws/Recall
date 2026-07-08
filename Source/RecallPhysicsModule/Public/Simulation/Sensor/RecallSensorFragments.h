@@ -22,7 +22,7 @@ struct RECALLPHYSICSMODULE_API FRecallSensorFragment : public FMassFragment
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere)
-	TArray<FJPRPhysicsBodyHandle> BodyHandles;
+	TArray<FRecallPhysicsBodyHandle> BodyHandles;
 };
 
 template <>

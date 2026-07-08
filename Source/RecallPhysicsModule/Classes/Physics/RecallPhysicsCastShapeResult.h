@@ -17,7 +17,7 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsCastShapeResult
 	GENERATED_BODY()
 		
 	UPROPERTY(VisibleAnywhere, Transient)
-	FJPRPhysicsBodyHandle HitBodyHandle;
+	FRecallPhysicsBodyHandle HitBodyHandle;
 
 	UPROPERTY(VisibleAnywhere, Transient)
 	FIntVector HitLocation{ FIntVector::ZeroValue };

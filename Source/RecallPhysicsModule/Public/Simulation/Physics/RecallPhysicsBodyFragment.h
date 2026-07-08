@@ -13,7 +13,7 @@
 #include "RecallPhysicsBodyFragment.generated.h"
 
 // Tag to know if physics body has been initialized
-USTRUCT() struct RECALLPHYSICSMODULE_API FJPRPhysicsBodyInitializedTransformTag : public FMassTag { GENERATED_BODY() };
+USTRUCT() struct RECALLPHYSICSMODULE_API FRecallPhysicsBodyInitializedTransformTag : public FMassTag { GENERATED_BODY() };
 
 // Tag to identify static colliders
 USTRUCT() struct RECALLPHYSICSMODULE_API FRecallPhysicsStaticColliderTag : public FMassTag { GENERATED_BODY() };
@@ -37,7 +37,7 @@ constexpr bool EnumHasAnyFlags(uint8 Flags, ERecallPhysicsBodyStartParameters Co
 inline uint8& operator|=(uint8& Lhs, ERecallPhysicsBodyStartParameters Rhs) { return Lhs |= static_cast<uint8>(Rhs); }
 
 USTRUCT()
-struct RECALLPHYSICSMODULE_API FJPRPhysicsBodyFragment : public FMassFragment
+struct RECALLPHYSICSMODULE_API FRecallPhysicsBodyFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
@@ -45,7 +45,7 @@ struct RECALLPHYSICSMODULE_API FJPRPhysicsBodyFragment : public FMassFragment
 	 * Handle to reference the physics body stored in the physics system.
 	 */
 	UPROPERTY(VisibleAnywhere)
-	FJPRPhysicsBodyHandle BodyHandle;
+	FRecallPhysicsBodyHandle BodyHandle;
 
 	/**
 	 * Extents of our collider

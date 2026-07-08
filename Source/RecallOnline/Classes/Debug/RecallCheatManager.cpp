@@ -19,10 +19,13 @@
 #include "Online/RecallGameMode.h"
 #include "Online/RecallGameState_InGame.h"
 #include "Online/RecallPlayerController.h"
-#include "System/Debug/DebugMenuSubsystem.h"
 #include "System/Replay/RecallReplaySubsystem.h"
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 #include "System/Snapshot/RecallSnapshotFileSubsystem.h"
+
+#ifdef WITH_DEBUG_MENU
+#include "System/Debug/DebugMenuSubsystem.h"
+#endif // WITH_DEBUG_MENU
 
 URecallCheatManager::URecallCheatManager()
 	: Super()
@@ -153,6 +156,7 @@ void URecallCheatManager::RunAutoSettings(int32 WorkScale /*= 10*/, float CPUMul
 
 void URecallCheatManager::ResetDebugMenuWindow()
 {
+#ifdef WITH_DEBUG_MENU
 	if (const UWorld* World = GetWorld())
 	{
 		if (UDebugMenuSubsystem* DebugSystem = UGameInstance::GetSubsystem<UDebugMenuSubsystem>(World->GetGameInstance()))
@@ -160,6 +164,7 @@ void URecallCheatManager::ResetDebugMenuWindow()
 			DebugSystem->ResetDebugWindow();
 		}
 	}
+#endif // WITH_DEBUG_MENU
 }
 
 void URecallCheatManager::AddPlayer()

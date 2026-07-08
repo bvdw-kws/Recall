@@ -17,14 +17,14 @@ struct RECALLPHYSICSMODULE_API FRecallPhysicsConstrainHandle
 	GENERATED_BODY()
 
 	FRecallPhysicsConstrainHandle() = default;
-	FRecallPhysicsConstrainHandle(const FJPRPhysicsBodyHandle& InBody1, const FJPRPhysicsBodyHandle& InBody2)
+	FRecallPhysicsConstrainHandle(const FRecallPhysicsBodyHandle& InBody1, const FRecallPhysicsBodyHandle& InBody2)
 		: Body1(InBody1), Body2(InBody2) {}
 	
 	UPROPERTY(VisibleAnywhere)
-	FJPRPhysicsBodyHandle Body1;
+	FRecallPhysicsBodyHandle Body1;
 
 	UPROPERTY(VisibleAnywhere)
-	FJPRPhysicsBodyHandle Body2;
+	FRecallPhysicsBodyHandle Body2;
 	
 	bool operator!=(const FRecallPhysicsConstrainHandle& Other) const { return !(*this == Other); }
 	bool operator==(const FRecallPhysicsConstrainHandle& Other) const
