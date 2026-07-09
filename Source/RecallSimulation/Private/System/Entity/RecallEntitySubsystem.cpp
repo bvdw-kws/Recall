@@ -253,8 +253,8 @@ void URecallEntitySubsystem::CreateControllerEntity(const TObjectPtr<const UMass
 
 	if (!InParams.OwnerControllerId.IsEmpty())
 	{
-		ControllerEntityCreationContext.Enqueue(MakeUnique<FRecallControllerEntityCreationContext>(FRecallControllerEntityCreationContext{
-			InParams.OwnerControllerId, EntityConfigAsset, InParams.SpawnParameters }));
+		ControllerEntityCreationContext = MakeUnique<FRecallControllerEntityCreationContext>(FRecallControllerEntityCreationContext{
+			InParams.OwnerControllerId, EntityConfigAsset, InParams.SpawnParameters });
 	}
 
 	TArray<FMassEntityHandle> Entities;
@@ -262,6 +262,8 @@ void URecallEntitySubsystem::CreateControllerEntity(const TObjectPtr<const UMass
 
 	check(Entities.Num() == 1);
 	OutEntity = Entities[0];
+
+	ControllerEntityCreationContext.Reset();
 
 #if RECALL_DESYNC_LOG
 	const FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(*World);
@@ -411,13 +413,10 @@ int32 URecallEntitySubsystem::GetControllerCount() const
 	return EntityRegistry.ControllerEntries.Num();
 }
 
-FRecallControllerEntityCreationContext URecallEntitySubsystem::PopControllerEntityCreationContext()
+const FRecallControllerEntityCreationContext& URecallEntitySubsystem::PeekControllerEntityCreationContext() const
 {
-	// Make sure we have a player entity currently being created.
-	TUniquePtr<FRecallControllerEntityCreationContext> CreationContext;
-	ControllerEntityCreationContext.Dequeue(CreationContext);
-	checkf(CreationContext.IsValid(), TEXT("%hs No controller entity creation context available"), __FUNCTION__);
-	return MoveTemp(*CreationContext.Get());
+	checkf(ControllerEntityCreationContext.IsValid(), TEXT("%hs No controller entity creation context available"), __FUNCTION__);
+	return *ControllerEntityCreationContext;
 }
 
 FMassEntityHandle URecallEntitySubsystem::CreateStreamingEntity(const URecallEntityComponent* EntityComponent)

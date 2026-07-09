@@ -37,8 +37,8 @@ public:
 		const FVector& Position, FQuat Rotation = FQuat::Identity,
 		TOptional<FRecallEntityAsyncSpawnParameters> Params = TOptional<FRecallEntityAsyncSpawnParameters>());
 	
-	const FRecallEntityAsyncSpawnContext* GetSpawnContext() const;
-	
+	const FRecallEntityAsyncSpawnContext* PeekSpawnContext() const;
+
 private:
 	friend class URecallEntityAsyncSpawnProcessor;
 	
@@ -66,6 +66,8 @@ private:
 	TWeakObjectPtr<class URecallEntitySubsystem> EntitySystem;
 
 	TSharedPtr<struct FRecallEntityAsyncSpawnQueue> SpawnQueue;
+
+	/* Spawn context for the request currently being created, valid only while SpawnRequestEntity is creating its entities. */
 	mutable TUniquePtr<FRecallEntityAsyncSpawnContext> SpawnContext;
 
 	mutable FCriticalSection DataGuard;

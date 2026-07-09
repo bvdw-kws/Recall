@@ -56,6 +56,8 @@ void URecallEntityAsyncSpawnSubsystem::Save(const FRecallSnapshotContext& Contex
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallEntityAsyncSpawnSubsystem::Save"));
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_EntityAsyncSpawn_Save);
 
+	checkf(!SpawnContext.IsValid(), TEXT("Spawn context should not be set outside of entity creation."));
+
 	check(SpawnQueue.IsValid());
 	OutSnapshot.InitializeAs<FRecallEntityAsyncSpawnQueue>((*SpawnQueue.Get()));
 }
@@ -120,7 +122,7 @@ void URecallEntityAsyncSpawnSubsystem::SpawnEntityAsync(const FSoftObjectPath& E
 	}
 }
 
-const FRecallEntityAsyncSpawnContext* URecallEntityAsyncSpawnSubsystem::GetSpawnContext() const
+const FRecallEntityAsyncSpawnContext* URecallEntityAsyncSpawnSubsystem::PeekSpawnContext() const
 {
 	return SpawnContext.Get();
 }
@@ -180,17 +182,17 @@ bool URecallEntityAsyncSpawnSubsystem::SpawnRequestEntity(FMassEntityManager& Sy
 		SpawnContext->Position = Request.Position;
 		SpawnContext->Rotation = Request.Rotation;
 		SpawnContext->SpawnParameters = Request.SpawnParameters;
-		
+
 		TArray<FMassEntityHandle> Entities;
 		EntitySystem->CreateEntities(EntityConfigAsset, Request.SpawnParameters.EntityCount, Entities);
+
+		SpawnContext.Reset();
 
 		if (const auto* SpawnCommand = Request.SpawnParameters.SpawnCommand.GetPtr<FRecallEntityAsyncSpawnCommand>())
 		{
 			SpawnCommand->OnSpawn(System, Entities);
 		}
-		
-		SpawnContext.Reset();
-		
+
 #if RECALL_DESYNC_LOG
 		RECALL_DESYNC_LOG_STR(this, Spawn,
 			FString::Printf(TEXT("%s (count: %d)"),

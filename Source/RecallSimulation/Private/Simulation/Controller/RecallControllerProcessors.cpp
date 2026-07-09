@@ -169,7 +169,7 @@ void URecallControllerInitializer::Execute(FMassEntityManager& EntityManager, FM
 			FRecallControllerFragment& ControllerFragment = ControllerList[EntityIndex];
 			FRecallGameplayTagFragment* const GameplayTagFragmentPtr = GameplayTagList.IsValidIndex(EntityIndex) ? &GameplayTagList[EntityIndex] : nullptr;
 
-			const FRecallControllerEntityCreationContext CreationContext = EntitySystem.PopControllerEntityCreationContext();
+			const FRecallControllerEntityCreationContext CreationContext = EntitySystem.PeekControllerEntityCreationContext();
 
 			ControllerFragment.ControllerID = CreationContext.OwnerControllerId;
 
@@ -326,7 +326,7 @@ void URecallControllerSpawnProcessor::Execute(FMassEntityManager& EntityManager,
 		else
 		{
 			FMassEntityHandle& DestroyedEntity = CacheManager->DestroyedEntity;
-			if (ensureMsgf(EntitySystem.FindControllerOwnedEntity(PlayerEvent.PlayerId, DestroyedEntity), 
+			if (ensureMsgf(EntitySystem.FindControllerOwnedEntity(PlayerEvent.PlayerId, DestroyedEntity),
 				TEXT("%hs We dot not have an Entity for this player."), __FUNCTION__))
 			{
 				Context.Defer().DestroyEntity(DestroyedEntity);

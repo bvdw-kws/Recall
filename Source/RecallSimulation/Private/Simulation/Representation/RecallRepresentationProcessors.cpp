@@ -18,6 +18,7 @@ URecallRepresentationProcessor::URecallRepresentationProcessor()
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
 	ProcessingPhase = EMassProcessingPhase::Render;
+	bRequiresGameThreadExecution = true;
 }
 
 void URecallRepresentationProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)

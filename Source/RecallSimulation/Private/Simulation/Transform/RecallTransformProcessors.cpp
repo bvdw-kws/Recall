@@ -31,29 +31,28 @@ void URecallTransformConstructor::InitializeInternal(UObject& Owner, const TShar
 void URecallTransformConstructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) 
 {
 	EntityQuery.AddRequirement<FRecallTransformFragment>(EMassFragmentAccess::ReadWrite);
-	
-	ProcessorRequirements.AddSubsystemRequirement<URecallEntityAsyncSpawnSubsystem>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddSubsystemRequirement<URecallEntityAsyncSpawnSubsystem>(EMassFragmentAccess::ReadWrite);
 }
 
 void URecallTransformConstructor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Transform_Constructor);
 
-	URecallEntityAsyncSpawnSubsystem& AsyncSpawnSystem = Context.GetMutableSubsystemChecked<URecallEntityAsyncSpawnSubsystem>();
-	const FRecallEntityAsyncSpawnContext* SpawnContextPtr = AsyncSpawnSystem.GetSpawnContext();
-	if (SpawnContextPtr == nullptr)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
-		return;
-	}
-	
-	EntityQuery.ForEachEntityChunk(Context, [SpawnContextPtr](FMassExecutionContext& Context)
-	{
+		URecallEntityAsyncSpawnSubsystem& AsyncSpawnSystem = Context.GetMutableSubsystemChecked<URecallEntityAsyncSpawnSubsystem>();
+		const FRecallEntityAsyncSpawnContext* SpawnContextPtr = AsyncSpawnSystem.PeekSpawnContext();
+		if (SpawnContextPtr == nullptr)
+		{
+			return;
+		}
+			
 		const TArrayView<FRecallTransformFragment> TransformList = Context.GetMutableFragmentView<FRecallTransformFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); EntityIndex++)
 		{
 			const FMassEntityHandle Entity = Context.GetEntity(EntityIndex);
-			
+
 			FRecallTransformFragment& TransformFragment = TransformList[EntityIndex];
 			TransformFragment.Position = SpawnContextPtr->Position;
 			TransformFragment.Rotation = SpawnContextPtr->Rotation;

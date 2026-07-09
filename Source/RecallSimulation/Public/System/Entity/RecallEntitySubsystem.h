@@ -10,7 +10,6 @@
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
 #include "Mass/ExternalSubsystemTraits.h"
 #include "RecallEntityTypes.h"
-#include "Containers/Queue.h"
 
 #include "RecallEntitySubsystem.generated.h"
 
@@ -50,7 +49,7 @@ public:
 	TArray<FMassEntityHandle> GetControllerEntities() const;
 	int32 GetControllerCount() const;
 
-	FRecallControllerEntityCreationContext PopControllerEntityCreationContext();
+	const FRecallControllerEntityCreationContext& PeekControllerEntityCreationContext() const;
 	FRecallControllerEntityData GetControllerEntityData(const FString& ControllerID) const;
 
 	FORCEINLINE bool IsStaticEntity(const FMassEntityHandle& Entity) const { return Entity.SerialNumber <= LastStaticEntitySerialNumber; }
@@ -98,8 +97,8 @@ private:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<const UMassEntityConfigAsset>> EntityConfigAssetCache;
 	
-	/* Controller entity being created so we can set its ID in constructor. */
-	TQueue<TUniquePtr<FRecallControllerEntityCreationContext>> ControllerEntityCreationContext;
+	/* Controller entity creation context, valid only while CreateControllerEntity is creating the entity. */
+	TUniquePtr<FRecallControllerEntityCreationContext> ControllerEntityCreationContext;
 
 	// Cache manager
 	TSharedPtr<struct FRecallEntityRestoreSaveCacheManager> SaveCacheManager;
