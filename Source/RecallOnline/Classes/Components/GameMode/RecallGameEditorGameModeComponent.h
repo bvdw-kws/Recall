@@ -49,9 +49,18 @@ public:
 	 */
 	void OnStartPlay();
 
-private:
+protected:
 	/**
 	 * Whether we already entered the Game Editor, to avoid re-entering it twice.
 	 */
+	UPROPERTY(Transient)
 	bool bIsInGameEditorMode = false;
+	
+#ifdef WITH_GAME_EDITOR_RUNTIME
+	/**
+	 * The Game Editor map layout configured for the current map, if any.
+	 */
+	class UGameEditorMapAsset* GetGameEditorMapAsset() const;
+#endif // WITH_GAME_EDITOR_RUNTIME
+
 };

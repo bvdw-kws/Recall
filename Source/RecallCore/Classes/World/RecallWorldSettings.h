@@ -7,6 +7,7 @@
 #pragma once
 
 #include "GameFramework/WorldSettings.h"
+
 #include "RecallWorldSettings.generated.h"
 
 UCLASS()
@@ -21,4 +22,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category=GameEditor)
 	bool bStartInGameEditor = false;
+
+	// Map layout loaded when entering the Game Editor for this map.
+	UPROPERTY(EditAnywhere, Category=GameEditor, meta=(AllowedClasses="/Script/GameEditorRuntime.GameEditorMapAsset"))
+	TObjectPtr<class UDataAsset> GameEditorMapAsset;
 };

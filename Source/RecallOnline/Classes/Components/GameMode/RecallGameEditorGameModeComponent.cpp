@@ -11,8 +11,10 @@
 #include "Online/RecallPlayerCameraManager.h"
 #include "World/RecallWorldSettings.h"
 
-#if WITH_GAME_EDITOR_RUNTIME
+#ifdef WITH_GAME_EDITOR_RUNTIME
+#include "Data/GameEditorMapAsset.h"
 #include "System/GameEditorWidgetSubsystem.h"
+#include "Utility/GameEditorFunctionLibrary.h"
 #endif // WITH_GAME_EDITOR_RUNTIME
 
 URecallGameEditorGameModeComponent::URecallGameEditorGameModeComponent(const FObjectInitializer& ObjectInitializer)
@@ -43,11 +45,11 @@ void URecallGameEditorGameModeComponent::EnterGameEditorMode()
 	
 	bIsInGameEditorMode = true;
 
-#if WITH_GAME_EDITOR_RUNTIME
+#ifdef WITH_GAME_EDITOR_RUNTIME
 	UGameEditorWidgetSubsystem::GetRef(GetWorld()).OpenGameEditor(PlayerController);
 #endif // WITH_GAME_EDITOR_RUNTIME
 
-	if (ARecallPlayerCameraManager* CameraManager = PlayerController ? Cast<ARecallPlayerCameraManager>(PlayerController->PlayerCameraManager) : nullptr)
+	if (ARecallPlayerCameraManager* CameraManager = Cast<ARecallPlayerCameraManager>(PlayerController->PlayerCameraManager))
 	{
 		CameraManager->OnEnterGameEditor();
 	}
@@ -60,13 +62,21 @@ bool URecallGameEditorGameModeComponent::CanStartMatch() const
 
 bool URecallGameEditorGameModeComponent::ShouldOpenGameEditor() const
 {
-#if WITH_GAME_EDITOR_RUNTIME
+#ifdef WITH_GAME_EDITOR_RUNTIME
 	const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(GetWorld()->GetWorldSettings());
 	if (WorldSettings && WorldSettings->bStartInGameEditor)
 	{
 		return true;
 	}
 #endif // WITH_GAME_EDITOR_RUNTIME
-	
+
 	return false;
 }
+
+#ifdef WITH_GAME_EDITOR_RUNTIME
+UGameEditorMapAsset* URecallGameEditorGameModeComponent::GetGameEditorMapAsset() const
+{
+	const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(GetWorld()->GetWorldSettings());
+	return WorldSettings ? Cast<UGameEditorMapAsset>(WorldSettings->GameEditorMapAsset) : nullptr;
+}
+#endif // WITH_GAME_EDITOR_RUNTIME
