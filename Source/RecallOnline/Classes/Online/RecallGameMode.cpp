@@ -7,6 +7,7 @@
 
 #include "RecallGameMode.h"
 
+#include "Components/GameMode/RecallGameEditorGameModeComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
 #include "Components/GameState/RecallJoinGameComponent.h"
 #include "Components/GameState/RecallSyncInputGameComponent.h"
@@ -43,6 +44,8 @@ ARecallGameMode::ARecallGameMode(const FObjectInitializer& ObjectInitializer)
 	SpectatorClass = ARecallSpectatorPawn::StaticClass();
 	ReplaySpectatorPlayerControllerClass = ARecallReplaySpectatorPlayerController::StaticClass();
 	HUDClass = ARecallHUD_InGame::StaticClass();
+
+	GameEditorComponent = ObjectInitializer.CreateDefaultSubobject<URecallGameEditorGameModeComponent>(this, TEXT("GameEditorComponent"));
 }
 
 void ARecallGameMode::InitGameState()
@@ -113,11 +116,16 @@ void ARecallGameMode::Tick(float DeltaSeconds)
 }
 
 void ARecallGameMode::StartPlay()
-{	
+{
 	FTimerDelegate OnWaitTravellingPlayersTimerDelegate = FTimerDelegate::CreateUObject(this, &ThisClass::OnWaitTravellingPlayersTimerComplete);
 	GetWorldTimerManager().SetTimer(WaitTravellingPlayersTimerHandle, OnWaitTravellingPlayersTimerDelegate, WaitTravellingPlayersDuration, false);
-	
+
 	Super::StartPlay();
+
+	if (GameEditorComponent)
+	{
+		GameEditorComponent->OnStartPlay();
+	}
 }
 
 void ARecallGameMode::GenericPlayerInitialization(AController* C)
@@ -210,6 +218,11 @@ bool ARecallGameMode::ReadyToStartMatch_Implementation()
 	
 	// Wait until the initial delay is elapsed
 	if (GetGameTimeSinceCreation() < StartMatchDelay)
+	{
+		return false;
+	}
+
+	if (GameEditorComponent && !GameEditorComponent->CanStartMatch())
 	{
 		return false;
 	}

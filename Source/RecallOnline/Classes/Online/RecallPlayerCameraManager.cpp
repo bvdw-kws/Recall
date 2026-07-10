@@ -72,3 +72,8 @@ void ARecallPlayerCameraManager::OnReceiveSimulationPawn()
 	
 	StartCameraFade(1.0f, 0.0f, FadeOutDuration, FColor::Black, true, true);
 }
+
+void ARecallPlayerCameraManager::OnEnterGameEditor()
+{
+	StartCameraFade(1.0f, 0.0f, FadeOutDuration, FColor::Black, true, true);
+}

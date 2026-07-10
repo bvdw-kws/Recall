@@ -19,4 +19,6 @@ public:
 	UPROPERTY(EditAnywhere, Category=Race, meta=(AllowedClasses="/Script/RecallArcadeRaceCore.RecallArcadeCourseAsset"))
 	FSoftObjectPath DefaultCourseAsset;
 
+	UPROPERTY(EditAnywhere, Category=GameEditor)
+	bool bStartInGameEditor = false;
 };

@@ -46,6 +46,11 @@ public class RecallOnline : ModuleRules
 			PrivateDependencyModuleNames.Add("DebugMenu");
 		}
 
+		if (RecallCore.IsPluginEnabled(Target, "GameEditor"))
+		{
+			PrivateDependencyModuleNames.Add("GameEditorRuntime");
+		}
+
 		// Uncomment if you are using Slate UI
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "UMG" });
 	}

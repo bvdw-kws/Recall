@@ -38,7 +38,13 @@ public:
 	 * Callback when the game simulation pawn has been received.
 	 */
 	virtual void OnReceiveSimulationPawn();
-	
+
+	/**
+	 * Callback when the Game Editor is opened for this player, so the manual
+	 * camera fade set in BeginPlay can be cleared and the screen isn't left black.
+	 */
+	virtual void OnEnterGameEditor();
+
 	//~ Begin AActor Interface
 protected:
 	virtual void BeginPlay() override;
