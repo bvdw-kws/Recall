@@ -49,9 +49,8 @@ void ARecallPlayerController::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 #ifdef WITH_DEBUG_MENU
-	DebugMenuSystem = UGameInstance::GetSubsystem<UDebugMenuSubsystem>(GetGameInstance());
-
-	if (DebugMenuSystem.IsValid())
+	UDebugMenuSubsystem* DebugMenuSystem = UGameInstance::GetSubsystem<UDebugMenuSubsystem>(GetGameInstance());
+	if (IsValid(DebugMenuSystem))
 	{
 		DebugMenuSystem->OnToggleDebugMenu.AddUObject(this, &ThisClass::OnToggleDebugMenu);
 	}
@@ -373,7 +372,8 @@ bool ARecallPlayerController::IsLockInput() const
 {
 #ifdef WITH_DEBUG_MENU
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
-	if (DebugMenuSystem.IsValid() && DebugMenuSystem->IsMenuOpened() && DebugMenuSystem->ShouldBlockPlayerControl())
+	const UDebugMenuSubsystem* DebugMenuSystem = UGameInstance::GetSubsystem<UDebugMenuSubsystem>(GetGameInstance());
+	if (IsValid(DebugMenuSystem) && DebugMenuSystem->IsMenuOpened() && DebugMenuSystem->ShouldBlockPlayerControl())
 	{
 		return true;
 	}

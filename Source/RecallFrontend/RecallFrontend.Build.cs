@@ -26,8 +26,7 @@ public class RecallFrontend : ModuleRules
 			"RecallSnapshot",
 		});
 
-		bool bWithMultiWorld = Target.EnablePlugins.Contains("MultiWorld");
-		if (bWithMultiWorld)
+		if (RecallCore.IsPluginEnabled(Target, "MultiWorld"))
 		{
 			PrivateDependencyModuleNames.Add("MultiWorld");
 		}

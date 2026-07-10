@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using EpicGames.Core;
 using UnrealBuildTool;
 
 public class RecallCore : ModuleRules
@@ -15,18 +16,40 @@ public class RecallCore : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
-			"Engine", 
-			"NetCore", 
+			"Engine",
+			"NetCore",
 			"GameplayTags",
 			"DeveloperSettings",
 			"JoltPhysicsRuntimeCore",
 		});
-		
+
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
 			"EnhancedInput",
 			"MassSpawner",
 		});
+	}
+
+	/// <summary>
+	/// UBT does not expose plugin-enablement state to Build.cs (resolution happens after Build.cs
+	/// rules run), so the .uproject descriptor is read directly to check "Enabled" for an Optional
+	/// plugin reference.
+	/// </summary>
+	public static bool IsPluginEnabled(ReadOnlyTargetRules Target, string PluginName)
+	{
+		if (Target.ProjectFile != null && JsonObject.TryRead(Target.ProjectFile, out JsonObject RawObject)
+			&& RawObject.TryGetObjectArrayField("Plugins", out JsonObject[] PluginObjects))
+		{
+			foreach (JsonObject PluginObject in PluginObjects)
+			{
+				if (PluginObject.TryGetStringField("Name", out string Name) && Name == PluginName
+					&& PluginObject.TryGetBoolField("Enabled", out bool bEnabled) && bEnabled)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using EpicGames.Core;
 using UnrealBuildTool;
 
 public class RecallOnline : ModuleRules
@@ -35,13 +36,12 @@ public class RecallOnline : ModuleRules
 			"EasyDataTransferModule",
 		});
 
-		bool bWithMultiWorld = Target.EnablePlugins.Contains("MultiWorld");
-		if (bWithMultiWorld)
+		if (RecallCore.IsPluginEnabled(Target, "MultiWorld"))
 		{
 			PrivateDependencyModuleNames.Add("MultiWorld");
 		}
 
-		if (Target.EnablePlugins.Contains("DebugMenu"))
+		if (RecallCore.IsPluginEnabled(Target, "DebugMenu"))
 		{
 			PrivateDependencyModuleNames.Add("DebugMenu");
 		}
