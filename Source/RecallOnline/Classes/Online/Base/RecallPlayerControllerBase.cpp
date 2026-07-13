@@ -9,7 +9,9 @@
 
 #include "Components/Controller/RecallInputControllerComponent.h"
 #include "Components/Controller/RecallMultiSimControllerComponent.h"
+#include "Components/GameState/RecallGameEditorGameComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
+#include "Engine/LocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
@@ -55,6 +57,11 @@ void ARecallPlayerControllerBase::PostInitializeComponents()
 	// Start by being inactive until the game is loaded.
 	bPlayerIsWaiting = false;
 	StateName = NAME_Inactive;
+
+	if (const ARecallGameState_InGame* GameState = GetWorld()->GetGameState<ARecallGameState_InGame>())
+	{
+		GameEditorComponent = GameState->GetGameEditorComponentChecked();
+	}
 }
 
 void ARecallPlayerControllerBase::BeginPlay()
@@ -74,6 +81,15 @@ void ARecallPlayerControllerBase::Tick(float DeltaSeconds)
 
 void ARecallPlayerControllerBase::CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult)
 {
+	if (GameEditorComponent.IsValid() && GameEditorComponent->IsInGameEditorMode())
+	{
+		if (AActor* GameEditorViewTarget = GameEditorComponent->GetGameEditorViewTarget())
+		{
+			GameEditorViewTarget->CalcCamera(DeltaTime, OutResult);
+			return;
+		}
+	}
+
 	if (APawn* P = GetPawnOrSpectator())
 	{
 		P->CalcCamera(DeltaTime, OutResult);

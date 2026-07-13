@@ -108,4 +108,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess="true"))
 	TObjectPtr<URecallInputControllerComponent> GameSimulationInputComponent;
 
+private:
+	UPROPERTY(Transient)
+	TWeakObjectPtr<class URecallGameEditorGameComponent> GameEditorComponent;
+
 };

@@ -50,6 +50,13 @@ public:
 	 */
 	void OnStartPlay();
 
+	/**
+	 * The camera actor spawned by the Game Editor widget subsystem while the
+	 * Game Editor is open, used as the pawn's view target. Null if not in
+	 * editor mode, or if the Game Editor plugin isn't available.
+	 */
+	class AActor* GetGameEditorViewTarget() const;
+
 	//~ Begin UObject Interface.
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

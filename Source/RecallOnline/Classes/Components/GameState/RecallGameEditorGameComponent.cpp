@@ -87,6 +87,20 @@ void URecallGameEditorGameComponent::OnEnterGameEditor()
 	}
 }
 
+AActor* URecallGameEditorGameComponent::GetGameEditorViewTarget() const
+{
+#ifdef WITH_GAME_EDITOR_RUNTIME
+	if (!IsInGameEditorMode())
+	{
+		return nullptr;
+	}
+
+	return UGameEditorWidgetSubsystem::GetRef(GetWorld()).GetGameEditorCameraActor();
+#else // WITH_GAME_EDITOR_RUNTIME
+	return nullptr;
+#endif
+}
+
 bool URecallGameEditorGameComponent::CanStartMatch() const
 {
 	return !ShouldOpenGameEditor();
