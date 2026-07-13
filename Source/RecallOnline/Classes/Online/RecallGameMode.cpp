@@ -7,7 +7,6 @@
 
 #include "RecallGameMode.h"
 
-#include "Components/GameMode/RecallGameEditorGameModeComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
 #include "Components/GameState/RecallJoinGameComponent.h"
 #include "Components/GameState/RecallSyncInputGameComponent.h"
@@ -44,8 +43,6 @@ ARecallGameMode::ARecallGameMode(const FObjectInitializer& ObjectInitializer)
 	SpectatorClass = ARecallSpectatorPawn::StaticClass();
 	ReplaySpectatorPlayerControllerClass = ARecallReplaySpectatorPlayerController::StaticClass();
 	HUDClass = ARecallHUD_InGame::StaticClass();
-
-	GameEditorComponent = ObjectInitializer.CreateDefaultSubobject<URecallGameEditorGameModeComponent>(this, TEXT("GameEditorComponent"));
 }
 
 void ARecallGameMode::InitGameState()
@@ -122,10 +119,7 @@ void ARecallGameMode::StartPlay()
 
 	Super::StartPlay();
 
-	if (GameEditorComponent)
-	{
-		GameEditorComponent->OnStartPlay();
-	}
+	GetInGameStateChecked()->GetGameEditorComponentChecked()->OnStartPlay();
 }
 
 void ARecallGameMode::GenericPlayerInitialization(AController* C)
@@ -222,7 +216,7 @@ bool ARecallGameMode::ReadyToStartMatch_Implementation()
 		return false;
 	}
 
-	if (GameEditorComponent && !GameEditorComponent->CanStartMatch())
+	if (!GetInGameStateChecked()->GetGameEditorComponentChecked()->CanStartMatch())
 	{
 		return false;
 	}

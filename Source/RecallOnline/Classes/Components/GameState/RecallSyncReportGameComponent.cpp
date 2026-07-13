@@ -6,12 +6,13 @@
 
 #include "RecallSyncReportGameComponent.h"
 
-#include "RecallFrontendUtils.h"
 #include "GameFramework/GameSession.h"
 #include "Net/UnrealNetwork.h"
 #include "Online/RecallPlayerState_InGame.h"
+#include "RecallFrontendUtils.h"
 #include "System/Desync/RecallDesyncLogInterface.h"
 #include "System/Simulation/Insight/RecallSimulationInsightInterface.h"
+#include "TimerManager.h"
 
 #define LOCTEXT_NAMESPACE "URecallSyncReportGameComponent"
 

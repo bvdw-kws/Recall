@@ -9,6 +9,7 @@
 
 #include "Component/EasyOnlineBotCreationComponent.h"
 #include "Components/GameState/RecallClientRestoreComponent.h"
+#include "Components/GameState/RecallGameEditorGameComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
 #include "Components/GameState/RecallLatencyGameComponent.h"
 #include "Components/GameState/RecallReplayGameComponent.h"
@@ -48,6 +49,7 @@ ARecallGameState_InGame::ARecallGameState_InGame(const FObjectInitializer& Objec
 	LatencyComponent = ObjectInitializer.CreateDefaultSubobject<URecallLatencyGameComponent>(this, TEXT("LatencyComponent"));
 	JoinGameComponent = ObjectInitializer.CreateDefaultSubobject<URecallJoinGameComponent>(this, TEXT("JoinGameComponent"));
 	ReplayGameComponent = ObjectInitializer.CreateDefaultSubobject<URecallReplayGameComponent>(this, TEXT("ReplayGameComponent"));
+	GameEditorComponent = ObjectInitializer.CreateDefaultSubobject<URecallGameEditorGameComponent>(this, TEXT("GameEditorComponent"));
 }
 
 void ARecallGameState_InGame::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -6,17 +6,17 @@
 
 #pragma once
 
-#include "Components/ActorComponent.h"
+#include "Components/GameStateComponent.h"
 
-#include "RecallGameEditorGameModeComponent.generated.h"
+#include "RecallGameEditorGameComponent.generated.h"
 
 /**
  * Blocks the match from starting, and opens the Game Editor, while the
  * current map is configured to start in the Game Editor (see
  * ARecallWorldSettings::bStartInGameEditor).
  */
-UCLASS(Within=RecallGameMode)
-class RECALLONLINE_API URecallGameEditorGameModeComponent : public UActorComponent
+UCLASS()
+class RECALLONLINE_API URecallGameEditorGameComponent : public UGameStateComponent
 {
 	GENERATED_UCLASS_BODY()
 
@@ -34,7 +34,8 @@ public:
 	/**
 	 * Open the Game Editor and notify the local player's camera manager so it
 	 * can clear the black screen fade it sets while waiting for the match to start.
-	 * Does nothing if already in editor mode.
+	 * Does nothing if already in editor mode. Only the server can call this,
+	 * the state is then replicated to clients via bIsInGameEditorMode.
 	 */
 	void EnterGameEditorMode();
 
@@ -49,13 +50,29 @@ public:
 	 */
 	void OnStartPlay();
 
+	//~ Begin UObject Interface.
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	//~ End UObject Interface.
+
 protected:
 	/**
 	 * Whether we already entered the Game Editor, to avoid re-entering it twice.
 	 */
-	UPROPERTY(Transient)
+	UPROPERTY(ReplicatedUsing=OnRep_IsInGameEditorMode, Transient)
 	bool bIsInGameEditorMode = false;
-	
+
+	/**
+	 * Notify the local player's camera manager that the Game Editor is open, so it
+	 * can clear the black screen fade it sets while waiting for the match to start.
+	 */
+	void OnEnterGameEditor();
+
+private:
+	UFUNCTION()
+	void OnRep_IsInGameEditorMode();
+
+protected:
 #ifdef WITH_GAME_EDITOR_RUNTIME
 	/**
 	 * The Game Editor map layout configured for the current map, if any.

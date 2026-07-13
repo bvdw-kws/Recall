@@ -7,6 +7,7 @@
 
 #include "Components/Pawn/RecallViewTargetPawnComponent.h"
 
+#include "Camera/CameraTypes.h"
 #include "Components/Pawn/RecallGameSimViewComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"

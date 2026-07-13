@@ -6,11 +6,12 @@
 
 #include "RecallReplayGameComponent.h"
 
-#include "RecallClientRestoreComponent.h"
-#include "RecallGameSimulationComponent.h"
+#include "Engine/GameInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "Online/RecallGameState_InGame.h"
 #include "Online/RecallPlayerState_InGame.h"
+#include "RecallClientRestoreComponent.h"
+#include "RecallGameSimulationComponent.h"
 #include "System/Replay/RecallReplaySubsystem.h"
 #include "System/Restore/RecallRestoreSubsystem.h"
 

@@ -15,7 +15,6 @@ class ARecallGameState_InGame;
 class ARecallPlayerController;
 class ARecallPlayerControllerBase;
 class ARecallPlayerState_InGame;
-class URecallGameEditorGameModeComponent;
 struct FInstancedStruct;
 struct FRecallPlayerSpawnParameters;
 
@@ -202,12 +201,6 @@ protected:
 	 */
 	UPROPERTY(Transient)
 	bool bAllowSplitscreen = true;
-
-	/**
-	 * Can block the match from starting while the Game Editor should be active for this map.
-	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=GameEditor, meta=(AllowPrivateAccess="true"))
-	TObjectPtr<URecallGameEditorGameModeComponent> GameEditorComponent;
 
 private:
 	/**
