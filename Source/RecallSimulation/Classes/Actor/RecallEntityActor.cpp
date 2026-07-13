@@ -8,6 +8,7 @@
 #include "RecallEntityActor.h"
 
 #include "Component/RecallEntityComponent.h"
+#include "Engine/World.h"
 
 ARecallEntityActor::ARecallEntityActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,7 +20,9 @@ ARecallEntityActor::ARecallEntityActor(const FObjectInitializer& ObjectInitializ
 void ARecallEntityActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
+	
+	OnEditTraits();
+	
 #if WITH_EDITOR
 	const UWorld* World = GetWorld();
 	if (World == nullptr ||
@@ -38,8 +41,6 @@ void ARecallEntityActor::OnConstruction(const FTransform& Transform)
 		EntityComponent->OnEditTraits.AddUniqueDynamic(this, &ThisClass::OnEditTraits);
 #endif // WITH_EDITORONLY_DATA
 	}
-
-	OnEditTraits();
 #endif // WITH_EDITOR
 }
 
