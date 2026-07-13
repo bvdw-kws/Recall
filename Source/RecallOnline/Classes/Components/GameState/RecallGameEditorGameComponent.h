@@ -45,6 +45,22 @@ public:
 	bool IsInGameEditorMode() const { return bIsInGameEditorMode; }
 
 	/**
+	 * Marks the match as ready to start, letting CanStartMatch() return true
+	 * even while the current map wants the Game Editor to be open. Called by
+	 * URecallGameEditorFunctionLibrary::PlayGame() when the user starts the
+	 * match from the Game Editor.
+	 */
+	void MarkReadyToStartMatch();
+
+	/**
+	 * Closes the Game Editor once the match has actually started. Resets the
+	 * ready flag and bIsInGameEditorMode, and notifies the Game Editor widget
+	 * subsystem to deactivate its menu. Only the server can call this, the
+	 * state is then replicated to clients via bIsInGameEditorMode.
+	 */
+	void ExitGameEditorMode();
+
+	/**
 	 * Called from ARecallGameMode::StartPlay(), once actors like the player's
 	 * camera manager have been spawned and are ready to be used.
 	 */
@@ -70,10 +86,24 @@ protected:
 	bool bIsInGameEditorMode = false;
 
 	/**
+	 * Whether the user asked to start the match from the Game Editor, letting
+	 * CanStartMatch() return true even while the current map wants the Game
+	 * Editor to be open. Reset when the Game Editor is exited.
+	 */
+	UPROPERTY(Transient)
+	bool bReadyToStartMatch = false;
+
+	/**
 	 * Notify the local player's camera manager that the Game Editor is open, so it
 	 * can clear the black screen fade it sets while waiting for the match to start.
 	 */
 	void OnEnterGameEditor();
+
+	/**
+	 * Notify the Game Editor widget subsystem to close its menu, once the
+	 * Game Editor has been exited.
+	 */
+	void OnExitGameEditor();
 
 private:
 	UFUNCTION()

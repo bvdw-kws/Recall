@@ -52,14 +52,40 @@ void URecallGameEditorGameComponent::EnterGameEditorMode()
 #endif // WITH_SERVER_CODE
 }
 
-void URecallGameEditorGameComponent::OnRep_IsInGameEditorMode()
+void URecallGameEditorGameComponent::MarkReadyToStartMatch()
 {
-	if (!IsInGameEditorMode())
+#if WITH_SERVER_CODE
+	if (HasAuthority())
+	{
+		bReadyToStartMatch = true;
+	}
+#endif // WITH_SERVER_CODE
+}
+
+void URecallGameEditorGameComponent::ExitGameEditorMode()
+{
+#if WITH_SERVER_CODE
+	if (!HasAuthority() || !IsInGameEditorMode())
 	{
 		return;
 	}
 
-	OnEnterGameEditor();
+	bReadyToStartMatch = false;
+	bIsInGameEditorMode = false;
+	OnRep_IsInGameEditorMode();
+#endif // WITH_SERVER_CODE
+}
+
+void URecallGameEditorGameComponent::OnRep_IsInGameEditorMode()
+{
+	if (IsInGameEditorMode())
+	{
+		OnEnterGameEditor();
+	}
+	else
+	{
+		OnExitGameEditor();
+	}
 }
 
 void URecallGameEditorGameComponent::OnEnterGameEditor()
@@ -87,6 +113,13 @@ void URecallGameEditorGameComponent::OnEnterGameEditor()
 	}
 }
 
+void URecallGameEditorGameComponent::OnExitGameEditor()
+{
+#ifdef WITH_GAME_EDITOR_RUNTIME
+	UGameEditorWidgetSubsystem::GetRef(GetWorld()).CloseGameEditor();
+#endif // WITH_GAME_EDITOR_RUNTIME
+}
+
 AActor* URecallGameEditorGameComponent::GetGameEditorViewTarget() const
 {
 #ifdef WITH_GAME_EDITOR_RUNTIME
@@ -103,7 +136,7 @@ AActor* URecallGameEditorGameComponent::GetGameEditorViewTarget() const
 
 bool URecallGameEditorGameComponent::CanStartMatch() const
 {
-	return !ShouldOpenGameEditor();
+	return !ShouldOpenGameEditor() || bReadyToStartMatch;
 }
 
 bool URecallGameEditorGameComponent::ShouldOpenGameEditor() const

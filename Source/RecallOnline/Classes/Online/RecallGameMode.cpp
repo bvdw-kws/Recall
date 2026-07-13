@@ -116,8 +116,11 @@ void ARecallGameMode::Tick(float DeltaSeconds)
 
 void ARecallGameMode::StartPlay()
 {
-	// FTimerDelegate OnWaitTravellingPlayersTimerDelegate = FTimerDelegate::CreateUObject(this, &ThisClass::OnWaitTravellingPlayersTimerComplete);
-	// GetWorldTimerManager().SetTimer(WaitTravellingPlayersTimerHandle, OnWaitTravellingPlayersTimerDelegate, WaitTravellingPlayersDuration, false);
+	if (!GameEditorComponent.IsValid() || GameEditorComponent->CanStartMatch())
+	{
+		FTimerDelegate OnWaitTravellingPlayersTimerDelegate = FTimerDelegate::CreateUObject(this, &ThisClass::OnWaitTravellingPlayersTimerComplete);
+		GetWorldTimerManager().SetTimer(WaitTravellingPlayersTimerHandle, OnWaitTravellingPlayersTimerDelegate, WaitTravellingPlayersDuration, false);
+	}
 
 	Super::StartPlay();
 
@@ -249,6 +252,11 @@ void ARecallGameMode::HandleMatchHasStarted()
 	Super::HandleMatchHasStarted();
 	
 	GetWorldTimerManager().ClearTimer(WaitTravellingPlayersTimerHandle);
+
+	if (GameEditorComponent.IsValid())
+	{
+		GameEditorComponent->ExitGameEditorMode();
+	}
 
 	/*
 	if (URecallGameplayStatics::IsPlayingReplay(this))
