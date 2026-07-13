@@ -63,7 +63,14 @@ struct FMassEntityConfig
 	/** Validates if the entity template is well built */
 	MASSSPAWNER_API bool ValidateEntityTemplate(const UWorld& World);
 
-	void SetOwner(UObject& InOwner) { ConfigOwner = &InOwner; }
+	//@ BASTIEN ADD
+	// void SetOwner(UObject& InOwner) { ConfigOwner = &InOwner; }
+	void SetOwner(UObject& InOwner)
+	{
+		ConfigOwner = &InOwner;
+		ConfigGuid = FGuid::NewGuid();
+	}
+	//@ BASTIEN END
 
 	bool IsEmpty() const { return Parent == nullptr && Traits.Num() == 0; }
 

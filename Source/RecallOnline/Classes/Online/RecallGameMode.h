@@ -203,6 +203,9 @@ protected:
 	bool bAllowSplitscreen = true;
 
 private:
+	UPROPERTY(Transient)
+	TWeakObjectPtr<class URecallGameEditorGameComponent> GameEditorComponent;
+	
 	/**
 	 * Incremented each time a new player join to assign him a unique ID.
 	 */

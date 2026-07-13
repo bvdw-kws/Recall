@@ -8,6 +8,7 @@
 #include "RecallGameMode.h"
 
 #include "Components/GameState/RecallGameSimulationComponent.h"
+#include "Components/GameState/RecallGameEditorGameComponent.h"
 #include "Components/GameState/RecallJoinGameComponent.h"
 #include "Components/GameState/RecallSyncInputGameComponent.h"
 #include "Data/Player/RecallCharacterDataTable.h"
@@ -89,6 +90,7 @@ void ARecallGameMode::PostInitializeComponents()
 	GameSimulationComponent->SetGameSimStartParams(GameSimStartParams);
 
 	RestoreSystem = UWorld::GetSubsystem<URecallRestoreSubsystem>(GetWorld());
+	GameEditorComponent = GetInGameStateChecked()->GetGameEditorComponentChecked();
 }
 
 void ARecallGameMode::BeginPlay()
@@ -114,12 +116,15 @@ void ARecallGameMode::Tick(float DeltaSeconds)
 
 void ARecallGameMode::StartPlay()
 {
-	FTimerDelegate OnWaitTravellingPlayersTimerDelegate = FTimerDelegate::CreateUObject(this, &ThisClass::OnWaitTravellingPlayersTimerComplete);
-	GetWorldTimerManager().SetTimer(WaitTravellingPlayersTimerHandle, OnWaitTravellingPlayersTimerDelegate, WaitTravellingPlayersDuration, false);
+	// FTimerDelegate OnWaitTravellingPlayersTimerDelegate = FTimerDelegate::CreateUObject(this, &ThisClass::OnWaitTravellingPlayersTimerComplete);
+	// GetWorldTimerManager().SetTimer(WaitTravellingPlayersTimerHandle, OnWaitTravellingPlayersTimerDelegate, WaitTravellingPlayersDuration, false);
 
 	Super::StartPlay();
 
-	GetInGameStateChecked()->GetGameEditorComponentChecked()->OnStartPlay();
+	if (GameEditorComponent.IsValid())
+	{
+		GameEditorComponent->OnStartPlay();
+	}
 }
 
 void ARecallGameMode::GenericPlayerInitialization(AController* C)
@@ -216,7 +221,7 @@ bool ARecallGameMode::ReadyToStartMatch_Implementation()
 		return false;
 	}
 
-	if (!GetInGameStateChecked()->GetGameEditorComponentChecked()->CanStartMatch())
+	if (!GameEditorComponent.IsValid() || !GameEditorComponent->CanStartMatch())
 	{
 		return false;
 	}
