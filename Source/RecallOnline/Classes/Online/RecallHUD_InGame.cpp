@@ -8,6 +8,7 @@
 #include "RecallHUD_InGame.h"
 
 #include "CommonUserWidget.h"
+#include "DrawDebugHelpers.h"
 #include "ExtendedPrimaryGameLayoutTypes.h"
 #include "Engine/AssetManager.h"
 #include "RecallFrontendUtils.h"

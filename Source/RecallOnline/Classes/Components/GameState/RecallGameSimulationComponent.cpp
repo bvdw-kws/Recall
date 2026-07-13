@@ -12,6 +12,7 @@
 #include "Components/GameState/RecallJoinGameComponent.h"
 #include "Components/GameState/RecallSyncInputGameComponent.h"
 #include "RecallFrontendUtils.h"
+#include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Online/Base/RecallPlayerControllerBase.h"
 #include "Online/RecallGameMode.h"

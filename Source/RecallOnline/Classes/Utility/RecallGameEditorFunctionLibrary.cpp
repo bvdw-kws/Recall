@@ -11,6 +11,7 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Online/RecallGameMode.h"
 #include "Online/RecallGameState_InGame.h"
 
 void URecallGameEditorFunctionLibrary::PlayGame(const UObject* WorldContextObject)
@@ -37,4 +38,38 @@ void URecallGameEditorFunctionLibrary::PlayGame(const UObject* WorldContextObjec
 			PlayerController->PlayerCameraManager->SetManualCameraFade(1.0f, FColor::Black, true);
 		}
 	}
+}
+
+bool URecallGameEditorFunctionLibrary::CanExitPlayMode(const UObject* WorldContextObject)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World)
+	{
+		return false;
+	}
+
+	ARecallGameState_InGame* GameState = World->GetGameState<ARecallGameState_InGame>();
+	if (!IsValid(GameState))
+	{
+		return false;
+	}
+
+	return GameState->GetGameEditorComponentChecked()->ShouldOpenGameEditor();
+}
+
+void URecallGameEditorFunctionLibrary::ExitPlayMode(const UObject* WorldContextObject)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World)
+	{
+		return;
+	}
+
+	ARecallGameMode* GameMode = World->GetAuthGameMode<ARecallGameMode>();
+	if (!IsValid(GameMode))
+	{
+		return;
+	}
+
+	GameMode->ExitToWaitingToStart();
 }

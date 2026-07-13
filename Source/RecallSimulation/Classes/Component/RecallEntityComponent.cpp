@@ -8,6 +8,7 @@
 #include "RecallEntityComponent.h"
 
 #include "Engine/Level.h"
+#include "Engine/World.h"
 #include "MassEntityTraitBase.h"
 #include "System/Entity/RecallEntitySubsystem.h"
 #include "VisualLogger/VisualLogger.h"

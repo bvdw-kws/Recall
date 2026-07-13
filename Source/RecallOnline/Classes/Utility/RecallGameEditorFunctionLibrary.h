@@ -21,4 +21,14 @@ public:
 	// Game Editor to be open.
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"))
 	static void PlayGame(const UObject* WorldContextObject);
+
+	// Whether the match can be exited back to the Game Editor, i.e. whether
+	// the current map wants the Game Editor to be open.
+	UFUNCTION(BlueprintPure, meta = (WorldContext = "WorldContextObject"))
+	static bool CanExitPlayMode(const UObject* WorldContextObject);
+
+	// Exits the match back to the Game Editor, resetting the game mode to
+	// WaitingToStart so the game simulation can be reset.
+	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"))
+	static void ExitPlayMode(const UObject* WorldContextObject);
 };

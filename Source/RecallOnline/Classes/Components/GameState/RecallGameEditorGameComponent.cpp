@@ -116,6 +116,13 @@ void URecallGameEditorGameComponent::OnEnterGameEditor()
 void URecallGameEditorGameComponent::OnExitGameEditor()
 {
 #ifdef WITH_GAME_EDITOR_RUNTIME
+	// Entity Actors are hidden by default so we need to display them.
+	const TArray<AActor*> DeviceActors = UGameEditorFunctionLibrary::GetAllDeviceActors(this);
+	for (AActor* DeviceActor : DeviceActors)
+	{
+		DeviceActor->SetActorHiddenInGame(true);
+	}
+	
 	UGameEditorWidgetSubsystem::GetRef(GetWorld()).CloseGameEditor();
 #endif // WITH_GAME_EDITOR_RUNTIME
 }

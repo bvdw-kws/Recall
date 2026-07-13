@@ -41,6 +41,12 @@ public:
 	 */
 	void EndGame(const FString& Reason);
 
+	/**
+	 * Exits the match back to WaitingToStart, e.g. to let the Game Editor be
+	 * reopened. See ARecallGameMode::HandleMatchIsWaitingToStart().
+	 */
+	void ExitToWaitingToStart();
+
 public:
 	/**
 	 * Called when a player finished traveling to map and is ready.
@@ -137,6 +143,7 @@ protected:
 protected:
 	virtual void RestartGame() override;
 	virtual bool ReadyToStartMatch_Implementation() override;
+	virtual void HandleMatchIsWaitingToStart() override;
 	virtual void HandleMatchHasStarted() override;
 	//~ End AGameMode Interface
 

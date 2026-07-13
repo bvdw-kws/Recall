@@ -7,6 +7,7 @@
 
 #include "RecallGameMode.h"
 
+#include "RecallBotController.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
 #include "Components/GameState/RecallGameEditorGameComponent.h"
 #include "Components/GameState/RecallJoinGameComponent.h"
@@ -232,6 +233,37 @@ bool ARecallGameMode::ReadyToStartMatch_Implementation()
 	return true;
 }
 
+void ARecallGameMode::HandleMatchIsWaitingToStart()
+{
+	Super::HandleMatchIsWaitingToStart();
+
+	// Unpossess players and clear their Playing HUD/input while we wait to
+	// start again. Not Spectating: nobody has joined the game simulation yet
+	// (see CanSpectate_Implementation), and we don't want the spectator
+	// pawn/HUD fighting with the Game Editor UI.
+	for (FConstControllerIterator Iterator = GetWorld()->GetControllerIterator(); Iterator; ++Iterator)
+	{
+		if (AController* Controller = Iterator->Get())
+		{
+			URecallJoinGameComponent* JoinGameComponent = GetInGameStateChecked()->GetJoinGameComponentChecked();
+			JoinGameComponent->LeaveGame(*Controller);
+			
+			if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+			{
+				PlayerController->ChangeState(NAME_Inactive);
+				PlayerController->ClientGotoState(NAME_Inactive);
+			}
+		}
+	}
+
+	if (GameEditorComponent.IsValid() && GameEditorComponent->ShouldOpenGameEditor())
+	{
+		GameEditorComponent->EnterGameEditorMode();
+	}
+
+	GetInGameStateChecked()->GetGameSimulationComponentChecked()->ResetSimulation(false, false);
+}
+
 void ARecallGameMode::GetNumPlayersSyncedAndReady(int& OutNumExpected, int& OutNumSynced) const
 {
 	OutNumExpected = NumPlayers;
@@ -329,6 +361,11 @@ ARecallGameState_InGame* ARecallGameMode::GetInGameStateChecked() const
 void ARecallGameMode::EndGame(const FString& Reason)
 {
 	OnGameEnd(Reason);
+}
+
+void ARecallGameMode::ExitToWaitingToStart()
+{
+	SetMatchState(MatchState::WaitingToStart);
 }
 
 void ARecallGameMode::RestartGame()
