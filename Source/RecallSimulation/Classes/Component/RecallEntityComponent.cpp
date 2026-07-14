@@ -86,6 +86,13 @@ bool URecallEntityComponent::ShouldSpawnInEmptyLevel() const
 #endif
 }
 
+void URecallEntityComponent::OnComponentCreated()
+{
+	Super::OnComponentCreated();
+
+	EntityConfig.SetOwner(*this);
+}
+
 void URecallEntityComponent::OnRegister()
 {
 	Super::OnRegister();

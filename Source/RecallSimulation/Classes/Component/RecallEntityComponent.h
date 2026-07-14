@@ -124,7 +124,8 @@ public:
 protected:
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
-	
+	virtual void OnComponentCreated() override;
+
 	virtual void PostLoad() override;
 	virtual void PostEditImport() override;
 
