@@ -104,7 +104,7 @@ void URecallGameEditorGameComponent::OnEnterGameEditor()
 		DeviceActor->SetActorHiddenInGame(false);
 	}
 
-	UGameEditorWidgetSubsystem::GetRef(GetWorld()).OpenGameEditor(PlayerController);
+	UGameEditorWidgetSubsystem::GetRef(GetWorld()).OpenGameEditor(PlayerController, GetGameEditorMapAsset());
 #endif // WITH_GAME_EDITOR_RUNTIME
 
 	if (ARecallPlayerCameraManager* CameraManager = Cast<ARecallPlayerCameraManager>(PlayerController->PlayerCameraManager))
