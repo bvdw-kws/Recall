@@ -23,15 +23,15 @@ public:
 
 	// UWorldSubsystem implementation Begin
 public:
-	void Initialize(FSubsystemCollectionBase& Collection) override final;
-	void Deinitialize() override final;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override final;
+	virtual void Deinitialize() override final;
 	// UWorldSubsystem implementation End
 
 	// IRecallSimulationReactSystemInterface implementation Begin
 public:
-	void Reset() override final;
-	void Save(const FRecallSnapshotContext& Context, FInstancedStruct& OutSnapshot) override final;
-	void Restore(const FRecallSnapshotContext& Context, const FInstancedStruct& InSnapshot) override final;
+	virtual void Reset() override final;
+	virtual void Save(const FRecallSnapshotContext& Context, FInstancedStruct& OutSnapshot) override final;
+	virtual void Restore(const FRecallSnapshotContext& Context, const FInstancedStruct& InSnapshot) override final;
 	// IRecallSimulationReactSystemInterface implementation End
 
 public:

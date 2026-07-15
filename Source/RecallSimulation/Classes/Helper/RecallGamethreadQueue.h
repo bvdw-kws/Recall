@@ -7,6 +7,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Templates/SubclassOf.h"
+#include "UObject/Object.h"
 
 #include "RecallGamethreadQueue.generated.h"
 
@@ -120,6 +122,8 @@ protected:
 
 		return Cast<T>(RunnerResult->Task);
 	}
+	
+	uint32 GetCutoffFrame(uint32 Frame) const;
 
 private:
 	UPROPERTY(Transient)
@@ -128,5 +132,5 @@ private:
 	void ReleaseRunner_Internal(uint32 HandleId);
 	FRecallGamethreadRunner& GetOrCreateRunner_Internal(uint32 HandleId, const TSharedPtr<FRecallGamethreadRunnerData>& Data);
 
-	void CreateOrReleaseRunners_Internal(uint32 Frame, uint32 CutoffFrameCount, const TMap<uint32, TSharedPtr<FRecallGamethreadRunnerData>>& DataMap);
+	void CreateOrReleaseRunners_Internal(uint32 Frame, const TMap<uint32, TSharedPtr<FRecallGamethreadRunnerData>>& DataMap);
 };

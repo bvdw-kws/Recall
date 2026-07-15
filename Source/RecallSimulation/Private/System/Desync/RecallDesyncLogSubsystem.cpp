@@ -91,7 +91,7 @@ void URecallDesyncLogSubsystem::Log(const FString& Format, const FString& Functi
 	}
 
 	const uint32 Frame = Recall::Simulation::Utils::GetFrame(GetWorld());
-	const FString ZoneName = FPaths::GetBaseFilename(GetWorld()->GetMapName());
+	const FString ZoneName = UWorld::RemovePIEPrefix(FPaths::GetBaseFilename(GetWorld()->GetMapName()));
 	const FString NewLine = FString::Printf(TEXT("[%d][%s] %s (%s)"), Frame, *ZoneName, *Format, *Function);
 
 	{

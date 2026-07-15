@@ -7,6 +7,8 @@
 
 #include "System/Asset/RecallAssetManagerSubsystem.h"
 
+#include "Engine/World.h"
+#include "Subsystems/SubsystemCollection.h"
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 #include "Utility/MultiWorld/RecallMultiWorldUtils.h"
@@ -90,6 +92,8 @@ void URecallAssetManagerSubsystem::OnTickStart(float DeltaTime)
 
 FRecallAssetLoadHandle URecallAssetManagerSubsystem::RequestAsset(const FSoftObjectPath& Path, int32 LoadDuration)
 {
+	checkf(LoadDuration > 0, TEXT("Request load duration must be positive"));
+	
 	if (Path.IsNull())
 	{
 		return FRecallAssetLoadHandle();

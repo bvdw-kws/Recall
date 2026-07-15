@@ -7,6 +7,7 @@
 
 #include "System/Synchronization/RecallRollbackSubsystem.h"
 
+#include "Engine/World.h"
 #include "Settings/RecallSimulationSettings.h"
 #include "Subsystems/SubsystemCollection.h"
 #include "System/Input/RecallInputQueueSubsystem.h"
@@ -15,8 +16,8 @@
 #include "System/Snapshot/RecallMultiSimSnapshotSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationContainerSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
-#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "TimerManager.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Player/RecallPlayerUtils.h"
 #include "Utility/Rollback/RecallRollbackUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
@@ -110,12 +111,36 @@ void URecallRollbackSubsystem::HandleDebugRollbackComparison(uint32 Frame)
 void URecallRollbackSubsystem::HandleRollbackEnd(uint32 Frame)
 {
 	const uint32 CurrentFrame = Recall::Simulation::Utils::GetFrame(GetWorld());
-	
+
 	HandleDebugRollbackComparison(Frame);
-	
+
+	ForceSyncToConfirmedFrame();
+
 	EndRollbackState(CurrentFrame);
 
 	OnRollbackEnd.Broadcast();
+}
+
+void URecallRollbackSubsystem::ForceSyncToConfirmedFrame()
+{
+	const uint32 TargetFrame = RollbackConfirmFrame;
+	if (TargetFrame <= LastSyncedFrame)
+	{
+		return;
+	}
+
+	const FRecallRollbackFrameBuffer& FrameBuffer = FrameManager.GetFrameBuffer();
+	for (int32 FrameIndex = FrameBuffer.Num() - 1; FrameIndex >= 0; --FrameIndex)
+	{
+		const FRecallRollbackFrame& SyncData = FrameBuffer[FrameIndex];
+		const uint32 SyncFrame = SyncData.Comparator.Frame;
+		if (SyncFrame <= TargetFrame && SyncData.bValidSnapshot && SyncFrame > LastSyncedFrame)
+		{
+			LastSyncedFrame = SyncData.Comparator.Frame;
+			FrameManager.CleanupFrameBuffer(FrameIndex);
+			break;
+		}
+	}
 }
 
 void URecallRollbackSubsystem::OnFrameSync(uint32 Frame)

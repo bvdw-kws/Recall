@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "Helper/RecallGamethreadQueue.h"
+#include "UObject/SoftObjectPath.h"
 
 #include "RecallAssetManagerTypes.generated.h"
 
