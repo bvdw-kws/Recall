@@ -7,7 +7,6 @@
 
 #include "RecallHUD_InGame.h"
 
-#include "CommonUserWidget.h"
 #include "DrawDebugHelpers.h"
 #include "ExtendedPrimaryGameLayoutTypes.h"
 #include "Engine/AssetManager.h"
@@ -69,33 +68,31 @@ void ARecallHUD_InGame::OnGameEnd_Implementation(const FString& Reason)
 {
 }
 
-void ARecallHUD_InGame::PushHUDWidget(const TSoftClassPtr<class UCommonUserWidget>& HUDWidgetClass)
+void ARecallHUD_InGame::PushHUDWidget(const TSoftClassPtr<class UCommonActivatableWidget>& HUDWidgetClass)
 {
 	if (HUDWidgetClass.IsNull())
 	{
 		return;
 	}
 	
-	FStreamableManager& StreamableManager = UAssetManager::Get().GetStreamableManager();
-	HUDWidgetStreamingHandle = StreamableManager.RequestAsyncLoad(HUDWidgetClass.ToSoftObjectPath(),
-		FStreamableDelegate::CreateWeakLambda(this, [this, HUDWidgetClass]()
-		{			
-			HUDWidget = CreateWidget<UCommonUserWidget>(GetOwningPlayerController(), HUDWidgetClass.Get());
-			if (HUDWidget.IsValid())
-			{
-				HUDWidget->AddToPlayerScreen();
-			}
-			HUDWidgetStreamingHandle.Reset();
-		})
-	);
+	if (UPrimaryGameLayout* RootLayout = UPrimaryGameLayout::GetPrimaryGameLayout(GetOwningPlayerController()))
+	{
+		RootLayout->PushWidgetToLayerStackAsync<UCommonActivatableWidget>(TAG_UI_LAYER_GAMELAYER, true, HUDWidgetClass,
+			[this](EAsyncWidgetLayerState State, UCommonActivatableWidget* Widget) {
+				if (IsValid(Widget) && State == EAsyncWidgetLayerState::AfterPush)
+				{
+					HUDWidget = Widget;
+				}
+		});
+	}
 }
 
 void ARecallHUD_InGame::RemoveHUDWidget()
 {
-	if (HUDWidgetStreamingHandle.IsValid())
+	if (HUDWidget.IsValid())
 	{
-		HUDWidgetStreamingHandle->ReleaseHandle();
-		HUDWidgetStreamingHandle.Reset();
+		HUDWidget->DeactivateWidget();
+		HUDWidget.Reset();
 	}
 	
 	if (HUDWidget.IsValid())

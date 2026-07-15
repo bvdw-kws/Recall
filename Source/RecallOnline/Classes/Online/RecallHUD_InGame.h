@@ -38,10 +38,10 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="HUD")
-	TSoftClassPtr<class UCommonUserWidget> PlayingHUDWidgetClass;
+	TSoftClassPtr<class UCommonActivatableWidget> PlayingHUDWidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category="HUD")
-	TSoftClassPtr<class UCommonUserWidget> SpectatingHUDWidgetClass;
+	TSoftClassPtr<class UCommonActivatableWidget> SpectatingHUDWidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category="HUD")
 	TSoftClassPtr<class UCommonActivatableWidget> DefeatWidgetClass;
@@ -50,10 +50,8 @@ protected:
 	TScriptInterface<class IRecallSimulationControllerInterface> SimulationController;
 	
 	UPROPERTY(Transient)
-	TWeakObjectPtr<class UCommonUserWidget> HUDWidget;
+	TWeakObjectPtr<class UCommonActivatableWidget> HUDWidget;
 
-	TSharedPtr<struct FStreamableHandle> HUDWidgetStreamingHandle;
-
-	void PushHUDWidget(const TSoftClassPtr<class UCommonUserWidget>& HUDWidgetClass);
+	void PushHUDWidget(const TSoftClassPtr<class UCommonActivatableWidget>& HUDWidgetClass);
 	void RemoveHUDWidget();
 };
