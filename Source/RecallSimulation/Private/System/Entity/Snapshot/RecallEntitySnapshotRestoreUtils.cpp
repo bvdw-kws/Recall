@@ -391,12 +391,15 @@ void RestoreArchetypeEntities(FCriticalSection& EntityManagerLock, FMassEntityMa
 		const FRecallChunkSnapshot& ChunkSnapshot = ArchetypeSnapshot.ChunkSnapshots[ChunkIndex];
 		const FMassArchetypeSharedFragmentValues SharedFragmentValues = ChunkSnapshot.SharedFragmentValues.Get(EntityManager);
 
-		// Skip empty chunks.
+		// Empty chunks still need their shared fragment values restored, so that future entities placed into this
+		// archetype pick the same chunk on every client (chunk selection matches on shared fragment values, even
+		// for empty chunks that retain the values from whichever entity last occupied them).
 		if (ChunkSnapshot.EntitySnapshots.Num() == 0)
 		{
+			EntityManager.EnsureArchetypeChunkSharedFragmentValues(ArchetypeHandle, ChunkIndex, SharedFragmentValues);
 			continue;
 		}
-		
+
 		for (const FRecallEntitySnapshot& EntitySnapshot : ChunkSnapshot.EntitySnapshots)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE_STR(*FString::Printf(TEXT("URecallEntitySubsystem::Restore Entity")));

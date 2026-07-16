@@ -79,7 +79,8 @@
                 "\t\treturn Chunks[ChunkIndex].GetSharedFragmentValues();",
                 "\t}",
                 "",
-                "\tMASSENTITY_API void AddEntityToChunk(FMassEntityHandle Entity, const FMassArchetypeSharedFragmentValues& SharedFragmentValues, int32 ChunkIndex);"
+                "\tMASSENTITY_API void AddEntityToChunk(FMassEntityHandle Entity, const FMassArchetypeSharedFragmentValues& SharedFragmentValues, int32 ChunkIndex);",
+                "\tMASSENTITY_API void EnsureChunkSharedFragmentValues(int32 ChunkIndex, const FMassArchetypeSharedFragmentValues& SharedFragmentValues);"
               ]
             }
           ]
@@ -128,6 +129,24 @@
                 "\t\tvoid* FragmentPtr = FragmentConfig.GetFragmentData(DestinationChunk.GetRawMemory(), IndexWithinChunk);",
                 "\t\tFragmentConfig.FragmentType->InitializeStruct(FragmentPtr);",
                 "\t}",
+                "}",
+                "",
+                "void FMassArchetypeData::EnsureChunkSharedFragmentValues(int32 ChunkIndex, const FMassArchetypeSharedFragmentValues& SharedFragmentValues)",
+                "{",
+                "\t++ArchetypeVersion;",
+                "",
+                "\tbool bNewChunk = false;",
+                "\twhile (!Chunks.IsValidIndex(ChunkIndex))",
+                "\t{",
+                "\t\tChunks.Emplace(GetChunkAllocSize(), ChunkFragmentsTemplate, SharedFragmentValues);",
+                "\t\tbNewChunk = true;",
+                "\t}",
+                "",
+                "\tFMassArchetypeChunk& DestinationChunk = Chunks[ChunkIndex];",
+                "\tif (!bNewChunk && DestinationChunk.GetNumInstances() == 0 && !DestinationChunk.GetSharedFragmentValues().IsEquivalent(SharedFragmentValues))",
+                "\t{",
+                "\t\tDestinationChunk.Recycle(ChunkFragmentsTemplate, SharedFragmentValues);",
+                "\t}",
                 "}"
               ]
             }
@@ -156,6 +175,7 @@
                 "\tMASSENTITY_API int32 GetArchetypeChunkCount(const FMassArchetypeHandle& ArchetypeHandle) const;",
                 "\tMASSENTITY_API const FMassArchetypeSharedFragmentValues& GetArchetypeSharedFragmentValues(const FMassArchetypeHandle& ArchetypeHandle, int32 ChunkIndex) const;",
                 "\tMASSENTITY_API void GetArchetypeInternalIndexForEntity(const FMassEntityHandle& Entity, const FMassArchetypeHandle& ArchetypeHandle, int32& OutAbsoluteIndex, int32& OutChunkIndex) const;",
+                "\tMASSENTITY_API void EnsureArchetypeChunkSharedFragmentValues(const FMassArchetypeHandle& ArchetypeHandle, int32 ChunkIndex, const FMassArchetypeSharedFragmentValues& SharedFragmentValues);",
                 "\tMASSENTITY_API static uint32 GetStructCrc32(const FConstStructView& StructView, const uint32 CRC = 0);",
                 "\tMASSENTITY_API static uint32 GetStructCrc32(const UScriptStruct& ScriptStruct, const uint8* StructMemory, const uint32 CRC = 0);"
               ]
@@ -461,6 +481,12 @@
                 "\tcheck(InternalIndex != nullptr);",
                 "\tOutAbsoluteIndex = *InternalIndex;",
                 "\tOutChunkIndex = OutAbsoluteIndex / ArchetypeData.GetNumEntitiesPerChunk();",
+                "}",
+                "",
+                "void FMassEntityManager::EnsureArchetypeChunkSharedFragmentValues(const FMassArchetypeHandle& ArchetypeHandle, int32 ChunkIndex, const FMassArchetypeSharedFragmentValues& SharedFragmentValues)",
+                "{",
+                "\tcheck(ArchetypeHandle.IsValid());",
+                "\tArchetypeHandle.DataPtr->EnsureChunkSharedFragmentValues(ChunkIndex, SharedFragmentValues);",
                 "}",
                 "",
                 "uint32 FMassEntityManager::GetStructCrc32(const FConstStructView& StructView, const uint32 CRC /*= 0*/)",
