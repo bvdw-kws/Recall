@@ -28,5 +28,6 @@ namespace Recall::Physics::ProcessorGroupNames
 
 	// FrameEnd
 	const FName ResetHitEvents = FName(TEXT("RecallPhysicsResetHitEvents"));
+	const FName DebugIndexLog = FName(TEXT("RecallPhysicsDebugIndexLog"));
 
 } // namespace Recall::Physics::ProcessorGroupNames

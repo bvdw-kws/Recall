@@ -57,6 +57,8 @@ void URecallAssetManagerRunnerTask::OnFinished()
 	UE_LOG(LogRecallAsset, Verbose, TEXT("Asset was loaded after %d frames: %s"),
 		Frame - AssetManagerRunnerData.AsyncStartFrame, *AssetManagerRunnerData.AssetPath.ToString());
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+	
+	MarkAsFinished();
 }
 
 void URecallAssetManagerRunnerTask::OnForceStop()

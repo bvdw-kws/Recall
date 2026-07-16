@@ -11,6 +11,7 @@
 #include "Desync/RecallDesyncLog.h"
 #include "MassExecutionContext.h"
 #include "RecallSignalSubsystem.h"
+#include "Physics/JPRPhysicsBody.h"
 #include "Physics/RecallPhysicsObjects.h"
 #include "Simulation/Physics/RecallPhysicsBodyFragment.h"
 #include "Simulation/Physics/RecallPhysicsProcessorGroupTypes.h"
@@ -28,6 +29,7 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 #if RECALL_DESYNC_LOG
 	EntityQuery.ForEachEntityChunk(Context, ([&ContextString](FMassExecutionContext& Context)
 	{
+		const FMassEntityManager& EntityManager = Context.GetEntityManagerChecked();
 		const URecallPhysicsSubsystem& PhysicsSystem = Context.GetSubsystemChecked<URecallPhysicsSubsystem>();
 
 		const TConstArrayView<FRecallPhysicsBodyFragment> BodyList = Context.GetFragmentView<FRecallPhysicsBodyFragment>();
@@ -43,7 +45,7 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 				continue;
 			}
 			
-			if (PhysicsBody.Pin()->IsEnabled() == false)
+			if (PhysicsBody.IsEnabled() == false)
 			{
 				continue;
 			}
@@ -54,10 +56,14 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 
 			const FVector Velocity = PhysicsBody.GetLinearVelocity();
 			
+			const FMassArchetypeHandle ArchetypeHandle = EntityManager.GetArchetypeForEntity(Entity);
+			int32 AbsoluteIndex = INDEX_NONE, ChunkIndex = INDEX_NONE;
+			EntityManager.GetArchetypeInternalIndexForEntity(Entity, ArchetypeHandle, AbsoluteIndex, ChunkIndex);
+			
 			RECALL_DESYNC_LOG_STR(Context.GetWorld(), PhysicsObject,
-				FString::Printf(TEXT("(%s) %s (%s) Position: %s, Rotation: %s, Velocity: %s"),
+				FString::Printf(TEXT("(%s) %s (%s) Position: %s, Rotation: %s, Velocity: %s (AbsoluteIndex: %d, ChunkIndex: %d)"),
 				*ContextString, *Entity.DebugGetDescription(), *BodyFragment.BodyHandle.DebugGetDescription(),
-				*Position.ToString(), *Rotation.ToString(), *Velocity.ToString()));
+				*Position.ToString(), *Rotation.ToString(), *Velocity.ToString(), AbsoluteIndex, ChunkIndex));
 		}
 	}));
 #endif // RECALL_DESYNC_LOG
@@ -89,7 +95,7 @@ static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecuti
 				continue;
 			}
 
-			if (PhysicsBody.Pin()->IsEnabled() == false)
+			if (PhysicsBody.IsEnabled() == false)
 			{
 				continue;
 			}
@@ -335,7 +341,7 @@ void URecallPhysicsCopyLocationProcessor::Execute(FMassEntityManager& EntityMana
 				return;
 			}
 
-			if (!PhysicsBody.Pin()->IsEnabled())
+			if (!PhysicsBody.IsEnabled())
 			{
 				return;
 			}
@@ -580,7 +586,7 @@ void URecallPhysicsRepresentationProcessor::Execute(FMassEntityManager& EntityMa
 
 				if (PhysicsBody.IsValid())
 				{
-					if (PhysicsBody.Pin()->IsEnabled())
+					if (PhysicsBody.IsEnabled())
 					{
 						if (PhysicsSensorFragment.IsSensorOverlapping(BodyHandle))
 						{

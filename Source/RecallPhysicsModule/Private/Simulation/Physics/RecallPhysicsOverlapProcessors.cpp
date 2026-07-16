@@ -7,9 +7,9 @@
 
 #include "RecallPhysicsOverlapProcessors.h"
 
+#include "Desync/RecallDesyncLog.h"
 #include "MassExecutionContext.h"
 #include "RecallSignalSubsystem.h"
-#include "Simulation/Physics/RecallPhysicsBodyFragment.h" 
 #include "Simulation/Physics/RecallPhysicsProcessorGroupTypes.h"
 #include "Simulation/Physics/RecallPhysicsSensorFragment.h"
 #include "Simulation/Physics/RecallPhysicsSignalTypes.h"
@@ -43,7 +43,7 @@ void URecallPhysicsOverlapProcessor::Execute(FMassEntityManager& EntityManager, 
 {
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_Overlap);
 
-	EntityQuery.ParallelForEachEntityChunk(Context, [](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		const URecallPhysicsSubsystem& PhysicsSystem = Context.GetSubsystemChecked<URecallPhysicsSubsystem>();
 		URecallSignalSubsystem& SignalSystem = Context.GetMutableSubsystemChecked<URecallSignalSubsystem>();
@@ -109,11 +109,21 @@ void URecallPhysicsOverlapProcessor::Execute(FMassEntityManager& EntityManager, 
 				{
 					SignalSystem.SignalEntity(Recall::Physics::Signals::OverlapBegin, Entity);
 					Context.Defer().AddTag<FRecallPhysicsSensorOverlapTag>(Entity);
+
+#if RECALL_DESYNC_LOG
+					RECALL_DESYNC_LOG_STR(Context.GetWorld(), PhysicsOverlap_AddTag, FString::Printf(
+						TEXT("Entity: %s, Tag: FRecallPhysicsSensorOverlapTag"), *Entity.DebugGetDescription()));
+#endif // RECALL_DESYNC_LOG
 				}
 				else
 				{
 					SignalSystem.SignalEntity(Recall::Physics::Signals::OverlapEnd, Entity);
 					Context.Defer().RemoveTag<FRecallPhysicsSensorOverlapTag>(Entity);
+
+#if RECALL_DESYNC_LOG
+					RECALL_DESYNC_LOG_STR(Context.GetWorld(), PhysicsOverlap_RemoveTag, FString::Printf(
+						TEXT("Entity: %s, Tag: FRecallPhysicsSensorOverlapTag"), *Entity.DebugGetDescription()));
+#endif // RECALL_DESYNC_LOG
 				}
 			}
 			else if (bIsAnyOverlapping)

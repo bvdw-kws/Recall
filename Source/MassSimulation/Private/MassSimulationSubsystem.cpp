@@ -19,7 +19,10 @@ UMassSimulationSubsystem::FOnSimulationStarted UMassSimulationSubsystem::OnSimul
 
 namespace UE::Mass::Simulation
 {
-	bool bDoEntityCompaction = true;
+	//@ BASTIEN ADD
+	// bool bDoEntityCompaction = true;
+	bool bDoEntityCompaction = false;
+	//@ BASTIEN END
 	bool bSimulationTickingEnabled = true;
 
 	namespace Private

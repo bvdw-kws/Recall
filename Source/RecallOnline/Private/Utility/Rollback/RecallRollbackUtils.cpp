@@ -7,11 +7,12 @@
 
 #include "Utility/Rollback/RecallRollbackUtils.h"
 
+#include "Engine/World.h"
 #include "System/Input/RecallInputQueueSubsystem.h"
-#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "System/Snapshot/RecallMultiSimSnapshotTypes.h"
 #include "System/Synchronization/RecallRollbackSubsystem.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
+#include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Player/RecallPlayerUtils.h"
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT

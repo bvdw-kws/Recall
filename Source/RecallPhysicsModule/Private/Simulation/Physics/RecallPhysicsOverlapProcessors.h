@@ -15,12 +15,11 @@ class URecallPhysicsOverlapProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 
+public:
 	URecallPhysicsOverlapProcessor();
 
-public:
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 

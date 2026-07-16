@@ -197,6 +197,13 @@ bool URecallEntityAsyncSpawnSubsystem::SpawnRequestEntity(FMassEntityManager& Sy
 		RECALL_DESYNC_LOG_STR(this, Spawn,
 			FString::Printf(TEXT("%s (count: %d)"),
 				*EntityConfigAsset->GetFName().ToString(), Request.SpawnParameters.EntityCount));
+		for (const FMassEntityHandle& Entity : Entities)
+		{
+			const FMassArchetypeHandle ArchetypeHandle = System.GetArchetypeForEntity(Entity);
+			int32 AbsoluteIndex = INDEX_NONE, ChunkIndex = INDEX_NONE;
+			System.GetArchetypeInternalIndexForEntity(Entity, ArchetypeHandle, AbsoluteIndex, ChunkIndex);
+			RECALL_DESYNC_LOG_STR(this, Spawn, FString::Printf(TEXT("Entity: %s (AbsoluteIndex: %d, ChunkIndex: %d)"), *Entity.DebugGetDescription(), AbsoluteIndex, ChunkIndex));
+		}
 #endif // RECALL_DESYNC_LOG
 	}
 

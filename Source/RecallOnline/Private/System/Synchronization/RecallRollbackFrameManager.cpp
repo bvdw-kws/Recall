@@ -214,9 +214,10 @@ void FRecallRollbackFrameManager::ExecuteRollback(const FRecallRollbackFrameCont
 		Context.Config->GetConfirmFrame(), *Context.LastSyncedFrame, NumStepFrames);
 
 	// Pop frames past the rollback frame (CRITICAL: must happen before rollback execution)
-	const int32 OutOfSyncFrameCount = FrameBuffer.Num() - RollbackFrameIndex;
+	const int32 OutOfSyncStartFrameIndex = RollbackFrameIndex + 1;
+	const int32 OutOfSyncFrameCount = FrameBuffer.Num() - OutOfSyncStartFrameIndex;
 	Recall::Rollback::Utils::LogFrameBufferCleanup(OutOfSyncFrameCount, FrameBuffer.Num(), 
-		SyncData.bValidSnapshot ? SyncFrameIndex : LastSyncedFrameIndex, SyncFrameIndex, LastSyncedFrameIndex);
+		OutOfSyncStartFrameIndex, SyncFrameIndex, LastSyncedFrameIndex);
 	FrameBuffer.Pop(OutOfSyncFrameCount);
 
 	// Execute rollback
