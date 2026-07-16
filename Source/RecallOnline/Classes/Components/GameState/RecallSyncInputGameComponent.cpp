@@ -177,10 +177,10 @@ void URecallSyncInputGameComponent::SetRemoteConfirmFrameByPlayerSimId(const FSt
 void URecallSyncInputGameComponent::UpdateSharedConfirmFrame()
 {
 	// We use the last synced frame instead of the local confirmed frame because it is used to restore the clients.
-	const IRecallSynchronizationInterface& Sync = Recall::Synchronization::Utils::GetSynchronizationRef(this);
-	const uint32 LastSyncedFramed = Sync.GetLastSyncedFrame();
+	// const IRecallSynchronizationInterface& Sync = Recall::Synchronization::Utils::GetSynchronizationRef(this);
+	// const uint32 LastSyncedFramed = Sync.GetLastSyncedFrame();
 	
-	uint32 NewConfirmFrame = FMath::Min(LastSyncedFramed, GetLocalConfirmFrame());
+	uint32 NewConfirmFrame = GetLocalConfirmFrame(); // FMath::Max(LastSyncedFramed, GetLocalConfirmFrame());
 
 	// The shared confirmed frame is the lowest confirmed frames of all the players.
 	const ARecallGameState_InGame* GameState = GetGameStateChecked<ARecallGameState_InGame>();

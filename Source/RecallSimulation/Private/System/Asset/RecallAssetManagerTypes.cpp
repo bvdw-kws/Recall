@@ -102,7 +102,6 @@ uint32 URecallAssetManagerGamethreadQueue::GetOrCreateHandle(const FSoftObjectPa
 	
 	const uint32 NewHandle = NextHandle++;
 	AssetPathToHandle.Add(AssetPath, NewHandle);
-	HandleToAssetPath.Add(NewHandle, AssetPath);
 	
 	return NewHandle;
 }
@@ -121,7 +120,7 @@ TMap<uint32, TSharedPtr<FRecallGamethreadRunnerData>> URecallAssetManagerGamethr
 		if (TSharedPtr<FRecallGamethreadRunnerData>* ExistingData = DataMap.Find(Handle))
 		{
 			// Only replace if the new version is more recent (higher AsyncStartFrame)
-			const uint32 ExistingEndFrame = (*ExistingData)->AsyncEndFrame;
+			const uint32 ExistingEndFrame = ExistingData->Get()->AsyncEndFrame;
 			const uint32 NewEndFrame = AssetManagerData.Value.AsyncEndFrame;
 			
 			if (NewEndFrame < ExistingEndFrame)

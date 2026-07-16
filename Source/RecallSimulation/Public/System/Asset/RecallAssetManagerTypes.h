@@ -127,7 +127,6 @@ public:
 
 private:
 	TMap<FSoftObjectPath, uint32> AssetPathToHandle;
-	TMap<uint32, FSoftObjectPath> HandleToAssetPath;
 	uint32 NextHandle = 1;
 
 	uint32 GetOrCreateHandle(const FSoftObjectPath& AssetPath);

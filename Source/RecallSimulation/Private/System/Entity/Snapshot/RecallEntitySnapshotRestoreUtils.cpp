@@ -7,6 +7,7 @@
 
 #include "RecallEntitySnapshotRestoreUtils.h"
 
+#include "Async/ParallelFor.h"
 #include "MassArchetypeTypes.h"
 #include "MassEntityManager.h"
 #include "RecallEntitySnapshotCacheTypes.h"

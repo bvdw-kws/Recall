@@ -126,6 +126,12 @@ void FRecallStateTreeInstanceDataArraySnapshot::Restore(UObject& InOwner, FRecal
 		Item.InstanceData.GetMutableStorage().AddTransitionRequest(&InOwner, TransitionRequest);
 	}
 
+	// Item.InstanceData was freshly constructed above, so BroadcastedDelegates is already empty here.
+	for (const FStateTreeDelegateDispatcher& Dispatcher : BroadcastedDelegates)
+	{
+		Item.InstanceData.GetMutableStorage().MarkDelegateAsBroadcasted(Dispatcher);
+	}
+
 	FInstancedPropertyBag InstancedPropertyBag;
 
 	FMemoryReader MemoryReader(GlobalParametersMemory, true);
@@ -195,6 +201,14 @@ void FRecallStateTreeInstanceDataArraySnapshot::Save(const FRecallStateTreeInsta
 	}
 
 	TransitionRequests = Item.InstanceData.GetStorage().GetTransitionRequests();
+
+	// Non-destructive read: steal then immediately re-mark so the live instance data is unaffected.
+	FStateTreeInstanceStorage& MutableStorage = const_cast<FRecallStateTreeInstanceDataItem&>(Item).InstanceData.GetMutableStorage();
+	BroadcastedDelegates = MutableStorage.StealBroadcastedDelegates();
+	for (const FStateTreeDelegateDispatcher& Dispatcher : BroadcastedDelegates)
+	{
+		MutableStorage.MarkDelegateAsBroadcasted(Dispatcher);
+	}
 
 	const FConstStructView GlobalParametersView = Item.InstanceData.GetStorage().GetGlobalParameters();
 

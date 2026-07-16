@@ -223,7 +223,8 @@ bool URecallRollbackSubsystem::ShouldSaveRollbackSnapshot(uint32 Frame) const
 	else
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	{
-		if (Frame != RollbackConfirmFrame + 1)
+		const uint32 TargetRollbackSnapshotFrame = FMath::Min(SyncingSimulationUntil, RollbackConfirmFrame);
+		if (Frame != TargetRollbackSnapshotFrame)
 		{
 			return false;
 		}

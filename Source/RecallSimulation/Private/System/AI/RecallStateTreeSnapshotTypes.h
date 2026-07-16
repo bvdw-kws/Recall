@@ -7,6 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StateTreeDelegate.h"
 #include "System/AI/RecallStateTreeInstanceTypes.h"
 
 #include "RecallStateTreeSnapshotTypes.generated.h"
@@ -98,6 +99,10 @@ protected:
 	/** Requested transitions */
 	UPROPERTY(VisibleAnywhere)
 	TArray<FStateTreeTransitionRequest> TransitionRequests;
+
+	/** Delegates broadcasted but not yet consumed by a transition. */
+	UPROPERTY(VisibleAnywhere)
+	TArray<FStateTreeDelegateDispatcher> BroadcastedDelegates;
 
 	/** Global parameters */
 	UPROPERTY(VisibleAnywhere)
