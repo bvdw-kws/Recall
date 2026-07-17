@@ -105,7 +105,7 @@ namespace Recall::Rollback::Utils
 		return SyncFrame <= ConfirmFrame || ForceRollbackFrameCount != 0;
 	}
 
-	bool ShouldForceRollbackForLag(uint32 CurrentFrame, uint32 LastSyncedFrame, int32 RollbackFrameCount)
+	bool ShouldForceRollbackForLag(uint32 SyncFrame, uint32 CurrentFrame, uint32 LastSyncedFrame, uint32 ConfirmFrame, int32 RollbackFrameCount)
 	{
 		if (RollbackFrameCount <= 0 || CurrentFrame < LastSyncedFrame)
 		{
@@ -113,7 +113,13 @@ namespace Recall::Rollback::Utils
 		}
 
 		const int32 SyncLag = static_cast<int32>(CurrentFrame - LastSyncedFrame);
-		return SyncLag >= RollbackFrameCount;
+		if ( SyncLag >= RollbackFrameCount)
+		{
+			checkf(SyncFrame <= ConfirmFrame, TEXT("SyncFrame (%d) should not exceed ConfirmFrame (%d)"), SyncFrame, ConfirmFrame);
+			return true;
+		}
+		
+		return false;
 	}
 
 	EFrameProcessingAction ValidateFrameForProcessing(
@@ -141,11 +147,8 @@ namespace Recall::Rollback::Utils
 			return EFrameProcessingAction::Continue;
 		}
 
-		// Skip unconfirmed frames unless forced - but don't let an unconfirmed ConfirmFrame block us
-		// from processing (and potentially forcing a resync on) a frame once we're already too far
-		// behind LastSyncedFrame to safely wait for confirmation.
-		if (!CanSyncPastConfirmFrame(SyncFrame, ConfirmFrame, ForceRollbackFrameCount) &&
-			!ShouldForceRollbackForLag(CurrentFrame, LastSyncedFrame, RollbackFrameCount))
+		// Skip unconfirmed frames
+		if (!CanSyncPastConfirmFrame(SyncFrame, ConfirmFrame, ForceRollbackFrameCount))
 		{
 			return EFrameProcessingAction::Break;
 		}
@@ -196,7 +199,7 @@ namespace Recall::Rollback::Utils
 		// Proactively force a rollback/resync cycle once a rollback triggered right now would
 		// already exceed the replay budget, so a real desync never has to replay more than that.
 		if (bCanAdvanceSync && ForceRollbackFrameCount == 0 &&
-			ShouldForceRollbackForLag(CurrentFrame, LastSyncedFrame, RollbackFrameCount))
+			ShouldForceRollbackForLag(SyncFrame, CurrentFrame, LastSyncedFrame, ConfirmFrame, RollbackFrameCount))
 		{
 			bCanAdvanceSync = false;
 

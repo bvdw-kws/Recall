@@ -54,9 +54,7 @@ public:
 
 	bool operator==(const FRecallAssetManagerLoadData& Other) const
 	{
-		return AsyncStartFrame == Other.AsyncStartFrame
-			&& AsyncEndFrame == Other.AsyncEndFrame
-			&& AssetPath == Other.AssetPath;
+		return AssetPath == Other.AssetPath;
 	}
 
 	bool operator!=(const FRecallAssetManagerLoadData& Other) const
