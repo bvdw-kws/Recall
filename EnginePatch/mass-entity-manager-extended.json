@@ -1,6 +1,6 @@
 {
   "patchId": "mass-entity-manager-extended",
-  "description": "Add snapshot/restore methods to FMassEntityManager: DestroyEntity(bSignalObservers), BuildEntity(ChunkIndex), DestroyAllEntities, RestoreEntitySerialNumber, GetEntityData, shared fragment value map/hash/reset helpers, archetype chunk accessors, deterministic GetStructCrc32, and DefaultSharedFragments caching for reset-to-default support",
+  "description": "Add snapshot/restore methods to FMassEntityManager: DestroyEntity(bSignalObservers), BuildEntity(ChunkIndex), DestroyAllEntities, RestoreEntitySerialNumber, GetEntityData, shared fragment value map/hash/reset helpers, archetype chunk accessors, deterministic GetStructCrc32, and DefaultSharedFragments caching for reset-to-default support. Also restores legacy Mass hash-only shared fragment identity in TSharedFragmentsContainer::FindOrAdd (matches pre-5.8 MassExtended behavior): once a shared fragment is created for a given CRC hash, subsequent GetOrCreateSharedFragment calls with the same hash reuse that instance even if its value has since mutated, instead of comparing current memory via CompareScriptStruct and creating a duplicate instance when it no longer matches the freshly-constructed default value. This fixes non-deterministic duplicate shared fragment instances (e.g. FCCRHeatMapSharedFragment) when multiple archetypes lazily request the same shared fragment type after the first instance has already been mutated by gameplay code.",
   "plugin": "Recall",
   "versions": [
     {
@@ -272,6 +272,26 @@
               ],
               "add": [
                 "\t\tconst uint32 Hash = GetStructCrc32(HashingHelperStruct);"
+              ]
+            },
+            {
+              "id": "hash-only-shared-fragment-lookup-raw",
+              "line": 1535,
+              "remove": [
+                "\t\t\t\t\t&& Type->CompareScriptStruct(Instance.GetMemory(), Data, PPF_None))"
+              ],
+              "add": [
+                "\t\t\t\t\t)"
+              ]
+            },
+            {
+              "id": "hash-only-shared-fragment-lookup-templated",
+              "line": 1557,
+              "remove": [
+                "\t\t\t\t\t&& T::StaticStruct()->CompareScriptStruct(Instance.GetMemory(), TempInstance.GetMemory(), PPF_None))"
+              ],
+              "add": [
+                "\t\t\t\t\t)"
               ]
             },
             {

@@ -175,6 +175,11 @@ void FRecallStateTreeInstanceDataArraySnapshot::Save(const FRecallStateTreeInsta
 
 	for (int32 StructIndex = 0; StructIndex < Item.InstanceData.Num(); StructIndex++)
 	{
+		checkf(!Item.InstanceData.IsObject(StructIndex),
+			TEXT("%hs: StateTree instance data contains a UObject-wrapped instance (FStateTreeInstanceObjectWrapper) at index %d. "
+				"The snapshot only copies struct instance data by value; UObject instances are not supported."),
+			__FUNCTION__, StructIndex);
+
 		const FConstStructView SrcStruct = Item.InstanceData.GetStruct(StructIndex);
 		Structs[StructIndex].InitializeAs(SrcStruct.GetScriptStruct(), SrcStruct.GetMemory());
 	}
