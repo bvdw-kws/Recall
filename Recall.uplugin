@@ -46,6 +46,11 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "RecallTestSuite",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "RecallPhysicsModule",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

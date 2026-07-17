@@ -17,6 +17,7 @@ class URecallGameSimulationComponent;
 class URecallJoinGameComponent;
 class URecallLatencyGameComponent;
 class ARecallPlayerState_InGame;
+class URecallPlayerSyncGateComponent;
 class URecallReplayGameComponent;
 class URecallSyncInputGameComponent;
 class URecallSyncReportGameComponent;
@@ -41,6 +42,7 @@ public:
 	URecallSyncReportGameComponent* GetSyncReportComponentChecked() const { check(SyncReportComponent); return SyncReportComponent; }	
 	URecallClientRestoreComponent* GetClientRestoreComponentChecked() const { check(ClientRestoreComponent); return ClientRestoreComponent; }	
 	URecallJoinGameComponent* GetJoinGameComponentChecked() const { check(JoinGameComponent); return JoinGameComponent; }
+	URecallPlayerSyncGateComponent* GetPlayerSyncGateComponentChecked() const { check(PlayerSyncGateComponent); return PlayerSyncGateComponent; }
 	URecallReplayGameComponent* GetReplayComponentChecked() const { check(ReplayGameComponent); return ReplayGameComponent; }
 	URecallGameEditorGameComponent* GetGameEditorComponentChecked() const { check(GameEditorComponent); return GameEditorComponent; }
 	UEasyOnlineBotCreationComponent* GetBotCreationComponentChecked() const { check(BotCreationComponent); return BotCreationComponent; }
@@ -118,6 +120,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess="true"))
 	TObjectPtr<URecallJoinGameComponent> JoinGameComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess="true"))
+	TObjectPtr<URecallPlayerSyncGateComponent> PlayerSyncGateComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess="true"))
 	TObjectPtr<URecallReplayGameComponent> ReplayGameComponent;

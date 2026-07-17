@@ -10,6 +10,7 @@
 #include "Base/RecallPlayerControllerBase.h"
 #include "Components/GameState/RecallClientRestoreComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
+#include "Components/GameState/RecallPlayerSyncGateComponent.h"
 #include "Components/PlayerState/RecallInputLatencyPlayerComponent.h"
 #include "Components/PlayerState/RecallSyncReportPlayerComponent.h"
 #include "Engine/GameInstance.h"
@@ -75,21 +76,31 @@ void ARecallPlayerState_InGame::ClearSimPlayerId()
 	SimPlayerId = FString();
 }
 
-void ARecallPlayerState_InGame::SetJoinedGame(bool bInJoinedGame, bool bInDebugJoin /*= false*/)
+void ARecallPlayerState_InGame::SetJoinedGame(bool bInJoinedGame, TOptional<uint32> Frame /*= {}*/, bool bInDebugJoin /*= false*/)
 {
 	checkf(HasAuthority(), TEXT("Only host can modify this variable from GameMode"));
+	
+	if (bJoinedGame == bInJoinedGame)
+	{
+		return;
+	}
 
 	bJoinedGame = bInJoinedGame;
 	bDebugJoin = bInDebugJoin;
+
+#if WITH_SERVER_CODE
+	const uint32 EventFrame = Frame.IsSet() ? Frame.GetValue() : 0;
+	URecallPlayerSyncGateComponent::GetRef(this).ServerPushEvent(EventFrame);
+#endif // WITH_SERVER_CODE
 
 	OnRep_JoinedGame();
 }
 
 void ARecallPlayerState_InGame::OnRep_JoinedGame()
 {
-	if (HasLocalNetOwner())
+	if (ARecallGameState_InGame* InGameState = Cast<ARecallGameState_InGame>(UGameplayStatics::GetGameState(this)))
 	{
-		if (ARecallGameState_InGame* InGameState = Cast<ARecallGameState_InGame>(UGameplayStatics::GetGameState(this)))
+		if (HasLocalNetOwner())
 		{
 			if (bJoinedGame)
 			{
@@ -101,6 +112,8 @@ void ARecallPlayerState_InGame::OnRep_JoinedGame()
 			}
 		}
 	}
+
+	URecallPlayerSyncGateComponent::GetRef(this).ApplyFlagEvent();
 }
 
 void ARecallPlayerState_InGame::SetLastReceivedInputFrame(uint32 Frame)
@@ -146,7 +159,7 @@ uint32 ARecallPlayerState_InGame::GetRestoreTargetFrame() const
 	return RestoreTargetFrame;
 }
 
-void ARecallPlayerState_InGame::SetIsLeavingGame()
+void ARecallPlayerState_InGame::SetIsLeavingGame(TOptional<uint32> Frame /*= {}*/)
 {
 #if WITH_SERVER_CODE
 	if (!ensure(HasAuthority()))
@@ -155,7 +168,12 @@ void ARecallPlayerState_InGame::SetIsLeavingGame()
 	}
 
 	bIsLeavingGame = true;
+	OnRep_IsLeavingGame();
 #endif // WITH_SERVER_CODE
+}
+
+void ARecallPlayerState_InGame::OnRep_IsLeavingGame()
+{
 }
 
 void ARecallPlayerState_InGame::ClearIsLeavingGame()
@@ -167,6 +185,8 @@ void ARecallPlayerState_InGame::ClearIsLeavingGame()
 	}
 	
 	bIsLeavingGame = false;
+	OnRep_IsLeavingGame();
+
 	if (bWaitLeavingOnDeactivated)
 	{
 		OnDeactivated();

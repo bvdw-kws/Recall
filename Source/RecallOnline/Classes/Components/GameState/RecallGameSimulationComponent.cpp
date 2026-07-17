@@ -10,6 +10,7 @@
 #include "Components/Controller/RecallMultiSimControllerComponent.h"
 #include "Components/GameState/RecallClientRestoreComponent.h"
 #include "Components/GameState/RecallJoinGameComponent.h"
+#include "Components/GameState/RecallPlayerSyncGateComponent.h"
 #include "Components/GameState/RecallSyncInputGameComponent.h"
 #include "RecallFrontendUtils.h"
 #include "TimerManager.h"
@@ -377,8 +378,12 @@ void URecallGameSimulationComponent::NetMulticast_AddPlayer_Implementation(int32
 	{
 		PlayerEvents.PushAddPlayerItem(WorldIndex, Frame, PlayerId, SpawnParams);
 		OnRep_PlayerEvents();
+
+		URecallPlayerSyncGateComponent::GetRef(this).ServerPushEvent(Frame);
 	}
 #endif // WITH_SERVER_CODE
+
+	URecallPlayerSyncGateComponent::GetRef(this).ApplyEvent(Frame);
 }
 
 void URecallGameSimulationComponent::NetMulticast_RemovePlayer_Implementation(int32 WorldIndex, uint32 Frame, const FString& PlayerId)
@@ -402,7 +407,11 @@ void URecallGameSimulationComponent::NetMulticast_RemovePlayer_Implementation(in
 	{
 		PlayerEvents.PushRemovePlayerItem(WorldIndex, Frame, PlayerId);
 		OnRep_PlayerEvents();
+
+		URecallPlayerSyncGateComponent::GetRef(this).ServerPushEvent(Frame);
 	}
 #endif // WITH_SERVER_CODE
+
+	URecallPlayerSyncGateComponent::GetRef(this).ApplyEvent(Frame);
 }
 #pragma endregion RPC

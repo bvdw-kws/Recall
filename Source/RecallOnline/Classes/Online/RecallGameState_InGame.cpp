@@ -12,6 +12,7 @@
 #include "Components/GameState/RecallGameEditorGameComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
 #include "Components/GameState/RecallLatencyGameComponent.h"
+#include "Components/GameState/RecallPlayerSyncGateComponent.h"
 #include "Components/GameState/RecallReplayGameComponent.h"
 #include "Components/GameState/RecallSyncInputGameComponent.h"
 #include "Components/GameState/RecallSyncReportGameComponent.h"
@@ -48,6 +49,7 @@ ARecallGameState_InGame::ARecallGameState_InGame(const FObjectInitializer& Objec
 	ClientRestoreComponent = ObjectInitializer.CreateDefaultSubobject<URecallClientRestoreComponent>(this, TEXT("ClientRestoreComponent"));
 	LatencyComponent = ObjectInitializer.CreateDefaultSubobject<URecallLatencyGameComponent>(this, TEXT("LatencyComponent"));
 	JoinGameComponent = ObjectInitializer.CreateDefaultSubobject<URecallJoinGameComponent>(this, TEXT("JoinGameComponent"));
+	PlayerSyncGateComponent = ObjectInitializer.CreateDefaultSubobject<URecallPlayerSyncGateComponent>(this, TEXT("PlayerSyncGateComponent"));
 	ReplayGameComponent = ObjectInitializer.CreateDefaultSubobject<URecallReplayGameComponent>(this, TEXT("ReplayGameComponent"));
 	GameEditorComponent = ObjectInitializer.CreateDefaultSubobject<URecallGameEditorGameComponent>(this, TEXT("GameEditorComponent"));
 }

@@ -7,7 +7,9 @@
 
 #include "System/Input/RecallInputQueueSubsystem.h"
 
+#include "Engine/World.h"
 #include "RecallInputQueueSnapshot.h"
+#include "System/Synchronization/RecallSynchronizationContainerSubsystem.h"
 #include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 
@@ -137,6 +139,23 @@ FRecallInputQueue& URecallInputQueueSubsystem::GetMutableInputQueue()
 
 void URecallInputQueueSubsystem::PushInput(uint32 Frame, const FString& PlayerId, const FRecallInput& Input)
 {
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+	if (HasFrameInput(Frame, PlayerId))
+	{
+		return;
+	}
+	
+	if (const URecallSynchronizationContainerSubsystem* ContainerSystem = UWorld::GetSubsystem<URecallSynchronizationContainerSubsystem>(GetWorld()))
+	{
+		const uint32 ConfirmFrame = ContainerSystem->GetConfirmFrame();
+		if (!ensureAlwaysMsgf(Frame > ConfirmFrame || ConfirmFrame == 0,
+			TEXT("[%s] input frame %d is before confirm frame %d"), *PlayerId, Frame, ConfirmFrame))
+		{
+			return;
+		}
+	}
+#endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+	
 	FRecallFrameInput FrameInput;
 	FrameInput.Frame = Frame;
 	FrameInput.Input = Input;

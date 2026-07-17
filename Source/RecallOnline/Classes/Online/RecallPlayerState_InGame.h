@@ -35,19 +35,19 @@ public:
 	uint32 GetLastReceivedInputFrame() const;
 
 	// Join
-	void SetJoinedGame(bool bInJoinedGame, bool bInDebugJoin = false);
+	void SetJoinedGame(bool bInJoinedGame, TOptional<uint32> Frame = {}, bool bInDebugJoin = false);
 	bool HasJoinedGame() const { return bJoinedGame; }
 	bool IsDebugJoin() const { return bDebugJoin; }
-	
+
 	// Restore
 	void SetIsRestoring(bool bInRestoring);
 	bool IsRestoring() const { return bIsRestoring; }
-	
+
 	void SetRestoreTargetFrame(uint32 Frame);
 	uint32 GetRestoreTargetFrame() const;
 
 	// Leaving
-	void SetIsLeavingGame();
+	void SetIsLeavingGame(TOptional<uint32> Frame = {});
 	void ClearIsLeavingGame();
 	bool IsLeavingGame() const;
 
@@ -110,7 +110,7 @@ protected:
 	/**
 	 * Frame at which this player left the game simulation.
 	 */
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_IsLeavingGame)
 	bool bIsLeavingGame = false;
 
 	/**
@@ -139,6 +139,9 @@ private:
 private:
 	UFUNCTION()
 	void OnRep_JoinedGame();
+
+	UFUNCTION()
+	void OnRep_IsLeavingGame();
 
 	UFUNCTION()
 	void OnRep_DefeatReason();

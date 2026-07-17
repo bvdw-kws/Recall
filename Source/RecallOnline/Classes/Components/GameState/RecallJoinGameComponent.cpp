@@ -137,7 +137,7 @@ void URecallJoinGameComponent::JoinGame(AController& Controller, bool bDebugJoin
 	
 	GameSimulationComponent->NetMulticast_AddPlayer(WorldIndex, Frame, PlayerId, SpawnParams);
 
-	PlayerState->SetJoinedGame(true, bDebugJoin);
+	PlayerState->SetJoinedGame(true, Frame, bDebugJoin);
 	
 	NumJoinGameSimPlayers++;
 	
@@ -182,11 +182,11 @@ void URecallJoinGameComponent::LeaveGame(AController& Controller)
 	URecallGameSimulationComponent* GameSimulationComponent = GameState->GetGameSimulationComponentChecked();
 	GameSimulationComponent->NetMulticast_RemovePlayer(WorldIndex, Frame, PlayerId);
 
-	PlayerState->SetJoinedGame(false);
+	PlayerState->SetJoinedGame(false, Frame);
 
 	if (!PlayerState->IsABot())
 	{
-		PlayerState->SetIsLeavingGame();
+		PlayerState->SetIsLeavingGame(Frame);
 	}
 
 	NumJoinGameSimPlayers--;

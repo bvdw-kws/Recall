@@ -10,6 +10,7 @@
 #include "Components/Controller/RecallInputControllerComponent.h"
 #include "Components/GameState/RecallClientRestoreComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
+#include "Components/GameState/RecallPlayerSyncGateComponent.h"
 #include "Components/GameState/RecallSyncReportGameComponent.h"
 #include "Components/PlayerState/RecallSyncReportPlayerComponent.h"
 #include "Engine/World.h"
@@ -86,12 +87,24 @@ void URecallSyncInputGameComponent::UpdateLocalConfirmFrame()
 		NewConfirmFrame = FMath::Min(InGamePlState->GetLastReceivedInputFrame(), NewConfirmFrame);
 	}
 
+	// Do not let the confirm frame run ahead of critical player events (AddPlayer/RemovePlayer,
+	// join/leave flags) that this client hasn't locally applied yet - the server may have already
+	// issued them (per replication) while the corresponding RPC/OnRep hasn't arrived here.
+	if (!ClientRestoreComponent->IsRestoringGameSimulation())
+	{
+		const URecallPlayerSyncGateComponent* SyncGateComponent = GameState->GetPlayerSyncGateComponentChecked();
+		if (SyncGateComponent->HasUnsyncedPlayerEvents())
+		{
+			NewConfirmFrame = FMath::Max(LocalConfirmFrame, FMath::Min(NewConfirmFrame, SyncGateComponent->GetLastSyncedFrame()));
+		}
+	}
+
 	SetLocalConfirmFrame(NewConfirmFrame);
 }
 
 bool URecallSyncInputGameComponent::IsConfirmFrameRelevant(const ARecallPlayerState_InGame& PlayerState) const
 {
-	if (PlayerState.IsABot() || PlayerState.HasLocalNetOwner() || PlayerState.IsRestoring() || !PlayerState.IsSyncReady())
+	if (PlayerState.IsABot() || PlayerState.HasLocalNetOwner() || PlayerState.IsRestoring())
 	{
 		return false;
 	}
