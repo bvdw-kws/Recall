@@ -7,6 +7,7 @@
 
 #include "Utility/Rollback/RecallRollbackConfig.h"
 
+#include "Kismet/KismetStringLibrary.h"
 #include "System/Synchronization/RecallSynchronizationContainerSubsystem.h"
 #include "Utility/Rollback/RecallRollbackUtils.h"
 
@@ -49,19 +50,29 @@ void FRecallRollbackConfig::SetRollback(bool bInRollback)
 	ContainerSystem->Rollback = bInRollback;
 }
 
-void FRecallRollbackConfig::SetNetPause(const UWorld* World, uint32 CurrentFrame)
+void FRecallRollbackConfig::SetNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame)
 {
 	check(ContainerSystem.IsValid());
-	ContainerSystem->NetPause = ShouldNetPause(World, CurrentFrame);
+	ContainerSystem->NetPause = ShouldNetPause(CurrentFrame, LastSyncedFrame);
+	UE_LOG(LogRecallRollback, Verbose, TEXT("NetPause %s (CurrentFrame: %d, LastSyncedFrame: %d)"), 
+		*UKismetStringLibrary::Conv_BoolToString(ContainerSystem->NetPause), CurrentFrame, LastSyncedFrame);
 }
 
-bool FRecallRollbackConfig::ShouldNetPause(const UWorld* World, uint32 CurrentFrame) const
+bool FRecallRollbackConfig::ShouldNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame) const
 {
-	if (CurrentFrame >= ContainerSystem->ConfirmFrame)
+	const int32 RollbackFrameCount = GetRollbackFrameCount();
+	const uint32 ConfirmFrame = ContainerSystem->ConfirmFrame;
+	if (RollbackFrameCount > 0 && CurrentFrame > ConfirmFrame)
 	{
-		const int32 ConfirmFrameDelta = static_cast<int32>(CurrentFrame - ContainerSystem->ConfirmFrame);
-		const int32 RollbackFrameCount = GetRollbackFrameCount();
-		return ConfirmFrameDelta > RollbackFrameCount + 1;
+		const int32 ConfirmFrameDelta = static_cast<int32>(CurrentFrame - ConfirmFrame) + 1;
+
+		// A rollback's fallback target is always LastSyncedFrame's snapshot, so the real budget we
+		// must not exceed is CurrentFrame - LastSyncedFrame <= RollbackFrameCount + 1 (MaxStepCount).
+		// When LastSyncedFrame is still behind ConfirmFrame, that gap eats into the margin, so pause
+		// one frame earlier (relative to ConfirmFrame) to leave it room to catch up; once
+		// LastSyncedFrame == ConfirmFrame there's no such gap and the full +1 margin is safe again.
+		const int32 RollbackFrameMargin = LastSyncedFrame < ConfirmFrame ? 0 : 1;
+		return ConfirmFrameDelta > RollbackFrameCount + RollbackFrameMargin;
 	}
 	else
 	{

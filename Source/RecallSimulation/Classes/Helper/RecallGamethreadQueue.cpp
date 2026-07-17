@@ -80,6 +80,8 @@ void URecallGamethreadQueue::CreateOrReleaseRunners_Internal(uint32 Frame, const
 {
 	check(IsInGameThread());
 
+	const uint32 MaxStepCount = Recall::Simulation::Utils::GetMaxStepCount(this);
+	
 	TArray<uint32> NewHandles;
 	DataMap.GenerateKeyArray(NewHandles);
 
@@ -103,7 +105,7 @@ void URecallGamethreadQueue::CreateOrReleaseRunners_Internal(uint32 Frame, const
 			// Keep data for a while to be safe if a rollback occurs
 			constexpr uint32 RunnerCacheDuration = 10;
 			if (NewData == nullptr && OldRunnerData.AsyncStartFrame < Frame &&
-				OldRunnerData.AsyncEndFrame + RunnerCacheDuration >= Frame)
+				OldRunnerData.AsyncEndFrame + MaxStepCount + RunnerCacheDuration >= Frame)
 			{
 				continue;
 			}
@@ -128,8 +130,8 @@ void URecallGamethreadQueue::CreateOrReleaseRunners_Internal(uint32 Frame, const
 
 uint32 URecallGamethreadQueue::GetCutoffFrame(uint32 Frame) const
 {
-	const uint32 CutoffFrameCount = Recall::Simulation::Utils::GetMaxStepCount(this);
-	const uint32 CutoffFrame = Frame + CutoffFrameCount + 1;
+	const uint32 MaxStepCount = Recall::Simulation::Utils::GetMaxStepCount(this);
+	const uint32 CutoffFrame = Frame + MaxStepCount + 1;
 	return CutoffFrame;
 }
 

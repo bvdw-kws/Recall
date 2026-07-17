@@ -7,6 +7,7 @@
 
 #include "System/Synchronization/RecallSynchronizationTypes.h"
 
+#include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "RecallSynchronizationContainerSubsystem.h"

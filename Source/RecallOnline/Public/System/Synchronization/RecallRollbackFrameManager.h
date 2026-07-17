@@ -100,8 +100,8 @@ private:
 	 */
 	
 	/** Processes a frame that is synchronized */
-	bool ProcessFrameSync(const FRecallRollbackFrameContext& Context, const FRecallRollbackFrame& SyncData, 
-		uint32 SyncFrame, int32 FrameIndex, int32& LastSyncedFrameIndex);
+	bool ProcessFrameSync(const FRecallRollbackFrameContext& Context, uint32 CurrentFrame, uint32 ConfirmFrame,
+		const FRecallRollbackFrame& SyncData, uint32 SyncFrame, int32 FrameIndex, int32& LastSyncedFrameIndex);
 	
 	/** Processes a frame that requires rollback */
 	bool ProcessFrameRollback(const FRecallRollbackFrameContext& Context, uint32 CurrentFrame, uint32 SyncFrame, 

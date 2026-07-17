@@ -123,7 +123,7 @@ private:
 	// The replay just recomputed everything up to the confirmed frame using
 	// authoritative inputs, so that state is correct even if it never gets
 	// naturally classified as "synced" (e.g. desyncs recurring every replay).
-	void ForceSyncToConfirmedFrame();
+	void ForceSyncToConfirmedFrame(uint32 Frame);
 	
 	// Configuration Management
 	void BeginRollbackState(uint32 Frame);

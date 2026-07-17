@@ -92,12 +92,13 @@ bool FRecallRollbackFrameManager::ProcessSingleFrame(const FRecallRollbackFrameC
 	int32 FrameIndex, int32& LastSyncedFrameIndex, bool& bRollbackExecuted)
 {
 	const int32 ForceRollbackFrameCount = Context.Config->GetForceRollbackFrameCount();
+	const int32 RollbackFrameCount = Context.Config->GetRollbackFrameCount();
 	const uint32 LastSyncedFrame = *Context.LastSyncedFrame;
 
 	// Validate frame and determine processing action
 	const Recall::Rollback::Utils::EFrameProcessingAction Action = 
 		Recall::Rollback::Utils::ValidateFrameForProcessing(
-			SyncData, CurrentFrame, LastSyncedFrame, ConfirmFrame, ForceRollbackFrameCount,
+			SyncData, CurrentFrame, LastSyncedFrame, ConfirmFrame, ForceRollbackFrameCount, RollbackFrameCount,
 			[Context](uint32 FrameToValidate)
 		{
 			return Recall::Rollback::Utils::CreateFrameComparator(Context.World, FrameToValidate);
@@ -126,10 +127,10 @@ bool FRecallRollbackFrameManager::ProcessSingleFrame(const FRecallRollbackFrameC
 	Context.DebugManager->ApplyDebugOverrides(bIsFrameSynced);
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 
-	if (Recall::Rollback::Utils::CanAdvanceLastSyncedFrame(bIsFrameSynced, SyncFrame, ConfirmFrame, SyncData,
-			ForceRollbackFrameCount, NumRollbackFrames))
+	if (Recall::Rollback::Utils::CanAdvanceLastSyncedFrame(bIsFrameSynced, SyncFrame, ConfirmFrame,
+			CurrentFrame, LastSyncedFrame, RollbackFrameCount, ForceRollbackFrameCount, NumRollbackFrames))
 	{
-		return ProcessFrameSync(Context, SyncData, SyncFrame, FrameIndex, LastSyncedFrameIndex);
+		return ProcessFrameSync(Context, CurrentFrame, ConfirmFrame, SyncData, SyncFrame, FrameIndex, LastSyncedFrameIndex);
 	}
 	else
 	{
@@ -139,16 +140,21 @@ bool FRecallRollbackFrameManager::ProcessSingleFrame(const FRecallRollbackFrameC
 	}
 }
 
-bool FRecallRollbackFrameManager::ProcessFrameSync(const FRecallRollbackFrameContext& Context, 
-	const FRecallRollbackFrame& SyncData, uint32 SyncFrame, int32 FrameIndex, int32& LastSyncedFrameIndex)
+bool FRecallRollbackFrameManager::ProcessFrameSync(const FRecallRollbackFrameContext& Context,
+	uint32 CurrentFrame, uint32 ConfirmFrame, const FRecallRollbackFrame& SyncData, uint32 SyncFrame,
+	int32 FrameIndex, int32& LastSyncedFrameIndex)
 {
 	Recall::Rollback::Utils::LogFrameSyncProcessing(SyncFrame);
-	
+
 	// We need a valid snapshot to advance
 	if (SyncData.bValidSnapshot)
 	{
 		Recall::Rollback::Utils::DebugDumpSyncedFrame(SyncData.Comparator);
 		Recall::Rollback::Utils::LogSyncFrameAdvancement(SyncFrame, FrameIndex);
+
+		UE_LOG(LogRecallRollback, Verbose,
+			TEXT("%hs LastSyncedFrame %d -> %d (CurrentFrame: %d, ConfirmFrame: %d)"),
+			__FUNCTION__, *Context.LastSyncedFrame, SyncFrame, CurrentFrame, ConfirmFrame);
 		
 		*Context.LastSyncedFrame = SyncFrame;
 		LastSyncedFrameIndex = FrameIndex;

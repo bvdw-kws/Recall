@@ -42,8 +42,10 @@ public:
 	void SetRollback(bool bInRollback);
 	
 	/** Sets the net pause state using frame-based logic */
-	void SetNetPause(const UWorld* World, uint32 CurrentFrame);
-	
-	/** Determines if the network should be paused based on frame deltas */
-	bool ShouldNetPause(const UWorld* World, uint32 CurrentFrame) const;
+	void SetNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame);
+
+	/** Determines if the network should be paused based on how far CurrentFrame has run ahead of
+	 * ConfirmFrame, tightened by one frame while LastSyncedFrame is still behind ConfirmFrame so it
+	 * retains room to catch up within the rollback replay budget. */
+	bool ShouldNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame) const;
 };

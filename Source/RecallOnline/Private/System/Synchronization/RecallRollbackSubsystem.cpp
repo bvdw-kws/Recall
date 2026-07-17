@@ -110,18 +110,16 @@ void URecallRollbackSubsystem::HandleDebugRollbackComparison(uint32 Frame)
 
 void URecallRollbackSubsystem::HandleRollbackEnd(uint32 Frame)
 {
-	const uint32 CurrentFrame = Recall::Simulation::Utils::GetFrame(GetWorld());
-
 	HandleDebugRollbackComparison(Frame);
 
-	ForceSyncToConfirmedFrame();
+	ForceSyncToConfirmedFrame(Frame);
 
-	EndRollbackState(CurrentFrame);
+	EndRollbackState(Frame);
 
 	OnRollbackEnd.Broadcast();
 }
 
-void URecallRollbackSubsystem::ForceSyncToConfirmedFrame()
+void URecallRollbackSubsystem::ForceSyncToConfirmedFrame(uint32 Frame)
 {
 	const uint32 TargetFrame = RollbackConfirmFrame;
 	if (TargetFrame <= LastSyncedFrame)
@@ -134,8 +132,13 @@ void URecallRollbackSubsystem::ForceSyncToConfirmedFrame()
 	{
 		const FRecallRollbackFrame& SyncData = FrameBuffer[FrameIndex];
 		const uint32 SyncFrame = SyncData.Comparator.Frame;
+		
 		if (SyncFrame <= TargetFrame && SyncData.bValidSnapshot && SyncFrame > LastSyncedFrame)
 		{
+			UE_LOG(LogRecallRollback, Verbose,
+				TEXT("%hs LastSyncedFrame %d -> %d (CurrentFrame: %d, TargetFrame/RollbackConfirmFrame: %d, ConfirmFrame: %d)"),
+				__FUNCTION__, LastSyncedFrame, SyncData.Comparator.Frame, Frame, TargetFrame, Config.GetConfirmFrame());
+			
 			LastSyncedFrame = SyncData.Comparator.Frame;
 			FrameManager.CleanupFrameBuffer(FrameIndex);
 			break;
@@ -170,7 +173,7 @@ void URecallRollbackSubsystem::OnFrameSync(uint32 Frame)
 		if (SyncFrame(Frame) == false)
 		{
 			SaveFrame(Frame);
-			Config.SetNetPause(GetWorld(), Frame);
+			Config.SetNetPause(Frame, LastSyncedFrame);
 		}
 	}
 }
@@ -319,6 +322,10 @@ void URecallRollbackSubsystem::ForceLastSyncedFrame(uint32 Frame)
 {
 	if (IsRollbackEnabled())
 	{
+		UE_LOG(LogRecallRollback, Verbose,
+			TEXT("%hs LastSyncedFrame %d -> %d (ConfirmFrame: %d)"),
+			__FUNCTION__, LastSyncedFrame, Frame, Config.GetConfirmFrame());
+		
 		LastSyncedFrame = Frame;
 
 		// We fake syncing so simulation events are skipped.
@@ -390,7 +397,7 @@ int32 URecallRollbackSubsystem::GetRollbackFrameCount() const
 bool URecallRollbackSubsystem::ShouldNetPause() const
 {
 	const uint32 CurrentFrame = Recall::Simulation::Utils::GetFrame(GetWorld());
-	return Config.ShouldNetPause(GetWorld(), CurrentFrame);
+	return Config.ShouldNetPause(CurrentFrame, LastSyncedFrame);
 }
 
 void URecallRollbackSubsystem::BeginRollbackState(uint32 Frame)
@@ -403,12 +410,12 @@ void URecallRollbackSubsystem::EndRollbackState(uint32 CurrentFrame)
 {
 	SetSyncingSimulationUntil_Internal(0);
 	Config.SetRollback(false);
-	Config.SetNetPause(GetWorld(), CurrentFrame);
+	Config.SetNetPause(CurrentFrame, LastSyncedFrame);
 }
 
 void URecallRollbackSubsystem::UpdateConfirmFrameState(uint32 Frame)
 {
 	const uint32 CurrentFrame = Recall::Simulation::Utils::GetFrame(GetWorld());
 	Config.SetConfirmFrame(Frame);
-	Config.SetNetPause(GetWorld(), CurrentFrame);
+	Config.SetNetPause(CurrentFrame, LastSyncedFrame);
 }

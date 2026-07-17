@@ -40,6 +40,9 @@ namespace Recall::Rollback::Utils
 	/** Checks if sync can proceed past the confirm frame threshold */
 	RECALLONLINE_API bool CanSyncPastConfirmFrame(uint32 SyncFrame, uint32 ConfirmFrame, int32 ForceRollbackFrameCount);
 
+	/** Checks if LastSyncedFrame has fallen dangerously close to the max safe rollback replay distance */
+	RECALLONLINE_API bool ShouldForceRollbackForLag(uint32 CurrentFrame, uint32 LastSyncedFrame, int32 RollbackFrameCount);
+
 	/** Validates frame for processing and returns appropriate action */
 	RECALLONLINE_API EFrameProcessingAction ValidateFrameForProcessing(
 		const FRecallRollbackFrame& SyncData,
@@ -47,6 +50,7 @@ namespace Recall::Rollback::Utils
 		uint32 LastSyncedFrame,
 		uint32 ConfirmFrame,
 		int32 ForceRollbackFrameCount,
+		int32 RollbackFrameCount,
 		TFunction<FRecallSynchronizationFrameComparator(uint32)> CreateFrameComparator
 	);
 
@@ -65,7 +69,9 @@ namespace Recall::Rollback::Utils
 		bool bIsFrameSynced,
 		uint32 SyncFrame,
 		uint32 ConfirmFrame,
-		const FRecallRollbackFrame& SyncData,
+		uint32 CurrentFrame,
+		uint32 LastSyncedFrame,
+		int32 RollbackFrameCount,
 		int32 ForceRollbackFrameCount,
 		int32 NumRollbackFrames
 	);

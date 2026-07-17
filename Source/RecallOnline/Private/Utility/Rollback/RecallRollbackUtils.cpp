@@ -14,6 +14,7 @@
 #include "System/Synchronization/RecallSynchronizationTypes.h"
 #include "Utility/MultiWorld/RecallMultiWorldUtils.h"
 #include "Utility/Player/RecallPlayerUtils.h"
+#include "Utility/Simulation/RecallSimulationUtils.h"
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 static int32 DebugForceRollbackFrames = 0;
@@ -104,12 +105,24 @@ namespace Recall::Rollback::Utils
 		return SyncFrame <= ConfirmFrame || ForceRollbackFrameCount != 0;
 	}
 
+	bool ShouldForceRollbackForLag(uint32 CurrentFrame, uint32 LastSyncedFrame, int32 RollbackFrameCount)
+	{
+		if (RollbackFrameCount <= 0 || CurrentFrame < LastSyncedFrame)
+		{
+			return false;
+		}
+
+		const int32 SyncLag = static_cast<int32>(CurrentFrame - LastSyncedFrame);
+		return SyncLag >= RollbackFrameCount;
+	}
+
 	EFrameProcessingAction ValidateFrameForProcessing(
 		const FRecallRollbackFrame& SyncData,
 		uint32 CurrentFrame,
 		uint32 LastSyncedFrame,
 		uint32 ConfirmFrame,
 		int32 ForceRollbackFrameCount,
+		int32 RollbackFrameCount,
 		TFunction<FRecallSynchronizationFrameComparator(uint32)> CreateFrameComparator)
 	{
 		const uint32 SyncFrame = SyncData.Comparator.Frame;
@@ -128,8 +141,11 @@ namespace Recall::Rollback::Utils
 			return EFrameProcessingAction::Continue;
 		}
 
-		// Skip unconfirmed frames unless forced
-		if (!CanSyncPastConfirmFrame(SyncFrame, ConfirmFrame, ForceRollbackFrameCount))
+		// Skip unconfirmed frames unless forced - but don't let an unconfirmed ConfirmFrame block us
+		// from processing (and potentially forcing a resync on) a frame once we're already too far
+		// behind LastSyncedFrame to safely wait for confirmation.
+		if (!CanSyncPastConfirmFrame(SyncFrame, ConfirmFrame, ForceRollbackFrameCount) &&
+			!ShouldForceRollbackForLag(CurrentFrame, LastSyncedFrame, RollbackFrameCount))
 		{
 			return EFrameProcessingAction::Break;
 		}
@@ -167,14 +183,28 @@ namespace Recall::Rollback::Utils
 		bool bIsFrameSynced,
 		uint32 SyncFrame,
 		uint32 ConfirmFrame,
-		const FRecallRollbackFrame& SyncData,
+		uint32 CurrentFrame,
+		uint32 LastSyncedFrame,
+		int32 RollbackFrameCount,
 		int32 ForceRollbackFrameCount,
 		int32 NumRollbackFrames)
 	{
 		// Only synced frames should advance - desynced frames should trigger rollback
 		bool bCanAdvanceSync = bIsFrameSynced;
 		// No special case for confirmed frames - if frame is desynced, it should rollback
-		
+
+		// Proactively force a rollback/resync cycle once a rollback triggered right now would
+		// already exceed the replay budget, so a real desync never has to replay more than that.
+		if (bCanAdvanceSync && ForceRollbackFrameCount == 0 &&
+			ShouldForceRollbackForLag(CurrentFrame, LastSyncedFrame, RollbackFrameCount))
+		{
+			bCanAdvanceSync = false;
+
+			UE_LOG(LogRecallRollback, Log,
+				TEXT("%hs: Forcing rollback due to sync lag - SyncFrame=%d, ConfirmFrame=%d, CurrentFrame=%d, LastSyncedFrame=%d, RollbackFrameCount=%d"),
+				__FUNCTION__, SyncFrame, ConfirmFrame, CurrentFrame, LastSyncedFrame, RollbackFrameCount);
+		}
+
 		const bool bResult = bCanAdvanceSync && (ForceRollbackFrameCount == 0 || NumRollbackFrames > ForceRollbackFrameCount);
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
@@ -212,6 +242,9 @@ namespace Recall::Rollback::Utils
 		int32 NumStepFrames)
 	{
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+		const int32 MaxStepCount = Recall::Simulation::Utils::GetMaxStepCount(World);
+		ensureAlwaysMsgf(NumStepFrames <= MaxStepCount,
+			TEXT("Rollback %d frames exceeds max step count %d"), NumStepFrames, MaxStepCount);
 		const FString LocalPlayerId = Recall::Player::Utils::GetLocalPlayerId(World);
 		UE_LOG(LogRecallRollback, Log,
 			TEXT("Rollback [%s] Frame %d is out of sync, replay %d frames from frame %d until frame %d (ConfirmFrame: %d, LastSyncedFrame: %d)"),
@@ -246,7 +279,7 @@ namespace Recall::Rollback::Utils
 	void LogFrameRollbackProcessing(uint32 SyncFrame)
 	{
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
-		UE_LOG(LogRecallRollback, Log, TEXT("%hs: Frame %d - Processing as ROLLBACK"), __FUNCTION__, SyncFrame);
+		UE_LOG(LogRecallRollback, Verbose, TEXT("%hs: Frame %d - Processing as ROLLBACK"), __FUNCTION__, SyncFrame);
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	}
 
@@ -292,10 +325,11 @@ namespace Recall::Rollback::Utils
 	void LogRollbackFrameCountWarning(int32 NumRollbackFrames, int32 RollbackFrameLimit)
 	{
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
-		if (NumRollbackFrames > RollbackFrameLimit)
+		const int32 MaxFrameCount = RollbackFrameLimit + 1;
+		if (NumRollbackFrames > MaxFrameCount)
 		{
 			UE_LOG(LogRecallRollback, Warning,
-				TEXT("Rollback %d frames but limit is %d frames"), NumRollbackFrames, RollbackFrameLimit);
+				TEXT("Rollback %d frames but limit is %d frames (RollbackFrameLimit: %d)"), NumRollbackFrames, MaxFrameCount, RollbackFrameLimit);
 		}
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	}
