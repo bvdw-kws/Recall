@@ -87,9 +87,9 @@ void URecallSimulationSubsystem::Start(const FRecallSimulationStartParams& Param
 
 void URecallSimulationSubsystem::Reset()
 {
-	SimulationTime = 0.0;
-	SimulationFrame = 0;
-	DilatedSimulationFrame = 0.0;
+	SimulationTime.Store(0.0);
+	SimulationFrame.Store(0);
+	DilatedSimulationFrame.Store(0.0);
 
 	const TArray<TScriptInterface<IRecallSimulationReactSystemInterface>> SimNotifications = URecallSimulationReactSystemInterface::GetSimulationReactSystems(GetWorld());
 
@@ -145,7 +145,7 @@ void URecallSimulationSubsystem::Step(EMassProcessingPhase Phase)
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(Recall_Simulation_OnProcessingPhase);
 
-		OnProcessingPhase.Broadcast(GetWorld(), SimulationFrame, Phase);
+		OnProcessingPhase.Broadcast(GetWorld(), SimulationFrame.Load(), Phase);
 	}
 }
 
@@ -158,12 +158,12 @@ void URecallSimulationSubsystem::EndFrame()
 		return;
 	}
 
-	const uint32 CurrentFrame = SimulationFrame;
+	const uint32 CurrentFrame = SimulationFrame.Load();
 	const float FixedDeltaTime = GetFixedDeltaTime();
 
-	SimulationTime += FixedDeltaTime;
-	SimulationFrame++;
-	DilatedSimulationFrame += Recall::Slowmo::Utils::GetTimeDilatation(this);
+	SimulationTime.Store(SimulationTime.Load() + FixedDeltaTime);
+	SimulationFrame.Store(CurrentFrame + 1);
+	DilatedSimulationFrame.Store(DilatedSimulationFrame.Load() + Recall::Slowmo::Utils::GetTimeDilatation(this));
 
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(Recall_Simulation_OnFrameEnd);
@@ -204,9 +204,9 @@ bool URecallSimulationSubsystem::CheckTickSimulation() const
 
 void URecallSimulationSubsystem::OnLoadSnapshot(uint32 Frame, double TimeSeconds)
 {
-	SimulationFrame = Frame;
-	DilatedSimulationFrame = static_cast<double>(Frame); // Note: Keep it synced (or just use it for representation?)
-	SimulationTime = TimeSeconds;
+	SimulationFrame.Store(Frame);
+	DilatedSimulationFrame.Store(static_cast<double>(Frame)); // Note: Keep it synced (or just use it for representation?)
+	SimulationTime.Store(TimeSeconds);
 }
 
 void URecallSimulationSubsystem::SetShouldRender(bool bInShouldRender)

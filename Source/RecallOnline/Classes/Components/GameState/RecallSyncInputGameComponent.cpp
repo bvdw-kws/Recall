@@ -221,12 +221,14 @@ void URecallSyncInputGameComponent::SetSharedConfirmFrame(uint32 Frame)
 
 void URecallSyncInputGameComponent::ReceiveInput(const FString& PlayerId, const TArray<FRecallFrameInput>& FrameInputs)
 {
-	ApplyFrameInputsByPlayerId(PlayerId, FrameInputs);
-
+	// Push the inputs into the queue before advancing ConfirmFrame, so nothing can ever observe
+	// ConfirmFrame promising input for a frame that hasn't been written to the queue yet.
 	const ARecallGameState_InGame* GameState = GetGameStateChecked<ARecallGameState_InGame>();
 	URecallGameSimulationComponent* GameSimulationComponent = GameState->GetGameSimulationComponentChecked();
-	
+
 	GameSimulationComponent->PushSimulationInput(PlayerId, FrameInputs);
+
+	ApplyFrameInputsByPlayerId(PlayerId, FrameInputs);
 }
 
 void URecallSyncInputGameComponent::ReceiveIdleInput(const FString& PlayerId, uint32 Frame)

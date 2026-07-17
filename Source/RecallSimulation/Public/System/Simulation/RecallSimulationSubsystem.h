@@ -41,9 +41,9 @@ public:
 
 	void Render(float DeltaTime);
 
-	FORCEINLINE double GetSimulationTime() const { return SimulationTime; }
-	FORCEINLINE uint32 GetSimulationFrame() const { return SimulationFrame; }
-	FORCEINLINE double GetDilatedSimulationFrame() const { return DilatedSimulationFrame; }
+	FORCEINLINE double GetSimulationTime() const { return SimulationTime.Load(); }
+	FORCEINLINE uint32 GetSimulationFrame() const { return SimulationFrame.Load(); }
+	FORCEINLINE double GetDilatedSimulationFrame() const { return DilatedSimulationFrame.Load(); }
 
 	void SetSimulationRenderDeltaFrame(float DeltaFrame) { RenderSimulationDeltaFrame = DeltaFrame; }
 	FORCEINLINE float GetSimulationRenderDeltaFrame() const { return RenderSimulationDeltaFrame; }
@@ -83,17 +83,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, Transient)
 	bool bStartedSimulation = false;
 
-	UPROPERTY(VisibleAnywhere, Transient)
-	double SimulationTime = 0.0;
+	// Written from the multi-sim step thread and read from the game thread, so these need to be
+	// atomic rather than plain UPROPERTY fields (UHT doesn't support TAtomic members, hence dropping
+	// UPROPERTY here).
+	TAtomic<double> SimulationTime{ 0.0 };
 
-	UPROPERTY(VisibleAnywhere, Transient)
-	uint32 SimulationFrame = 0;
+	TAtomic<uint32> SimulationFrame{ 0 };
 
 	/**
 	 * The frame of the simulation with time dilatation.
 	 */
-	UPROPERTY(VisibleAnywhere, Transient)
-	double DilatedSimulationFrame = 0.0;
+	TAtomic<double> DilatedSimulationFrame{ 0.0 };
 
 	/**
 	 * Keep track of how many frames have been stepped since the last render of the game simulation.

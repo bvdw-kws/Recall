@@ -148,7 +148,7 @@ void URecallMultiSimSubsystem::Tick(float DeltaTime)
 			StepCount = FMath::Min(GetMaxStepCount(), AccumulatedFrameCount);
 			AccumulatedTime -= static_cast<float>(StepCount) / static_cast<float>(FramesPerSecond);
 			
-			UE_LOG(LogRecallMultiSim, VeryVerbose, TEXT("%hs Frame: %d, StepCount: %d"), __FUNCTION__, ElapsedFrame, StepCount);
+			UE_LOG(LogRecallMultiSim, VeryVerbose, TEXT("%hs Frame: %d, StepCount: %d"), __FUNCTION__, ElapsedFrame.Load(), StepCount);
 		}
 	}
 
@@ -157,7 +157,7 @@ void URecallMultiSimSubsystem::Tick(float DeltaTime)
 		// Step frame events
 		for (uint32 Step = 0; Step < StepCount; Step++)
 		{
-			const uint32 StepFrame = ElapsedFrame + Step;
+			const uint32 StepFrame = ElapsedFrame.Load() + Step;
 			
 			// Input phase
 			{
@@ -261,8 +261,8 @@ void URecallMultiSimSubsystem::ResetSimulation()
 
 	FScopeLock SimulationLock(&SimulationGuard);
 
-	ElapsedTime = 0.0;
-	ElapsedFrame = 0;
+	ElapsedTime.Store(0.0);
+	ElapsedFrame.Store(0);
 	AccumulatedTime = 0.0f;
 
 	for (const UWorld* World : Recall::MultiWorld::Utils::GetMultiWorlds(this))
@@ -394,11 +394,11 @@ void URecallMultiSimSubsystem::StepSimulation()
 	}
 
 	const uint32 CurrentFrame = GetElapsedFrame();
-	ElapsedFrame++;
+	ElapsedFrame.Store(CurrentFrame + 1);
 
 	// We only allow the simulation to update at the normal rate while frame stepping.
 	const float FixedDeltaTime = Recall::Simulation::Utils::GetFixedDeltaTime(this);
-	ElapsedTime += static_cast<double>(FixedDeltaTime);
+	ElapsedTime.Store(ElapsedTime.Load() + static_cast<double>(FixedDeltaTime));
 
 	bSimulationProcessingPhase = false;
 
@@ -415,7 +415,8 @@ uint32 URecallMultiSimSubsystem::GetMaxStepCount() const
 {
 	const uint32 ConfirmFrame = GetConfirmFrame(this);
 	const int32 RollbackFrameCount = GetRollbackFrameCount(this);	
-	const int32 MaxRollbackFrame = ElapsedFrame <= ConfirmFrame ? 0 : static_cast<int32>(ElapsedFrame - ConfirmFrame);
+	const uint32 CurrentElapsedFrame = ElapsedFrame.Load();
+	const int32 MaxRollbackFrame = CurrentElapsedFrame <= ConfirmFrame ? 0 : static_cast<int32>(CurrentElapsedFrame - ConfirmFrame);
 	return FMath::Max(0, FMath::Max(1, RollbackFrameCount) - MaxRollbackFrame) + 1;
 }
 
@@ -512,7 +513,7 @@ void URecallMultiSimSubsystem::PushInput(uint32 Frame, const FString& PlayerId, 
 	{
 		return;
 	}
-
+	
 	if (IRecallInputQueueInterface* InputSystem = UWorld::GetSubsystem<URecallInputQueueSubsystem>(GetWorld()))
 	{
 		InputSystem->PushInput(Frame, PlayerId, Input);
@@ -604,8 +605,8 @@ void URecallMultiSimSubsystem::WaitForStepThread() const
 
 void URecallMultiSimSubsystem::OnLoadSnapshot(uint32 Frame, double TimeSeconds, bool bIsRollback)
 {
-	ElapsedFrame = Frame;
-	ElapsedTime = TimeSeconds;
+	ElapsedFrame.Store(Frame);
+	ElapsedTime.Store(TimeSeconds);
 
 	if (!bIsRollback)
 	{

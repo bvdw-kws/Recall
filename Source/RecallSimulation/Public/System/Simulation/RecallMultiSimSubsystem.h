@@ -39,8 +39,8 @@ public:
 	void StepSimulation();
 
 	bool ShouldRenderSimulation() const { return bRenderSimulation; }
-	bool IsSimulationProcessingPhase() const { return bSimulationProcessingPhase; }
-	bool IsRenderProcessingPhase() const { return bRenderProcessingPhase; }
+	bool IsSimulationProcessingPhase() const { return bSimulationProcessingPhase.Load(); }
+	bool IsRenderProcessingPhase() const { return bRenderProcessingPhase.Load(); }
 
 	void WaitForStepThread() const;
 	void OnLoadSnapshot(uint32 Frame, double TimeSeconds, bool bIsRollback);
@@ -60,8 +60,8 @@ public:
 	virtual bool IsSimulationPaused() const override final;
 	virtual bool HasSimulationStarted() const override final { return bStarted; }
 
-	virtual double GetElapsedTime() const override final { return ElapsedTime; }
-	virtual uint32 GetElapsedFrame() const override final { return ElapsedFrame; };
+	virtual double GetElapsedTime() const override final { return ElapsedTime.Load(); }
+	virtual uint32 GetElapsedFrame() const override final { return ElapsedFrame.Load(); };
 
 	virtual void SetSpeedScale(float InSpeedScale) override final;
 	virtual void SetRenderSimulation(bool bInRenderSimulation) override final { bRenderSimulation = bInRenderSimulation; }
@@ -83,33 +83,35 @@ public:
 	// virtual FOnWorldTransitionEvent& GetOnWorldTransitionEvent() override { return OnWorldTransitionEvent; }
 	// IRecallSimulationControllerInterface implementation End
 
-protected:
+public:
 	// FTickableGameObject implementation Begin
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	// FTickableGameObject implementation End
 
 	// UWorldSubsystem implementation Begin
-	void Initialize(FSubsystemCollectionBase& Collection) override final;
-	void Deinitialize() override final;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override final;
+	virtual void Deinitialize() override final;
 	// UWorldSubsystem implementation End
 
 	// IRecallObserverSubjectInterface implementation Begin
-	void RegisterObserver(UClass* Class, UObject* ObjectPointer) override final;
-	void UnregisterObserver(UObject* SourceObject) override final;
+	virtual void RegisterObserver(UClass* Class, UObject* ObjectPointer) override final;
+	virtual void UnregisterObserver(UObject* SourceObject) override final;
 	// IRecallObserverSubjectInterface implementation End
 
 protected:
 	UPROPERTY(VisibleAnywhere, Transient)
 	float SpeedScale{ 1.0f };
-
-	UPROPERTY(VisibleAnywhere, Transient)
-	double ElapsedTime{ 0.0 };
-	UPROPERTY(VisibleAnywhere, Transient)
-	float AccumulatedTime{ 0.0 };
 	
 	UPROPERTY(VisibleAnywhere, Transient)
-	uint32 ElapsedFrame{ 0 };
+	float AccumulatedTime{ 0.0 };
+
+	// Written from the multi-sim step thread and read from the game thread (e.g. input capture,
+	// rollback confirm-frame bookkeeping), so these need to be atomic rather than plain UPROPERTY
+	// fields (UHT doesn't support TAtomic members, hence dropping UPROPERTY here).
+	TAtomic<double> ElapsedTime{ 0.0 };
+
+	TAtomic<uint32> ElapsedFrame{ 0 };
 
 	UPROPERTY(VisibleAnywhere, Transient)
 	float DeltaFrames = 0.0f;
@@ -131,11 +133,12 @@ protected:
 	float DeltaTimeDecay = 0.1f;
 
 private:
-	UPROPERTY(Transient)
-	bool bSimulationProcessingPhase{ false };
+	// Written from the multi-sim step thread and read from the game thread, so these need to be
+	// atomic rather than plain UPROPERTY fields (UHT doesn't support TAtomic members, hence dropping
+	// UPROPERTY here).
+	TAtomic<bool> bSimulationProcessingPhase{ false };
 
-	UPROPERTY(Transient)
-	bool bRenderProcessingPhase{ false };
+	TAtomic<bool> bRenderProcessingPhase{ false };
 
 	UPROPERTY(Transient)
 	uint32 StepCount = 0;

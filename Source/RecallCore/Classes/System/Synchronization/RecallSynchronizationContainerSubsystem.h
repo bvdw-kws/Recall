@@ -17,24 +17,27 @@ class RECALLCORE_API URecallSynchronizationContainerSubsystem : public UWorldSub
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE bool IsRollback() const { return Rollback; }
-	FORCEINLINE bool IsNetPause() const { return NetPause; }
-	FORCEINLINE uint32 GetConfirmFrame() const { return ConfirmFrame; }
-	FORCEINLINE int32 GetRollbackFrameCount() const { return RollbackFrameCount; }
+	FORCEINLINE bool IsRollback() const { return Rollback.Load(); }
+	FORCEINLINE bool IsNetPause() const { return NetPause.Load(); }
+	FORCEINLINE uint32 GetConfirmFrame() const { return ConfirmFrame.Load(); }
+	FORCEINLINE int32 GetRollbackFrameCount() const { return RollbackFrameCount.Load(); }
 
 protected:
 	friend struct FRecallRollbackConfig;
 
+	// These are written from the game thread (RPC/input processing) and read from the multi-sim step
+	// thread (rollback/frame-sync processing), so they need to be atomic rather than plain fields.
+
 	/* True when a rollback is being executed. */
-	bool Rollback = false;
+	TAtomic<bool> Rollback = false;
 
 	/* True when simulation is currently net pause */
-	bool NetPause = false;
+	TAtomic<bool> NetPause = false;
 
 	/* Last shared confirm frame for all the players */
-	uint32 ConfirmFrame = 0;
+	TAtomic<uint32> ConfirmFrame = 0;
 
 	/* How many frames can be rollback at most */
-	int32 RollbackFrameCount = 0;
+	TAtomic<int32> RollbackFrameCount = 0;
 
 };
