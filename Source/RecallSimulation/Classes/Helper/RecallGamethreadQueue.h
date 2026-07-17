@@ -90,6 +90,13 @@ struct FRecallGamethreadRunner
 
 	UPROPERTY()
 	TObjectPtr<URecallGamethreadRunnerTask> Task;
+
+	// Last frame this runner was still requested. Refreshed every tick it's still in use, so the
+	// grace period below counts down from when the asset was last needed, not from the fixed
+	// AsyncEndFrame computed when the request first started (which can be far in the past by the
+	// time the asset actually stops being requested).
+	UPROPERTY()
+	uint32 LastActiveFrame = 0;
 };
 
 /**

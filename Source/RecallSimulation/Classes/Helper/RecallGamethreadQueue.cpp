@@ -91,21 +91,23 @@ void URecallGamethreadQueue::CreateOrReleaseRunners_Internal(uint32 Frame, const
 	for (const uint32& OldHandle : OldHandles)
 	{
 		const TSharedPtr<FRecallGamethreadRunnerData> NewData = DataMap.FindRef(OldHandle);
-		const FRecallGamethreadRunner& OldRunner = RunnerMap[OldHandle];
+		FRecallGamethreadRunner& OldRunner = RunnerMap[OldHandle];
+
+		if (NewData.IsValid())
+		{
+			OldRunner.LastActiveFrame = Frame;
+		}
 
 		// Skip existing handles
-		if (NewData != nullptr && OldRunner.Task->IsIdenticalData(NewData))
+		if (NewData.IsValid() && OldRunner.Task->IsIdenticalData(NewData))
 		{
 			NewHandles.Remove(OldHandle);
 		}
 		else
 		{
-			const FRecallGamethreadRunnerData& OldRunnerData = OldRunner.Task->GetRunnerData();
-			
 			// Keep data for a while to be safe if a rollback occurs
 			constexpr uint32 RunnerCacheDuration = 10;
-			if (NewData == nullptr && OldRunnerData.AsyncStartFrame < Frame &&
-				OldRunnerData.AsyncEndFrame + MaxStepCount + RunnerCacheDuration >= Frame)
+			if (!NewData.IsValid() && OldRunner.LastActiveFrame + MaxStepCount + RunnerCacheDuration >= Frame)
 			{
 				continue;
 			}
@@ -118,13 +120,14 @@ void URecallGamethreadQueue::CreateOrReleaseRunners_Internal(uint32 Frame, const
 	{
 		const TSharedPtr<FRecallGamethreadRunnerData>& NewData = DataMap.FindRef(NewHandle);
 		check(NewData.IsValid());
-		
+
 		if (Frame < NewData->AsyncStartFrame)
 		{
 			continue;
 		}
 
-		GetOrCreateRunner_Internal(NewHandle, NewData);
+		FRecallGamethreadRunner& Runner = GetOrCreateRunner_Internal(NewHandle, NewData);
+		Runner.LastActiveFrame = Frame;
 	}
 }
 
