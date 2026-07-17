@@ -54,14 +54,14 @@ void FRecallRollbackConfig::SetNetPause(uint32 CurrentFrame, uint32 LastSyncedFr
 {
 	check(ContainerSystem.IsValid());
 	ContainerSystem->NetPause = ShouldNetPause(CurrentFrame, LastSyncedFrame);
-	UE_LOG(LogRecallRollback, Verbose, TEXT("NetPause %s (CurrentFrame: %d, LastSyncedFrame: %d)"), 
-		*UKismetStringLibrary::Conv_BoolToString(ContainerSystem->NetPause), CurrentFrame, LastSyncedFrame);
+	UE_LOG(LogRecallRollback, Log, TEXT("NetPause %s (CurrentFrame: %d, LastSyncedFrame: %d, ConfirmFrame: %d)"), 
+		*UKismetStringLibrary::Conv_BoolToString(ContainerSystem->NetPause), CurrentFrame, LastSyncedFrame, GetConfirmFrame());
 }
 
 bool FRecallRollbackConfig::ShouldNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame) const
 {
 	const int32 RollbackFrameCount = GetRollbackFrameCount();
-	const uint32 ConfirmFrame = ContainerSystem->ConfirmFrame;
+	const uint32 ConfirmFrame = GetConfirmFrame();
 	if (RollbackFrameCount > 0 && CurrentFrame > ConfirmFrame)
 	{
 		const int32 ConfirmFrameDelta = static_cast<int32>(CurrentFrame - ConfirmFrame) + 1;

@@ -48,14 +48,8 @@ void FRecallRollbackFrameManager::CleanupFrameBuffer(int32 LastSyncedFrameIndex)
 
 bool FRecallRollbackFrameManager::ProcessFrameBuffer(const FRecallRollbackFrameContext& Context, uint32 Frame)
 {
-	if (!Context.IsValid())
-	{
-		UE_LOG(LogRecallRollback, Error, TEXT("%hs Invalid context provided"), __FUNCTION__);
-		return false;
-	}
-
 	const uint32 CurrentFrame = Frame;
-	const uint32 ConfirmFrame = Context.Config->GetConfirmFrame();
+	const uint32 ConfirmFrame = Context.ConfirmFrame;
 	
 	// Track if rollback was executed
 	bool bRollbackExecuted = false;
@@ -91,8 +85,8 @@ bool FRecallRollbackFrameManager::ProcessSingleFrame(const FRecallRollbackFrameC
 	const FRecallRollbackFrame& SyncData, uint32 CurrentFrame, uint32 ConfirmFrame, 
 	int32 FrameIndex, int32& LastSyncedFrameIndex, bool& bRollbackExecuted)
 {
-	const int32 ForceRollbackFrameCount = Context.Config->GetForceRollbackFrameCount();
-	const int32 RollbackFrameCount = Context.Config->GetRollbackFrameCount();
+	const int32 ForceRollbackFrameCount = Context.ForceRollbackFrameCount;
+	const int32 RollbackFrameCount = Context.RollbackFrameCount;
 	const uint32 LastSyncedFrame = *Context.LastSyncedFrame;
 
 	// Validate frame and determine processing action
@@ -179,7 +173,7 @@ bool FRecallRollbackFrameManager::ProcessFrameRollback(const FRecallRollbackFram
 	}
 
 	// Log rollback frame count warning if needed
-	const int32 RollbackFrameLimit = Context.Config->GetRollbackFrameCount();
+	const int32 RollbackFrameLimit = Context.RollbackFrameCount;
 	Recall::Rollback::Utils::LogRollbackFrameCountWarning(NumRollbackFrames, RollbackFrameLimit);
 
 	// Execute rollback
@@ -217,7 +211,7 @@ void FRecallRollbackFrameManager::ExecuteRollback(const FRecallRollbackFrameCont
 	// Log rollback execution
 	Recall::Rollback::Utils::LogRollbackExecution(
 		Context.World, SyncFrame, CurrentFrame, *Snapshot,
-		Context.Config->GetConfirmFrame(), *Context.LastSyncedFrame, NumStepFrames);
+		Context.ConfirmFrame, *Context.LastSyncedFrame, NumStepFrames);
 
 	// Pop frames past the rollback frame (CRITICAL: must happen before rollback execution)
 	const int32 OutOfSyncStartFrameIndex = RollbackFrameIndex + 1;

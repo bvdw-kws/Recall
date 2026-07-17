@@ -242,7 +242,9 @@ FRecallRollbackFrameContext URecallRollbackSubsystem::CreateFrameManagerContext(
 	Context.MultiSimSystem = MultiSimSystem;
 	Context.MultiSimSnapshotSystem = MultiSimSnapshotSystem;
 	Context.World = GetWorld();
-	Context.Config = &Config;
+	Context.ConfirmFrame = RollbackConfirmFrame;
+	Context.RollbackFrameCount = Config.GetRollbackFrameCount();
+	Context.ForceRollbackFrameCount = Config.GetForceRollbackFrameCount();
 	Context.LastSyncedFrame = &LastSyncedFrame;
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	Context.DebugManager = &DebugManager;

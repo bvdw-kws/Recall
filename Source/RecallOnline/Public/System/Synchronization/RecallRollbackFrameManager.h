@@ -22,24 +22,14 @@ struct RECALLONLINE_API FRecallRollbackFrameContext
 	TWeakObjectPtr<URecallMultiSimSubsystem> MultiSimSystem;
 	TWeakObjectPtr<URecallMultiSimSnapshotSubsystem> MultiSimSnapshotSystem;
 	const UWorld* World = nullptr;
-	const FRecallRollbackConfig* Config = nullptr;
+	uint32 ConfirmFrame = 0;
+	uint32 RollbackFrameCount = 0;
+	uint32 ForceRollbackFrameCount = 0;
 	uint32* LastSyncedFrame = nullptr;
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	const FRecallDebugRollbackManager* DebugManager = nullptr;
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
-	
-	bool IsValid() const
-	{
-		return MultiSimSystem.IsValid() && 
-			   MultiSimSnapshotSystem.IsValid() && 
-			   World != nullptr && 
-			   Config != nullptr && 
-#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
-			   	DebugManager != nullptr &&
-#endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
-			   LastSyncedFrame != nullptr;
-	}
 };
 
 /**
