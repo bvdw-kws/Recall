@@ -9,6 +9,7 @@
 
 #include "Components/GameState/RecallClientRestoreComponent.h"
 #include "Components/GameState/RecallGameSimulationComponent.h"
+#include "Components/GameState/RecallPlayerSyncGateComponent.h"
 #include "Components/GameState/RecallReplayGameComponent.h"
 #include "DataTransfer/EasyDataTransferTypes.h"
 #include "Kismet/GameplayStatics.h"
@@ -58,6 +59,12 @@ void InitRestoreClientInfo(const UObject* WorldContextObject, FRecallRestoreClie
 			RestoreClientInfo.SnapshotFrame = GameState->GetGameSimulationComponentChecked()->GetLocalSimulationFrame();
 		}
 	}	
+
+	// Capture the event count in lockstep with the snapshot above, so it describes exactly the
+	// player events (AddPlayer/RemovePlayer, join/leave flags) already reflected by this snapshot.
+	// Any event issued after this point is still delivered normally to the restoring client via the
+	// ordinary multicast RPC / OnRep path and must not be double-counted by this baseline.
+	RestoreClientInfo.SnapshotEventCount = GameState->GetPlayerSyncGateComponentChecked()->GetReplicatedEventCount();
 }
 
 static void InitGameSimulationWorld(const UObject* WorldContextObject, int32 WorldIndex, bool bSeed)
@@ -148,10 +155,10 @@ FEasyDataTransferOptions GetSnapshotTransferOptions()
 	return Options;
 }
 
-bool ProcessCombinedRestoreData(const UObject* WorldContextObject, const TArray<uint8>& Data, uint32& OutTargetFrame)
+bool ProcessCombinedRestoreData(const UObject* WorldContextObject, const TArray<uint8>& Data, uint32& OutTargetFrame, uint32& OutSnapshotEventCount)
 {
 	// Validate minimum data size
-	if (Data.Num() < sizeof(uint8) + sizeof(int32) + sizeof(uint32)) // Version + snapshot size + frame
+	if (Data.Num() < sizeof(uint8) + sizeof(int32) + sizeof(uint32) + sizeof(uint32)) // Version + snapshot size + frame + event count
 	{
 		UE_LOG(LogRecallRestore, Error, TEXT("%hs: Data buffer too small: %d bytes"), __FUNCTION__, Data.Num());
 		return false;
@@ -163,7 +170,7 @@ bool ProcessCombinedRestoreData(const UObject* WorldContextObject, const TArray<
 	uint8 DataVersion = 0;
 	Reader << DataVersion;
 	
-	if (DataVersion != 1)
+	if (DataVersion != 2)
 	{
 		UE_LOG(LogRecallRestore, Error, TEXT("%hs: Unknown data version: %d"), __FUNCTION__, DataVersion);
 		return false;
@@ -172,8 +179,10 @@ bool ProcessCombinedRestoreData(const UObject* WorldContextObject, const TArray<
 	// Read snapshot data
 	int32 SnapshotSize = 0;
 	uint32 SnapshotFrame = 0;
+	uint32 SnapshotEventCount = 0;
 	Reader << SnapshotSize;
 	Reader << SnapshotFrame;
+	Reader << SnapshotEventCount;
 	
 	if (SnapshotSize > 0)
 	{
@@ -181,18 +190,19 @@ bool ProcessCombinedRestoreData(const UObject* WorldContextObject, const TArray<
 		SnapshotMemory.SetNum(SnapshotSize);
 		Reader.Serialize(SnapshotMemory.GetData(), SnapshotSize);
 		
-		UE_LOG(LogRecallRestore, Log, TEXT("%hs: Received snapshot data - Size: %d bytes, Frame: %d"), 
-		       __FUNCTION__, SnapshotSize, SnapshotFrame);
+		UE_LOG(LogRecallRestore, Log, TEXT("%hs: Received snapshot data - Size: %d bytes, Frame: %d, EventCount: %d"), 
+		       __FUNCTION__, SnapshotSize, SnapshotFrame, SnapshotEventCount);
 		
 		// Load the snapshot
 		LoadClientSnapshot(WorldContextObject, SnapshotMemory);
 	}
 	
 	OutTargetFrame = SnapshotFrame;
+	OutSnapshotEventCount = SnapshotEventCount;
 	return true;
 }
 
-void PrepareCombinedData(const TArray<uint8>& SnapshotMemory, uint32 SnapshotFrame, TArray<uint8>& OutCombinedDataBuffer)
+void PrepareCombinedData(const TArray<uint8>& SnapshotMemory, uint32 SnapshotFrame, uint32 SnapshotEventCount, TArray<uint8>& OutCombinedDataBuffer)
 {
 	// Clear previous buffer
 	OutCombinedDataBuffer.Reset();
@@ -201,17 +211,18 @@ void PrepareCombinedData(const TArray<uint8>& SnapshotMemory, uint32 SnapshotFra
 	FMemoryWriter Writer(OutCombinedDataBuffer);
 	
 	// Write header
-	uint8 DataVersion = 1; // Version for future compatibility
+	uint8 DataVersion = 2; // Bumped to 2: added SnapshotEventCount for the late-join sync gate fixup
 	Writer << DataVersion;
 	
 	// Write snapshot data
 	int32 SnapshotSize = SnapshotMemory.Num();
 	Writer << SnapshotSize;
 	Writer << SnapshotFrame;
+	Writer << SnapshotEventCount;
 	Writer.Serialize(const_cast<uint8*>(SnapshotMemory.GetData()), SnapshotSize);
 	
-	UE_LOG(LogRecallRestore, Log, TEXT("%hs: Prepared combined restore data - Snapshot: %d bytes, Total: %d bytes"), 
-		   __FUNCTION__, SnapshotSize, OutCombinedDataBuffer.Num());
+	UE_LOG(LogRecallRestore, Log, TEXT("%hs: Prepared combined restore data - Snapshot: %d bytes, EventCount: %d, Total: %d bytes"), 
+		   __FUNCTION__, SnapshotSize, SnapshotEventCount, OutCombinedDataBuffer.Num());
 }
 	
 } // namespace Recall::Restore::Utils

@@ -15,6 +15,7 @@
 #include "RecallFrontendUtils.h"
 #include "RecallGameSimulationComponent.h"
 #include "RecallSyncInputGameComponent.h"
+#include "Components/GameState/RecallPlayerSyncGateComponent.h"
 #include "Online/RecallGameState_InGame.h"
 #include "Online/Base/RecallPlayerControllerBase.h"
 #include "System/Restore/RecallRestoreTypes.h"
@@ -359,9 +360,20 @@ void URecallClientRestoreComponent::ProcessCombinedRestoreData(const TArray<uint
 	}
 	
 	uint32 TargetFrame = 0;
-	if (Recall::Restore::Utils::ProcessCombinedRestoreData(this, Data, TargetFrame))
+	uint32 SnapshotEventCount = 0;
+	if (Recall::Restore::Utils::ProcessCombinedRestoreData(this, Data, TargetFrame, SnapshotEventCount))
 	{
 		RestoreInfo->InputTargetFrame = TargetFrame;
+		RestoreInfo->SnapshotEventCount = SnapshotEventCount;
 		RestoreInfo->bSynced = true;
+
+		// Seed the applied event count from exactly what this snapshot reflects, not from the live
+		// replicated count - any player event issued after the snapshot was captured is still
+		// delivered normally via the ordinary multicast RPC / OnRep path while restoring.
+		if (const ARecallGameState_InGame* GameState = Cast<ARecallGameState_InGame>(UGameplayStatics::GetGameState(this)))
+		{
+			GameState->GetPlayerSyncGateComponentChecked()->InitializeAppliedEventCountFromSnapshot(
+				SnapshotEventCount, TargetFrame);
+		}
 	}
 }

@@ -102,6 +102,14 @@ struct RECALLONLINE_API FRecallRestoreClientInfo
 	UPROPERTY()
 	int32 CombinedTransferHandle = 0;	
 
+	/**
+	 * Count of critical player events (see URecallPlayerSyncGateComponent) reflected by this snapshot,
+	 * captured atomically alongside SnapshotMemory/SnapshotFrame. Used to seed the late-joining client's
+	 * applied event count without racing events issued after the snapshot was taken.
+	 */
+	UPROPERTY()
+	uint32 SnapshotEventCount = 0;
+
 };
 
 USTRUCT()
@@ -117,6 +125,13 @@ struct FRecallRestoreInfo
 
 	UPROPERTY()
 	bool bSynced = false;
+
+	/**
+	 * Count of critical player events reflected by the snapshot this client is restoring from.
+	 * Received from the server alongside the snapshot; see FRecallRestoreClientInfo::SnapshotEventCount.
+	 */
+	UPROPERTY()
+	uint32 SnapshotEventCount = 0;
 };
 
 USTRUCT()

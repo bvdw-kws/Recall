@@ -109,7 +109,7 @@ bool URecallSyncInputGameComponent::IsConfirmFrameRelevant(const ARecallPlayerSt
 		return false;
 	}
 
-	if (!PlayerState.HasJoinedGame() && !PlayerState.HasAuthority())
+	if (!PlayerState.HasJoinedGame() && HasAuthority())
 	{
 		return false;
 	}

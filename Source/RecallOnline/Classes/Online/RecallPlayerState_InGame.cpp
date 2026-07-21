@@ -111,9 +111,10 @@ void ARecallPlayerState_InGame::OnRep_JoinedGame()
 				InGameState->OnLocalLeaveGame.Broadcast(this);
 			}
 		}
+		
+		URecallPlayerSyncGateComponent* PlayerSyncGateComponent = InGameState->GetPlayerSyncGateComponentChecked();
+		PlayerSyncGateComponent->ApplyFlagEvent();
 	}
-
-	URecallPlayerSyncGateComponent::GetRef(this).ApplyFlagEvent();
 }
 
 void ARecallPlayerState_InGame::SetLastReceivedInputFrame(uint32 Frame)

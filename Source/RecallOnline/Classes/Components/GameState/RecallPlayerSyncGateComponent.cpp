@@ -78,10 +78,18 @@ uint32 URecallPlayerSyncGateComponent::GetLastSyncedFrame() const
 	return LastSyncedFrame;
 }
 
-void URecallPlayerSyncGateComponent::SyncAppliedEventCountFromReplicated(uint32 CurrentFrame)
+void URecallPlayerSyncGateComponent::InitializeAppliedEventCountFromSnapshot(uint32 SnapshotEventCount, uint32 SnapshotFrame)
 {
-	LocalAppliedEventCount = ReplicatedEventCount;
-	LastSyncedFrame = FMath::Max(LastSyncedFrame, CurrentFrame);
+	// Add, don't Max/assign: LocalAppliedEventCount only ever advances via ApplyEvent/ApplyFlagEvent,
+	// which fire from RPC/OnRep bodies for events actually received live - and a restoring client never
+	// receives multicast RPCs for events that happened before it became a relevant connection (that's
+	// exactly why the snapshot baseline exists). So by the time this runs, LocalAppliedEventCount holds
+	// only events applied live SINCE connecting, a range entirely disjoint from SnapshotEventCount (events
+	// already baked into the pre-connection snapshot). Using Max here would silently discard any events
+	// this client already applied live while still mid-restore, permanently wedging the gate exactly like
+	// the original bug this fixup exists to solve.
+	LocalAppliedEventCount += SnapshotEventCount;
+	LastSyncedFrame = FMath::Max(LastSyncedFrame, SnapshotFrame);
 
 	if (!HasUnsyncedPlayerEvents())
 	{

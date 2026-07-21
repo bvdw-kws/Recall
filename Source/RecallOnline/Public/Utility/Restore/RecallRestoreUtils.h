@@ -41,21 +41,23 @@ RECALLONLINE_API extern void InitGameSimulation(const UObject* WorldContextObjec
 /**
  * Processes combined restore data received from server, extracting and loading snapshot.
  * @param WorldContextObject Context for world access
- * @param Data Combined restore data buffer containing version, snapshot size, frame, and snapshot data
+ * @param Data Combined restore data buffer containing version, snapshot size, frame, event count, and snapshot data
  * @param OutTargetFrame Returns the frame number at which the snapshot was taken
+ * @param OutSnapshotEventCount Returns the critical player event count reflected by the snapshot
  * @return True if processing succeeded, false if data was invalid or processing failed
  */
 RECALLONLINE_API extern bool ProcessCombinedRestoreData(
-	const UObject* WorldContextObject, const TArray<uint8>& Data, uint32& OutTargetFrame);
+	const UObject* WorldContextObject, const TArray<uint8>& Data, uint32& OutTargetFrame, uint32& OutSnapshotEventCount);
 
 /**
  * Prepares combined restore data by serializing snapshot and frame information.
  * @param SnapshotMemory Snapshot data to include in combined buffer
  * @param SnapshotFrame Frame number at which snapshot was taken
- * @param OutCombinedDataBuffer Output buffer containing version header, snapshot size, frame, and snapshot data
+ * @param SnapshotEventCount Critical player event count reflected by the snapshot, captured atomically with it
+ * @param OutCombinedDataBuffer Output buffer containing version header, snapshot size, frame, event count, and snapshot data
  */
 RECALLONLINE_API extern void PrepareCombinedData(
-	const TArray<uint8>& SnapshotMemory, uint32 SnapshotFrame, TArray<uint8>& OutCombinedDataBuffer);
+	const TArray<uint8>& SnapshotMemory, uint32 SnapshotFrame, uint32 SnapshotEventCount, TArray<uint8>& OutCombinedDataBuffer);
 	
 	/**
 	 * Gets the data transfer options configured for snapshot transfers.

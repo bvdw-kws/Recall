@@ -252,7 +252,7 @@ bool URecallRestoreSubsystem::StartCombinedRestoreTransfer(ARecallPlayerState_In
 	// Prepare combined data using the utility function
 	TArray<uint8> CombinedDataBuffer;
 	Recall::Restore::Utils::PrepareCombinedData(RestoreClientInfo->SnapshotMemory, RestoreClientInfo->SnapshotFrame,
-		CombinedDataBuffer);
+		RestoreClientInfo->SnapshotEventCount, CombinedDataBuffer);
 	
 	if (CombinedDataBuffer.Num() == 0)
 	{

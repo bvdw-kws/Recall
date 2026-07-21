@@ -50,12 +50,18 @@ public:
 	/** Highest frame for which every critical event up to and including it has been applied locally. */
 	uint32 GetLastSyncedFrame() const;
 
+	/** Server only: current issued event count, to be captured alongside a restore snapshot. */
+	uint32 GetReplicatedEventCount() const { return ReplicatedEventCount; }
+
 	/**
 	 * Late-join/restore fixup: historical events aren't replayed to a client that joins after they
-	 * fired (it catches up via snapshot restore instead), so mark everything the server has issued so
-	 * far as already accounted for, as of CurrentFrame.
+	 * fired (it catches up via snapshot restore instead). SnapshotEventCount must be the event count
+	 * captured atomically alongside the snapshot itself (see FRecallRestoreClientInfo::SnapshotEventCount),
+	 * NOT the live ReplicatedEventCount at restore-completion time - any events issued after the snapshot
+	 * was taken are still delivered normally via ApplyEvent/ApplyFlagEvent while this client is restoring,
+	 * and must not be silently marked applied here.
 	 */
-	void SyncAppliedEventCountFromReplicated(uint32 CurrentFrame);
+	void InitializeAppliedEventCountFromSnapshot(uint32 SnapshotEventCount, uint32 SnapshotFrame);
 
 	/** Server only: reset the gate when the simulation restarts. */
 	void ResetGate();
