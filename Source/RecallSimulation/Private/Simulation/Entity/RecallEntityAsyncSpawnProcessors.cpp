@@ -8,6 +8,7 @@
 #include "RecallEntityAsyncSpawnProcessors.h"
 
 #include "MassExecutionContext.h"
+#include "Simulation/Player/RecallPlayerProcessorGroupTypes.h"
 #include "System/Entity/RecallEntityAsyncSpawnSubsystem.h"
 
 //----------------------------------------------------------------------//
@@ -18,6 +19,7 @@ URecallEntityAsyncSpawnProcessor::URecallEntityAsyncSpawnProcessor()
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
+	ExecutionOrder.ExecuteBefore.Add(Recall::Player::ProcessorGroupNames::Input);
 }
 
 void URecallEntityAsyncSpawnProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)

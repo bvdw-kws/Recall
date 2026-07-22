@@ -45,7 +45,11 @@ public:
 	void SetNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame);
 
 	/** Determines if the network should be paused based on how far CurrentFrame has run ahead of
-	 * ConfirmFrame, tightened by one frame while LastSyncedFrame is still behind ConfirmFrame so it
-	 * retains room to catch up within the rollback replay budget. */
+	 * ConfirmFrame - kept ConfirmFrame-based (not LastSyncedFrame-based) so the check stays
+	 * recoverable: ConfirmFrame is updated externally by network delivery independent of the tick
+	 * loop, whereas LastSyncedFrame only advances from inside the very pipeline this pause halts,
+	 * so gating on it directly would freeze both terms forever once paused. Tightened by a capped
+	 * margin when LastSyncedFrame is observed lagging ConfirmFrame, without ever fully cancelling
+	 * ConfirmFrame's contribution. */
 	bool ShouldNetPause(uint32 CurrentFrame, uint32 LastSyncedFrame) const;
 };

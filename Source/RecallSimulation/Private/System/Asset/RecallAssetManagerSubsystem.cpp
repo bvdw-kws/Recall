@@ -7,6 +7,7 @@
 
 #include "System/Asset/RecallAssetManagerSubsystem.h"
 
+#include "Desync/RecallDesyncLog.h"
 #include "Engine/World.h"
 #include "Subsystems/SubsystemCollection.h"
 #include "System/Simulation/RecallMultiSimSubsystem.h"
@@ -77,9 +78,6 @@ void URecallAssetManagerSubsystem::Restore(const FRecallSnapshotContext& Context
 
 	FScopeLock Lock(&DataGuard);
 	AssetManagerData = InSnapshot.Get<FRecallAssetManagerData>();
-	
-	// Regenerate local cache from restored data
-	RegenerateRequestMap();
 }
 
 void URecallAssetManagerSubsystem::OnTickStart(float DeltaTime)
@@ -112,7 +110,6 @@ FRecallAssetLoadHandle URecallAssetManagerSubsystem::RequestAsset(const FSoftObj
 			CachedData->ReferenceCount++;
 			
 			// Asset is already cached, use existing data
-			RequestMap.Add(Handle, *CachedData);
 			AssetManagerData.HandleToAssetPath.Add(Handle, Path);			
 			
 			UE_LOG(LogRecallAsset, Verbose,
@@ -124,15 +121,14 @@ FRecallAssetLoadHandle URecallAssetManagerSubsystem::RequestAsset(const FSoftObj
 			const int32 MaxStepCount = Recall::Simulation::Utils::GetMaxStepCount(this);
 		
 			// Asset not cached, create new load data
-			FRecallAssetManagerLoadData& Request = RequestMap.Add(Handle);
+			FRecallAssetManagerLoadData& Request = AssetManagerData.AssetCache.Add(Path);
 			Request.AsyncStartFrame = Frame;
 			Request.AsyncEndFrame = Frame + MaxStepCount + LoadDuration;
 			Request.AssetPath = Path;
 			Request.ReferenceCount = 1;
 			
-			// Cache the asset data
-			AssetManagerData.AssetCache.Add(Path, Request);
 			AssetManagerData.HandleToAssetPath.Add(Handle, Path);
+			
 			UE_LOG(LogRecallAsset, Verbose,
 				TEXT("%hs Asset: %s, RefCount=1 (new)"), __FUNCTION__, *Path.ToString());
 		}
@@ -152,34 +148,30 @@ void URecallAssetManagerSubsystem::ReleaseAsset(FRecallAssetLoadHandle& Handle)
 		FScopeLock Lock(&DataGuard);
 		
 		// Get the asset path for this handle
-		const FSoftObjectPath* AssetPathPtr = AssetManagerData.HandleToAssetPath.Find(Handle);
-		if (AssetPathPtr)
+		FSoftObjectPath AssetPath;
+		if (AssetManagerData.HandleToAssetPath.RemoveAndCopyValue(Handle, AssetPath))
 		{
 			// Decrement reference count in cache
-			FRecallAssetManagerLoadData* CachedData = AssetManagerData.AssetCache.Find(*AssetPathPtr);
-			if (CachedData)
-			{
-				CachedData->ReferenceCount--;
+			FRecallAssetManagerLoadData& CachedData = AssetManagerData.AssetCache.FindChecked(AssetPath);			
+			CachedData.ReferenceCount--;
 				
-				// Remove from cache if no more references
-				if (CachedData->ReferenceCount <= 0)
-				{
-					AssetManagerData.AssetCache.Remove(*AssetPathPtr);
+			// Remove from cache if no more references
+			if (CachedData.ReferenceCount <= 0)
+			{
+				AssetManagerData.AssetCache.Remove(AssetPath);
 					
-					UE_LOG(LogRecallAsset, Verbose,
-						TEXT("%hs Asset: %s, RefCount=0 (removed)"), __FUNCTION__, *AssetPathPtr->ToString());
-				}
-				else
-				{					
-					UE_LOG(LogRecallAsset, Verbose,
-						TEXT("%hs Asset: %s, RefCount=%d"), __FUNCTION__,
-						*AssetPathPtr->ToString(), CachedData->ReferenceCount);
-				}
+				UE_LOG(LogRecallAsset, Verbose,
+					TEXT("%hs Asset: %s, RefCount=0 (removed)"), __FUNCTION__, *AssetPath.ToString());
+			}
+			else
+			{					
+				UE_LOG(LogRecallAsset, Verbose,
+					TEXT("%hs Asset: %s, RefCount=%d"), __FUNCTION__,
+					*AssetPath.ToString(), CachedData.ReferenceCount);
 			}
 		
 			// Remove from handle mapping
 			AssetManagerData.HandleToAssetPath.Remove(Handle);
-			RequestMap.Remove(Handle);
 		}
 	}
 	
@@ -190,18 +182,39 @@ bool URecallAssetManagerSubsystem::IsAssetLoaded(const FRecallAssetLoadHandle& H
 {
 	if (!Handle.IsValid())
 	{
+#if RECALL_DESYNC_LOG
+		RECALL_DESYNC_LOG_STR(this, IsAssetLoaded,
+			FString::Printf(TEXT("InvalidHandle (Result: false)")));
+#endif // RECALL_DESYNC_LOG
 		return false;
 	}
 
 	const uint32 Frame = Recall::Simulation::Utils::GetFrame(this);
 
 	FScopeLock Lock(&DataGuard);
-	const FRecallAssetManagerLoadData* RequestPtr = RequestMap.Find(Handle);
-	if (ensureMsgf(RequestPtr != nullptr,
-		TEXT("%hs Asset was not requested"), __FUNCTION__))
+	const FSoftObjectPath* SoftObjectPtr = AssetManagerData.HandleToAssetPath.Find(Handle);
+	if (ensureAlwaysMsgf(SoftObjectPtr != nullptr,
+		TEXT("%hs Asset handle was not found"), __FUNCTION__))
 	{
-		return Frame >= RequestPtr->AsyncEndFrame;
+		const FRecallAssetManagerLoadData* RequestPtr = AssetManagerData.AssetCache.Find(*SoftObjectPtr);
+		if (ensureMsgf(RequestPtr != nullptr,
+			TEXT("%hs Asset was not requested"), __FUNCTION__))
+		{
+			const bool bResult = Frame >= RequestPtr->AsyncEndFrame;
+#if RECALL_DESYNC_LOG
+			RECALL_DESYNC_LOG_STR(this, IsAssetLoaded,
+				FString::Printf(TEXT("%s (Handle: %u, Frame: %d, AsyncStartFrame: %d, AsyncEndFrame: %d, Result: %s)"),
+					*SoftObjectPtr->ToString(), Handle.SerialNumber, Frame,
+					RequestPtr->AsyncStartFrame, RequestPtr->AsyncEndFrame,
+					*Recall::Desync::Conv_BoolToString(bResult)));
+#endif // RECALL_DESYNC_LOG
+			return bResult;
+		}
 	}
+#if RECALL_DESYNC_LOG
+	RECALL_DESYNC_LOG_STR(this, IsAssetLoaded,
+		FString::Printf(TEXT("NotFound (Result: false)")));
+#endif // RECALL_DESYNC_LOG
 	return false;
 }
 
@@ -210,8 +223,7 @@ UObject* URecallAssetManagerSubsystem::GetLoadedAsset(const FRecallAssetLoadHand
 	if (ensure(Handle.IsValid()) && AssetQueue)
 	{
 		// Find the asset path for this handle
-		const FSoftObjectPath* AssetPathPtr = AssetManagerData.HandleToAssetPath.Find(Handle);
-		if (AssetPathPtr)
+		if (const FSoftObjectPath* AssetPathPtr = AssetManagerData.HandleToAssetPath.Find(Handle))
 		{
 			return AssetQueue->GetLoadedAsset(*AssetPathPtr);
 		}
@@ -223,27 +235,4 @@ void URecallAssetManagerSubsystem::ClearAssetCache()
 {
 	FScopeLock Lock(&DataGuard);
 	AssetManagerData.Reset();
-	RequestMap.Reset();
-}
-
-void URecallAssetManagerSubsystem::RegenerateRequestMap()
-{
-	FScopeLock Lock(&DataGuard);
-	
-	// Clear local cache
-	RequestMap.Reset();
-	
-	// Regenerate from HandleToAssetPath mapping
-	for (const TTuple<FRecallAssetLoadHandle, FSoftObjectPath>& HandlePair : AssetManagerData.HandleToAssetPath)
-	{
-		const FRecallAssetLoadHandle& Handle = HandlePair.Key;
-		const FSoftObjectPath& Path = HandlePair.Value;
-		
-		// Find the cached data for this asset
-		if (const FRecallAssetManagerLoadData* CachedData = AssetManagerData.AssetCache.Find(Path))
-		{
-			// Add to local cache
-			RequestMap.Add(Handle, *CachedData);
-		}
-	}
 }

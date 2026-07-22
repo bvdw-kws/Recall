@@ -120,6 +120,13 @@ void URecallEntityAsyncSpawnSubsystem::SpawnEntityAsync(const FSoftObjectPath& E
 	{
 		NewRequest.SpawnParameters = Params.GetValue();
 	}
+
+#if RECALL_DESYNC_LOG
+	RECALL_DESYNC_LOG_STR(this, SpawnEntityAsync,
+		FString::Printf(TEXT("%s (Frame: %d, Position: %s, Rotation: %s, EntityCount: %d)"),
+			*EntityConfigAsset.ToString(), Frame, *Position.ToString(), *Rotation.ToString(),
+			NewRequest.SpawnParameters.EntityCount));
+#endif // RECALL_DESYNC_LOG
 }
 
 const FRecallEntityAsyncSpawnContext* URecallEntityAsyncSpawnSubsystem::PeekSpawnContext() const

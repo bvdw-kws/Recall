@@ -7,6 +7,7 @@
 
 #include "System/Random/RecallRandomNumberSubsystem.h"
 
+#include "Desync/RecallDesyncLog.h"
 #include "Utility/Simulation/RecallSimulationUtils.h"
 
 DEFINE_LOG_CATEGORY(LogRecallRandomNumber);
@@ -67,7 +68,11 @@ const FRandomStream& URecallRandomNumberSubsystem::GetRandomStream()
 {
 	Recall::Simulation::Utils::CheckSimulationProcessingPhase(this,
 		FString::Printf(TEXT("%hs Random stream should stay predictable"), __FUNCTION__));
-
+	
+#if RECALL_DESYNC_LOG
+	RECALL_DESYNC_LOG_INT(this, Seed, RandomStream.GetCurrentSeed());
+#endif // RECALL_DESYNC_LOG
+	
 	return RandomStream;
 }
 

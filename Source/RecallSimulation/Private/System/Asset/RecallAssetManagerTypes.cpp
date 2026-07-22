@@ -162,5 +162,7 @@ UObject* URecallAssetManagerGamethreadQueue::GetLoadedAsset(const FSoftObjectPat
 		return nullptr;
 	}
 
-	return RunnerTask->GetLoadedAsset();
+	UObject* LoadedAsset = RunnerTask->GetLoadedAsset();
+	checkf(LoadedAsset, TEXT("%hs Could not load: %s"), __FUNCTION__, *AssetPath.ToString());
+	return LoadedAsset;
 }

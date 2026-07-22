@@ -60,14 +60,9 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<URecallAssetManagerGamethreadQueue> AssetQueue;
 	
-	// Local cache for active handles
-	UPROPERTY(Transient)
-	TMap<FRecallAssetLoadHandle, FRecallAssetManagerLoadData> RequestMap;
-	
 	mutable FCriticalSection DataGuard;
 
 	void OnTickStart(float DeltaTime);
-	void RegenerateRequestMap();
 };
 
 template<>

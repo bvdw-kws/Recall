@@ -145,10 +145,12 @@ void URecallMultiSimSubsystem::Tick(float DeltaTime)
 			
 		if (AccumulatedFrameCount > 0)
 		{
-			StepCount = FMath::Min(GetMaxStepCount(), AccumulatedFrameCount);
+			const uint32 MaxStepCount = GetMaxStepCount();
+			StepCount = FMath::Min(MaxStepCount, AccumulatedFrameCount);
 			AccumulatedTime -= static_cast<float>(StepCount) / static_cast<float>(FramesPerSecond);
 			
-			UE_LOG(LogRecallMultiSim, VeryVerbose, TEXT("%hs Frame: %d, StepCount: %d"), __FUNCTION__, ElapsedFrame.Load(), StepCount);
+			UE_LOG(LogRecallMultiSim, VeryVerbose, TEXT("%hs Frame: %d, StepCount: %d, MaxStepCount: %d, AccumulatedFrameCount: %d, SimulationRate: %.2f"), 
+				__FUNCTION__, ElapsedFrame.Load(), StepCount, MaxStepCount, AccumulatedFrameCount, SimulationRate);
 		}
 	}
 

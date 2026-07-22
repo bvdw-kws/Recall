@@ -54,7 +54,7 @@ void FRecallRollbackConfig::SetNetPause(uint32 CurrentFrame, uint32 LastSyncedFr
 {
 	check(ContainerSystem.IsValid());
 	ContainerSystem->NetPause = ShouldNetPause(CurrentFrame, LastSyncedFrame);
-	UE_LOG(LogRecallRollback, VeryVerbose, TEXT("NetPause %s (CurrentFrame: %d, LastSyncedFrame: %d, ConfirmFrame: %d)"), 
+	UE_LOG(LogRecallRollback, Log, TEXT("NetPause %s (CurrentFrame: %d, LastSyncedFrame: %d, ConfirmFrame: %d)"), 
 		*UKismetStringLibrary::Conv_BoolToString(ContainerSystem->NetPause), CurrentFrame, LastSyncedFrame, GetConfirmFrame());
 }
 
@@ -66,13 +66,30 @@ bool FRecallRollbackConfig::ShouldNetPause(uint32 CurrentFrame, uint32 LastSynce
 	{
 		const int32 ConfirmFrameDelta = static_cast<int32>(CurrentFrame - ConfirmFrame) + 1;
 
-		// A rollback's fallback target is always LastSyncedFrame's snapshot, so the real budget we
-		// must not exceed is CurrentFrame - LastSyncedFrame <= RollbackFrameCount + 1 (MaxStepCount).
-		// When LastSyncedFrame is still behind ConfirmFrame, that gap eats into the margin, so pause
-		// one frame earlier (relative to ConfirmFrame) to leave it room to catch up; once
-		// LastSyncedFrame == ConfirmFrame there's no such gap and the full +1 margin is safe again.
-		const int32 RollbackFrameMargin = LastSyncedFrame < ConfirmFrame ? 0 : 1;
-		return ConfirmFrameDelta > RollbackFrameCount + RollbackFrameMargin;
+		// IMPORTANT: this must stay gated on ConfirmFrame, not on LastSyncedFrame directly, even
+		// though CurrentFrame - LastSyncedFrame is the quantity that actually determines rollback
+		// safety (see ShouldForceRollbackForLag). LastSyncedFrame is only ever advanced from inside
+		// the tick/step pipeline (URecallRollbackSubsystem::OnFrameSync -> SyncFrame ->
+		// ProcessFrameBuffer), which itself only runs while NetPause is false (see
+		// URecallMultiSimSubsystem::Tick gating StepCount on !IsNetPause). If we paused based on
+		// CurrentFrame - LastSyncedFrame, both terms would freeze the instant NetPause engages and
+		// the check would return the exact same "stay paused" result forever - a permanent deadlock,
+		// since nothing would ever be able to advance LastSyncedFrame again to clear it.
+		// ConfirmFrame, by contrast, is updated externally by incoming network confirmations
+		// (UpdateConfirmFrameState) independent of the tick loop, so CurrentFrame - ConfirmFrame
+		// keeps shrinking while paused and NetPause can clear once the network catches up; the next
+		// real step then lets ProcessFrameBufferLoop flush LastSyncedFrame forward across the whole
+		// confirmed backlog in one shot.
+		//
+		// Since LastSyncedFrame can lag ConfirmFrame by a few frames even in the steady state (frame
+		// buffer promotion happens one step at a time), pause a bit earlier when that observed gap is
+		// non-trivial - capped, so this margin can never fully substitute for ConfirmFrame's progress
+		// and reintroduce the deadlock via cancellation.
+		constexpr int32 MaxSyncLagMargin = 2;
+		const int32 ObservedSyncLag = LastSyncedFrame < ConfirmFrame
+			? FMath::Min(MaxSyncLagMargin, static_cast<int32>(ConfirmFrame - LastSyncedFrame))
+			: 0;
+		return ConfirmFrameDelta > RollbackFrameCount - ObservedSyncLag;
 	}
 	else
 	{

@@ -38,26 +38,26 @@ public:
 		TOptional<FRecallEntityAsyncSpawnParameters> Params = TOptional<FRecallEntityAsyncSpawnParameters>());
 	
 	const FRecallEntityAsyncSpawnContext* PeekSpawnContext() const;
+	
+public:
+	// UWorldSubsystem implementation Begin
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override final;
+	virtual void Deinitialize() override final;
+	// UWorldSubsystem implementation End
+
+	// IRecallSimulationReactSystemInterface implementation Begin
+	virtual void Start(const FRecallSimulationStartParams& Params) override final;
+	virtual int32 GetStartOrderPriority() const override final { return Recall::SimReactSystem::StartOrder::MediumPriority; }
+	virtual void Reset() override final;
+	virtual void Save(const FRecallSnapshotContext& Context, FInstancedStruct& OutSnapshot) override final;
+	virtual void Restore(const FRecallSnapshotContext& Context, const FInstancedStruct& InSnapshot) override final;
+	// IRecallSimulationReactSystemInterface implementation End
 
 private:
 	friend class URecallEntityAsyncSpawnProcessor;
 	
 	bool IsAnyRequestReady() const;
 	void PushQueue(FMassEntityManager& System);
-	
-protected:
-	// UWorldSubsystem implementation Begin
-	void Initialize(FSubsystemCollectionBase& Collection) override final;
-	void Deinitialize() override final;
-	// UWorldSubsystem implementation End
-
-	// IRecallSimulationReactSystemInterface implementation Begin
-	void Start(const FRecallSimulationStartParams& Params) override final;
-	int32 GetStartOrderPriority() const override final { return Recall::SimReactSystem::StartOrder::MediumPriority; }
-	void Reset() override final;
-	void Save(const FRecallSnapshotContext& Context, FInstancedStruct& OutSnapshot) override final;
-	void Restore(const FRecallSnapshotContext& Context, const FInstancedStruct& InSnapshot) override final;
-	// IRecallSimulationReactSystemInterface implementation End
 
 private:
 	UPROPERTY(Transient)
@@ -65,12 +65,11 @@ private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class URecallEntitySubsystem> EntitySystem;
 
+	mutable FCriticalSection DataGuard;
 	TSharedPtr<struct FRecallEntityAsyncSpawnQueue> SpawnQueue;
 
 	/* Spawn context for the request currently being created, valid only while SpawnRequestEntity is creating its entities. */
 	mutable TUniquePtr<FRecallEntityAsyncSpawnContext> SpawnContext;
-
-	mutable FCriticalSection DataGuard;
 	
 	bool SpawnRequestEntity(FMassEntityManager& System, const FRecallEntityAsyncSpawnRequest& Request) const;
 	FRecallEntityAsyncSpawnQueue& GetMutableSpawnQueue();
