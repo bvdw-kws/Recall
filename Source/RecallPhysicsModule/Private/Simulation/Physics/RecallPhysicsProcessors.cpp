@@ -195,6 +195,7 @@ URecallPhysicsStartSimulationProcessor::URecallPhysicsStartSimulationProcessor()
 	: EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
+	QueryBasedPruning = EMassQueryBasedPruning::Never;
 	ProcessingPhase = EMassProcessingPhase::StartPhysics;
 	ExecutionOrder.ExecuteInGroup = Recall::Physics::ProcessorGroupNames::StartSimulation;
 	ExecutionOrder.ExecuteAfter.Add(Recall::Physics::ProcessorGroupNames::Initialize);
@@ -203,11 +204,6 @@ URecallPhysicsStartSimulationProcessor::URecallPhysicsStartSimulationProcessor()
 void URecallPhysicsStartSimulationProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)
 {
 	Super::InitializeInternal(Owner, InEntityManager);
-}
-
-bool URecallPhysicsStartSimulationProcessor::ShouldAllowQueryBasedPruning(const bool bRuntimeMode) const
-{
-	return false;
 }
 
 void URecallPhysicsStartSimulationProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -241,6 +237,7 @@ URecallPhysicsEndSimulationProcessor::URecallPhysicsEndSimulationProcessor()
 	: EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
+	QueryBasedPruning = EMassQueryBasedPruning::Never;
 	ProcessingPhase = EMassProcessingPhase::EndPhysics;
 	ExecutionOrder.ExecuteInGroup = Recall::Physics::ProcessorGroupNames::EndSimulation;
 }
@@ -248,11 +245,6 @@ URecallPhysicsEndSimulationProcessor::URecallPhysicsEndSimulationProcessor()
 void URecallPhysicsEndSimulationProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)
 {
 	Super::InitializeInternal(Owner, InEntityManager);
-}
-
-bool URecallPhysicsEndSimulationProcessor::ShouldAllowQueryBasedPruning(const bool bRuntimeMode) const
-{
-	return false;
 }
 
 void URecallPhysicsEndSimulationProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -388,8 +380,10 @@ URecallPhysicsGeneratesHitEventProcessor::URecallPhysicsGeneratesHitEventProcess
 	: EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
+	QueryBasedPruning = EMassQueryBasedPruning::Never;
 	ProcessingPhase = EMassProcessingPhase::EndPhysics;
 	ExecutionOrder.ExecuteInGroup = Recall::Physics::ProcessorGroupNames::GeneratesHitEvent;
+	ExecutionOrder.ExecuteAfter.Add(Recall::Physics::ProcessorGroupNames::EndSimulation);
 	ExecutionOrder.ExecuteAfter.Add(Recall::Physics::ProcessorGroupNames::CopyLocation);
 }
 
@@ -412,11 +406,6 @@ void URecallPhysicsGeneratesHitEventProcessor::InitializeInternal(UObject& Owner
 	Super::InitializeInternal(Owner, InEntityManager);
 
 	CacheManager = MakeShared<FRecallPhysicsGeneratesHitEventCacheManager>();
-}
-
-bool URecallPhysicsGeneratesHitEventProcessor::ShouldAllowQueryBasedPruning(const bool bRuntimeMode) const
-{
-	return false;
 }
 
 void URecallPhysicsGeneratesHitEventProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -503,6 +492,7 @@ void URecallPhysicsGeneratesHitEventProcessor::Execute(FMassEntityManager& Entit
 URecallPhysicsResetHitEventsProcessor::URecallPhysicsResetHitEventsProcessor()
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
+	QueryBasedPruning = EMassQueryBasedPruning::Never;
 	ProcessingPhase = EMassProcessingPhase::FrameEnd;
 	ExecutionOrder.ExecuteInGroup = Recall::Physics::ProcessorGroupNames::ResetHitEvents;
 }
@@ -510,11 +500,6 @@ URecallPhysicsResetHitEventsProcessor::URecallPhysicsResetHitEventsProcessor()
 void URecallPhysicsResetHitEventsProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)
 {
 	Super::InitializeInternal(Owner, InEntityManager);
-}
-
-bool URecallPhysicsResetHitEventsProcessor::ShouldAllowQueryBasedPruning(const bool bRuntimeMode /*= true*/) const
-{
-	return false;
 }
 
 void URecallPhysicsResetHitEventsProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) 

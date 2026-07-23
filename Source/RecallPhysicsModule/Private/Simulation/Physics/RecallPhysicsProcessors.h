@@ -18,9 +18,8 @@ class URecallPhysicsInitializerProcessor : public UMassProcessor
 public:
 	URecallPhysicsInitializerProcessor();
 
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-	
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 
@@ -37,11 +36,8 @@ class URecallPhysicsStartSimulationProcessor : public UMassProcessor
 
 	URecallPhysicsStartSimulationProcessor();
 
-public:
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-	virtual bool ShouldAllowQueryBasedPruning(const bool bRuntimeMode = true) const override final;
-
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 
@@ -57,11 +53,8 @@ class URecallPhysicsEndSimulationProcessor : public UMassProcessor
 
 	URecallPhysicsEndSimulationProcessor();
 
-public:
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-	virtual bool ShouldAllowQueryBasedPruning(const bool bRuntimeMode = true) const override final;
-
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 
@@ -76,10 +69,8 @@ class URecallPhysicsCopyLocationProcessor : public UMassProcessor
 
 	URecallPhysicsCopyLocationProcessor();
 
-public:
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 
@@ -94,11 +85,8 @@ class URecallPhysicsGeneratesHitEventProcessor : public UMassProcessor
 
 	URecallPhysicsGeneratesHitEventProcessor();
 
-public:
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-	virtual bool ShouldAllowQueryBasedPruning(const bool bRuntimeMode = true) const override final;
-
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 
@@ -115,11 +103,8 @@ class URecallPhysicsResetHitEventsProcessor : public UMassProcessor
 
 	URecallPhysicsResetHitEventsProcessor();
 
-public:
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
-	virtual bool ShouldAllowQueryBasedPruning(const bool bRuntimeMode = true) const override final;
-
 protected:
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager) override final;
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override final;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override final;
 
