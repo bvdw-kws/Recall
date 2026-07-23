@@ -71,6 +71,7 @@ protected:
 	//~ Begin AGameState Interface
 protected:
 	virtual void HandleMatchHasEnded() override;
+	virtual void HandleMatchIsWaitingToStart() override;
 	//~ End AGameState Interface
 	
 public:

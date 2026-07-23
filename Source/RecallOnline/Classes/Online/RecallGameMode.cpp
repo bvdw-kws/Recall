@@ -260,8 +260,6 @@ void ARecallGameMode::HandleMatchIsWaitingToStart()
 	{
 		GameEditorComponent->EnterGameEditorMode();
 	}
-
-	GetInGameStateChecked()->GetGameSimulationComponentChecked()->ResetSimulation(false, false);
 }
 
 void ARecallGameMode::GetNumPlayersSyncedAndReady(int& OutNumExpected, int& OutNumSynced) const
@@ -566,6 +564,7 @@ void ARecallGameMode::LaunchGameSimulation()
 	GetInGameStateChecked()->GetJoinGameComponentChecked()->JoinGameAll();
 
 #if WITH_EDITOR
+	/*
 	PlayerTwoLocalController = Cast<ARecallPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
 	if (!PlayerTwoLocalController.IsValid())
 	{
@@ -577,6 +576,7 @@ void ARecallGameMode::LaunchGameSimulation()
 			GetInGameStateChecked()->GetJoinGameComponentChecked()->JoinGame(*PlayerTwoLocalController.Get());
 		}
 	}
+	*/
 #endif // WITH_EDITOR
 }
 

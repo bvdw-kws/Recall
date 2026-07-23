@@ -130,7 +130,7 @@ void URecallReplayGameComponent::ClientStartRestoringGameSimulation() const
 		ClientRestoreComponent->StopRestoreGameSimulation();
 	}
 
-	const URecallGameSimulationComponent* GameSimulationComponent = GameState->GetGameSimulationComponentChecked();
+	URecallGameSimulationComponent* GameSimulationComponent = GameState->GetGameSimulationComponentChecked();
 	GameSimulationComponent->ResetSimulation(false, false);
 	
 	ClientRestoreComponent->RestoreGameSimulation(GameSimulationComponent->GetGameSimStartParams(), false);

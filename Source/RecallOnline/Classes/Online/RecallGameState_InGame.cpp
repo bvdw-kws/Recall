@@ -83,6 +83,18 @@ void ARecallGameState_InGame::Tick(float DeltaSeconds)
 #endif // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 }
 
+void ARecallGameState_InGame::HandleMatchIsWaitingToStart()
+{
+	Super::HandleMatchIsWaitingToStart();
+	
+	if (PlayerSyncGateComponent)
+	{
+		PlayerSyncGateComponent->ResetGate();
+	}
+
+	GetGameSimulationComponentChecked()->ResetSimulation(false, false);
+}
+
 void ARecallGameState_InGame::HandleMatchHasEnded()
 {
 	Super::HandleMatchHasEnded();

@@ -41,7 +41,7 @@ public:
 	void LaunchSimulation();
 	void ResumeSimulation();
 	void PauseSimulation();
-	void ResetSimulation(bool bRestart = true, bool bAddPlayers = true) const;
+	void ResetSimulation(bool bRestart = true, bool bAddPlayers = true);
 	void PushSimulationInput(const FString& PlayerId, const TArray<FRecallFrameInput>& FrameInputs);
 
 	//~ Begin UActorComponent Interface

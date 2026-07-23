@@ -100,13 +100,12 @@ void URecallPlayerSyncGateComponent::InitializeAppliedEventCountFromSnapshot(uin
 void URecallPlayerSyncGateComponent::ResetGate()
 {
 #if WITH_SERVER_CODE
-	if (!ensure(HasAuthority()))
+	if (HasAuthority())
 	{
-		return;
+		ReplicatedEventCount = 0;
 	}
+#endif // WITH_SERVER_CODE
 
-	ReplicatedEventCount = 0;
 	LocalAppliedEventCount = 0;
 	LastSyncedFrame = 0;
-#endif // WITH_SERVER_CODE
 }

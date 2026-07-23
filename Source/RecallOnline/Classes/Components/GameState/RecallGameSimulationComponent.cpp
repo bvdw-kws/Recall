@@ -161,6 +161,7 @@ void URecallGameSimulationComponent::LaunchSimulation()
 	UE_LOG(LogPlayerController, Log, TEXT("%hs"), __FUNCTION__);
 	
 	checkf(!bForceRestore, TEXT("Why are we restoring?"));
+	checkf(LocalSimulationFrame == 0, TEXT("Simulation has already started"));
 
 	const ARecallGameState_InGame* GameState = GetGameStateChecked<ARecallGameState_InGame>();
 	URecallClientRestoreComponent* ClientRestoreComponent = GameState->GetClientRestoreComponentChecked();
@@ -269,7 +270,7 @@ void URecallGameSimulationComponent::PauseSimulation()
 	}
 }
 
-void URecallGameSimulationComponent::ResetSimulation(bool bRestart /*= true*/, bool bAddPlayers /*= true*/) const
+void URecallGameSimulationComponent::ResetSimulation(bool bRestart /*= true*/, bool bAddPlayers /*= true*/)
 {
 	UE_LOG(LogPlayerController, Log, TEXT("%hs Reset simulation)"), __FUNCTION__);
 
@@ -283,6 +284,8 @@ void URecallGameSimulationComponent::ResetSimulation(bool bRestart /*= true*/, b
 		{
 			SimulationController->ResetSimulation();
 		}
+		
+		SetLocalSimulationFrame(0);
 
 		if (HasAuthority())
 		{

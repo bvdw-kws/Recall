@@ -63,7 +63,7 @@ public:
 	 */
 	void InitializeAppliedEventCountFromSnapshot(uint32 SnapshotEventCount, uint32 SnapshotFrame);
 
-	/** Server only: reset the gate when the simulation restarts. */
+	/** Reset the gate when the simulation restarts. */
 	void ResetGate();
 
 	DECLARE_MULTICAST_DELEGATE(FOnPlayerSyncGateCaughtUp);
