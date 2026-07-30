@@ -9,7 +9,7 @@
 
 #include "MassEntityTemplateRegistry.h"
 #include "MassEntityView.h"
-#include "Actor/RecallSkeletalMeshActorRepresentationInterface.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Simulation/Representation/RecallActorRepresentationFragments.h"
 #include "Simulation/Transform/RecallTransformFragments.h"
 #include "Utility/Trait/RecallTraitUtils.h"
@@ -127,7 +127,8 @@ void URecallActorRepresentationTrait::PostLoad()
 
 	if (UClass* ActorClass = Actor.Blueprint.TryLoadClass<AActor>())
 	{
-		bIsSkeletalMeshActor = ActorClass->ImplementsInterface(URecallSkeletalMeshActorRepresentationInterface::StaticClass());
+		const AActor* ActorCDO = ActorClass->GetDefaultObject<AActor>();
+		bIsSkeletalMeshActor = ActorCDO->FindComponentByClass<USkeletalMeshComponent>() != nullptr;
 	}
 
 #if WITH_EDITOR
