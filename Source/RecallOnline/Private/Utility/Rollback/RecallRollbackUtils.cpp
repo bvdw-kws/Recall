@@ -302,27 +302,47 @@ namespace Recall::Rollback::Utils
 
 	bool DebugIsPauseRollback()
 	{
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 		return bDebugPauseRollback;
+#else // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+		return false;
+#endif
 	}
 
 	int32 DebugGetForceRollbackFrames()
 	{
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 		return DebugForceRollbackFrames;
+#else // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+		return 0;
+#endif
 	}
 
 	bool DebugUseRollbackComparator()
 	{
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 		return bDebugRollbackComparator;
+#else // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+		return false;
+#endif
 	}
 
 	bool DebugUseRandomRollback()
 	{
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 		return bDebugRandomRollback;
+#else // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+		return false;
+#endif
 	}
 
 	float DebugRandomRollbackTimer()
 	{
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 		return FMath::Min(DebugRandomRollbackTimerMin, DebugRandomRollbackTimerMax);
+#else // UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+		return 0.0f;
+#endif
 	}
 
 	void LogRollbackFrameCountWarning(int32 NumRollbackFrames, int32 RollbackFrameLimit)

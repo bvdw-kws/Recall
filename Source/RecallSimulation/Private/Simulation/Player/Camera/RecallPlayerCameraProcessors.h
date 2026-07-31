@@ -8,6 +8,8 @@
 
 #include "MassObserverProcessor.h"
 
+#include "MassEntityQuery.h"
+
 #include "RecallPlayerCameraProcessors.generated.h"
 
 UCLASS()

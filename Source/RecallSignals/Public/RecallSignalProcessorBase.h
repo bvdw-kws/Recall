@@ -11,6 +11,8 @@
 #include "RecallSignalTypes.h"
 #include "Containers/StaticArray.h"
 #include "Misc/SpinLock.h"
+#include "MassEntityQuery.h"
+
 #include "RecallSignalProcessorBase.generated.h"
 
 class URecallSignalSubsystem;

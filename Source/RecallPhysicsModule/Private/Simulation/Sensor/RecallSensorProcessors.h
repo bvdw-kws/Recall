@@ -9,6 +9,8 @@
 #include "MassObserverProcessor.h"
 #include "RecallSignalProcessorBase.h"
 
+#include "MassEntityQuery.h"
+
 #include "RecallSensorProcessors.generated.h"
 
 UCLASS()

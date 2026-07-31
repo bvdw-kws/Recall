@@ -8,6 +8,8 @@
 
 #include "MassObserverProcessor.h"
 
+#include "MassEntityQuery.h"
+
 #include "RecallControllerProcessors.generated.h"
 
 UCLASS()

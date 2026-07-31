@@ -88,12 +88,20 @@ protected:
 	virtual void PostLoad() override;
 	//~ End UObject Interface.
 
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif // WITH_EDITOR
+
 protected:
 	UPROPERTY(EditAnywhere, meta=(ShowOnlyInnerProperties))
 	FActorRepresentationDesc Actor;
 
 	UPROPERTY()
 	bool bIsSkeletalMeshActor = false;
+
+#if WITH_EDITOR
+	void UpdateIsSkeletalMeshActor();
+#endif // WITH_EDITOR
 };
 
 UCLASS(meta=(DisplayName="RE Decal"))

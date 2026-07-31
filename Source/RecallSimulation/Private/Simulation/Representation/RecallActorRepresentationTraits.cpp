@@ -7,9 +7,9 @@
 
 #include "Simulation/Representation/RecallActorRepresentationTraits.h"
 
+#include "Actor/RecallSkeletalMeshActorRepresentationInterface.h"
 #include "MassEntityTemplateRegistry.h"
 #include "MassEntityView.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Simulation/Representation/RecallActorRepresentationFragments.h"
 #include "Simulation/Transform/RecallTransformFragments.h"
 #include "Utility/Trait/RecallTraitUtils.h"
@@ -123,15 +123,9 @@ void URecallActorRepresentationTrait::PostLoad()
 {
 	Super::PostLoad();
 
-	bIsSkeletalMeshActor = false;
-
-	if (UClass* ActorClass = Actor.Blueprint.TryLoadClass<AActor>())
-	{
-		const AActor* ActorCDO = ActorClass->GetDefaultObject<AActor>();
-		bIsSkeletalMeshActor = ActorCDO->FindComponentByClass<USkeletalMeshComponent>() != nullptr;
-	}
-
 #if WITH_EDITOR
+	UpdateIsSkeletalMeshActor();
+
 	if (Actor.MeshScale_DEPRECATED != FVector::OneVector)
 	{
 		Scale = Actor.MeshScale_DEPRECATED;
@@ -139,6 +133,37 @@ void URecallActorRepresentationTrait::PostLoad()
 	}
 #endif // WITH_EDITOR
 }
+
+#if WITH_EDITOR
+void URecallActorRepresentationTrait::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.GetPropertyName() == TEXT("Blueprint") &&
+		PropertyChangedEvent.GetMemberPropertyName() == TEXT("Actor"))
+	{
+		UpdateIsSkeletalMeshActor();
+	}
+}
+
+void URecallActorRepresentationTrait::UpdateIsSkeletalMeshActor()
+{
+	bool bNewIsSkeletalMeshActor = false;
+
+	if (const UClass* ActorClass = Actor.Blueprint.TryLoadClass<AActor>())
+	{
+		bNewIsSkeletalMeshActor = ActorClass->ImplementsInterface(URecallSkeletalMeshActorRepresentationInterface::StaticClass());
+	}
+
+	if (bNewIsSkeletalMeshActor == bIsSkeletalMeshActor)
+	{
+		return;
+	}
+
+	bIsSkeletalMeshActor = bNewIsSkeletalMeshActor;
+	MarkPackageDirty();
+}
+#endif // WITH_EDITOR
 
 //----------------------------------------------------------------------//
 // URecallDecalRepresentationTrait
