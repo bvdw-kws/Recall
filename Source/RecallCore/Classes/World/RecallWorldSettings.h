@@ -23,7 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, Category=GameEditor)
 	bool bStartInGameEditor = false;
 
+#if 0
 	// Map layout loaded when entering the Game Editor for this map.
 	UPROPERTY(EditAnywhere, Category=GameEditor, meta=(AllowedClasses="/Script/GameEditorRuntime.GameEditorMapAsset"))
 	TObjectPtr<class UDataAsset> GameEditorMapAsset;
+#endif // 0
 };

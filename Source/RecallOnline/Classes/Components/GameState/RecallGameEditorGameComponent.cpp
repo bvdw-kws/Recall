@@ -14,7 +14,7 @@
 
 #ifdef WITH_GAME_EDITOR_RUNTIME
 #include "Data/GameEditorMapAsset.h"
-#include "System/GameEditorWidgetSubsystem.h"
+#include "System/GameEditorSubsystem.h"
 #include "Utility/GameEditorFunctionLibrary.h"
 #endif // WITH_GAME_EDITOR_RUNTIME
 
@@ -104,7 +104,7 @@ void URecallGameEditorGameComponent::OnEnterGameEditor()
 		DeviceActor->SetActorHiddenInGame(false);
 	}
 
-	UGameEditorWidgetSubsystem::GetRef(GetWorld()).OpenGameEditor(PlayerController, GetGameEditorMapAsset());
+	UGameEditorSubsystem::GetRef(GetWorld()).OpenGameEditor(PlayerController, GetGameEditorMapAsset());
 #endif // WITH_GAME_EDITOR_RUNTIME
 
 	if (ARecallPlayerCameraManager* CameraManager = Cast<ARecallPlayerCameraManager>(PlayerController->PlayerCameraManager))
@@ -123,7 +123,7 @@ void URecallGameEditorGameComponent::OnExitGameEditor()
 		DeviceActor->SetActorHiddenInGame(true);
 	}
 	
-	UGameEditorWidgetSubsystem::GetRef(GetWorld()).CloseGameEditor();
+	UGameEditorSubsystem::GetRef(GetWorld()).CloseGameEditor();
 #endif // WITH_GAME_EDITOR_RUNTIME
 }
 
@@ -135,7 +135,7 @@ AActor* URecallGameEditorGameComponent::GetGameEditorViewTarget() const
 		return nullptr;
 	}
 
-	return UGameEditorWidgetSubsystem::GetRef(GetWorld()).GetGameEditorCameraActor();
+	return UGameEditorSubsystem::GetRef(GetWorld()).GetGameEditorCameraActor();
 #else // WITH_GAME_EDITOR_RUNTIME
 	return nullptr;
 #endif
@@ -162,7 +162,11 @@ bool URecallGameEditorGameComponent::ShouldOpenGameEditor() const
 #ifdef WITH_GAME_EDITOR_RUNTIME
 UGameEditorMapAsset* URecallGameEditorGameComponent::GetGameEditorMapAsset() const
 {
+#if 0
 	const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(GetWorld()->GetWorldSettings());
 	return WorldSettings ? Cast<UGameEditorMapAsset>(WorldSettings->GameEditorMapAsset) : nullptr;
+#else // 0
+	return nullptr;
+#endif
 }
 #endif // WITH_GAME_EDITOR_RUNTIME
