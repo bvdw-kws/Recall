@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "Online/RecallPlayerCameraManager.h"
+#include "Utility/RecallGameEditorFunctionLibrary.h"
 #include "World/RecallWorldSettings.h"
 
 #ifdef WITH_GAME_EDITOR_RUNTIME
@@ -148,15 +149,7 @@ bool URecallGameEditorGameComponent::CanStartMatch() const
 
 bool URecallGameEditorGameComponent::ShouldOpenGameEditor() const
 {
-#ifdef WITH_GAME_EDITOR_RUNTIME
-	const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(GetWorld()->GetWorldSettings());
-	if (WorldSettings && WorldSettings->bStartInGameEditor)
-	{
-		return true;
-	}
-#endif // WITH_GAME_EDITOR_RUNTIME
-
-	return false;
+	return URecallGameEditorFunctionLibrary::IsGameEditor(this);
 }
 
 #ifdef WITH_GAME_EDITOR_RUNTIME

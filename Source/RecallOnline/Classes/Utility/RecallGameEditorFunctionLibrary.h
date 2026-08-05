@@ -16,6 +16,12 @@ class RECALLONLINE_API URecallGameEditorFunctionLibrary : public UBlueprintFunct
 	GENERATED_BODY()
 
 public:
+	// Whether the current map/session is configured to use the Game Editor,
+	// via the GameEditor URL option (set by e.g. the Puzzle Menu) or, failing
+	// that, ARecallWorldSettings::bStartInGameEditor.
+	UFUNCTION(BlueprintPure, meta = (WorldContext = "WorldContextObject"))
+	static bool IsGameEditor(const UObject* WorldContextObject);
+
 	// Marks the match as ready to start from the Game Editor, letting
 	// ARecallGameMode start the match even while the current map wants the
 	// Game Editor to be open.

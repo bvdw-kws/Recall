@@ -13,6 +13,34 @@
 #include "GameFramework/PlayerController.h"
 #include "Online/RecallGameMode.h"
 #include "Online/RecallGameState_InGame.h"
+#include "World/RecallWorldSettings.h"
+
+bool URecallGameEditorFunctionLibrary::IsGameEditor(const UObject* WorldContextObject)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World)
+	{
+		return false;
+	}
+
+#ifdef WITH_GAME_EDITOR_RUNTIME
+	// A GameEditor URL option, when present, overrides the World Settings value below
+	// regardless of its value (e.g. the Puzzle Menu passes GameEditor=false so playing a
+	// puzzle never opens the Game Editor even if left enabled on the map's World Settings).
+	const FString GameEditorOption = World->URL.GetOption(TEXT("GameEditor="), TEXT(""));
+	if (!GameEditorOption.IsEmpty())
+	{
+		return GameEditorOption.ToBool();
+	}
+
+	if (const ARecallWorldSettings* WorldSettings = Cast<ARecallWorldSettings>(World->GetWorldSettings()))
+	{
+		return WorldSettings->bStartInGameEditor;
+	}
+#endif // WITH_GAME_EDITOR_RUNTIME
+
+	return false;
+}
 
 void URecallGameEditorFunctionLibrary::PlayGame(const UObject* WorldContextObject)
 {
@@ -42,19 +70,7 @@ void URecallGameEditorFunctionLibrary::PlayGame(const UObject* WorldContextObjec
 
 bool URecallGameEditorFunctionLibrary::CanExitPlayMode(const UObject* WorldContextObject)
 {
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (!World)
-	{
-		return false;
-	}
-
-	ARecallGameState_InGame* GameState = World->GetGameState<ARecallGameState_InGame>();
-	if (!IsValid(GameState))
-	{
-		return false;
-	}
-
-	return GameState->GetGameEditorComponentChecked()->ShouldOpenGameEditor();
+	return IsGameEditor(WorldContextObject);
 }
 
 void URecallGameEditorFunctionLibrary::ExitPlayMode(const UObject* WorldContextObject)
