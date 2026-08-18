@@ -7,6 +7,7 @@
 #pragma once
 
 #include "MassEntityTraitBase.h"
+#include "Engine/DataTable.h"
 
 #include "RecallSensorTraits.generated.h"
 
@@ -21,7 +22,7 @@ struct FRecallSensorSettings
 	UPROPERTY(EditAnywhere, meta=(Units="Centimeters"))
 	FVector CenterOffset = FVector::ZeroVector;
 	
-	UPROPERTY(EditAnywhere, meta=(RowType="/Script/RecallCore.RecallPhysicsLayerTableRow"))
+	UPROPERTY(EditAnywhere, meta=(RowType="/Script/JoltPhysicsRuntimeCore.JPRPhysicsLayerTableRow"))
 	FDataTableRowHandle SensorLayer;
 
 	UPROPERTY(EditAnywhere)
