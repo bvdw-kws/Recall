@@ -27,7 +27,7 @@ bool URecallGameEditorFunctionLibrary::IsGameEditor(const UObject* WorldContextO
 	// A GameEditor URL option, when present, overrides the World Settings value below
 	// regardless of its value (e.g. the Puzzle Menu passes GameEditor=false so playing a
 	// puzzle never opens the Game Editor even if left enabled on the map's World Settings).
-	const FString GameEditorOption = World->URL.GetOption(TEXT("GameEditor="), TEXT(""));
+	const FString GameEditorOption = World->URL.GetOption(TEXT(GAME_EDITOR_URL_OPTION_KEY "="), TEXT(""));
 	if (!GameEditorOption.IsEmpty())
 	{
 		return GameEditorOption.ToBool();

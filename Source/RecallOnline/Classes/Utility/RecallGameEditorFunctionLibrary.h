@@ -10,6 +10,10 @@
 
 #include "RecallGameEditorFunctionLibrary.generated.h"
 
+// URL option key forcing the Game Editor override on/off when opening a map (e.g. the Puzzle
+// Menu passes GameEditor=false so playing a puzzle never opens the Game Editor). See IsGameEditor.
+#define GAME_EDITOR_URL_OPTION_KEY "GameEditor"
+
 UCLASS()
 class RECALLONLINE_API URecallGameEditorFunctionLibrary : public UBlueprintFunctionLibrary
 {
