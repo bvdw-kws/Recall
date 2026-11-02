@@ -92,11 +92,10 @@ extern RECALLPHYSICSMODULE_API void CreateStaticMeshEntity(URecallPhysicsSubsyst
 extern RECALLPHYSICSMODULE_API void InitializePhysicsBody(FMassExecutionContext& Context, const FMassEntityHandle& Entity,
 	URecallPhysicsSubsystem& PhysicsSystem, const FRecallPhysicsBodyFragment& BodyFragment, const FJPRPhysicsBodyParameters& BodyParams);
 
-/**
- * Teleports an entity to a new position, updating both transform fragment and physics body
- */
+/** Teleports an entity to a new position and optional rotation, updating its transform fragment and physics body. */
 extern RECALLPHYSICSMODULE_API void Teleport(const FMassEntityManager& EntityManager, const FMassEntityHandle& Entity,
-	URecallPhysicsSubsystem& PhysicsSubsystem, const FVector& NewPosition);
+	URecallPhysicsSubsystem& PhysicsSubsystem, const FVector& NewPosition,
+	TOptional<FQuat> NewRotation = TOptional<FQuat>());
 	
 /// Generate spline mesh components along a spline mesh.
 /// @param OwnerActor The actor which will own the new components.

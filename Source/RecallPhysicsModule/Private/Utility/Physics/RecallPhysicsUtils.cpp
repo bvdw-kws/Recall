@@ -443,7 +443,7 @@ void InitializePhysicsBody(FMassExecutionContext& Context, const FMassEntityHand
 }
 
 void Teleport(const FMassEntityManager& EntityManager, const FMassEntityHandle& Entity,
-	URecallPhysicsSubsystem& PhysicsSubsystem, const FVector& NewPosition)
+	URecallPhysicsSubsystem& PhysicsSubsystem, const FVector& NewPosition, const TOptional<FQuat> NewRotation)
 {
 	const FMassEntityView EntityView(EntityManager, Entity);
 	
@@ -451,6 +451,10 @@ void Teleport(const FMassEntityManager& EntityManager, const FMassEntityHandle& 
 	if (FRecallTransformFragment* TransformFragment = EntityView.GetFragmentDataPtr<FRecallTransformFragment>())
 	{
 		TransformFragment->Position = NewPosition;
+		if (NewRotation.IsSet())
+		{
+			TransformFragment->Rotation = NewRotation.GetValue();
+		}
 	}
 	
 	// Update physics body if present
@@ -459,7 +463,14 @@ void Teleport(const FMassEntityManager& EntityManager, const FMassEntityHandle& 
 		const FRecallPhysicsBodyView PhysicsBody = PhysicsSubsystem.GetMutableBody(PhysicsBodyFragment->BodyHandle);
 		if (PhysicsBody.IsValid())
 		{
-			PhysicsBody.SetPosition(NewPosition);
+			if (NewRotation.IsSet())
+			{
+				PhysicsBody.SetPositionAndRotation(NewPosition, NewRotation.GetValue());
+			}
+			else
+			{
+				PhysicsBody.SetPosition(NewPosition);
+			}
 		}
 	}
 }
