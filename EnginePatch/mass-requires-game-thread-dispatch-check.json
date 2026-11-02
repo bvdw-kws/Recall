@@ -1,0 +1,27 @@
+{
+  "patchId": "mass-requires-game-thread-dispatch-check",
+  "description": "Ensure processors requiring game-thread execution are dispatched from the game thread",
+  "plugin": "Recall",
+  "versions": [
+    {
+      "engineVersions": ["5.8"],
+      "files": [
+        {
+          "file": "Runtime/MassEntity/Private/MassProcessor.cpp",
+          "operations": [
+            {
+              "id": "assert-game-thread-dispatch",
+              "line": 452,
+              "remove": [
+                "\t\tif (bRequiresGameThreadExecution)"
+              ],
+              "add": [
+                "\t\tif (bRequiresGameThreadExecution && ensureMsgf(ProcessingPhase == EMassProcessingPhase::Render || IsInGameThread(), TEXT(\"Processor %s requires the game thread but is dispatched off-thread\"), *GetProcessorName()))"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

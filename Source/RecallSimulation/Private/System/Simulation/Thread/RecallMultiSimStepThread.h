@@ -7,6 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HAL/Runnable.h"
 
 class URecallMultiSimSubsystem;
 
@@ -35,8 +36,7 @@ private:
 	FEvent* TickEvent = nullptr;
 	TUniquePtr<FRunnableThread> Thread;
 
-	uint32 Step = 0;
-	FCriticalSection StepGuard;
+	TAtomic<uint32> Step = 0;
 
 	TWeakObjectPtr<URecallMultiSimSubsystem> MultiSimSystem;
 };

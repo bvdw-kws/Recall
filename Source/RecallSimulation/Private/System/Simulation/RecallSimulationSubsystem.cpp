@@ -134,6 +134,7 @@ void URecallSimulationSubsystem::Step(EMassProcessingPhase Phase)
 	}
 
 	const float FixedDeltaTime = GetFixedDeltaTime();
+	check(FixedDeltaTime > UE_SMALL_NUMBER);
 
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(Recall_Simulation_StepProcessingPhase);

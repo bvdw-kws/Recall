@@ -7,6 +7,7 @@
 
 #include "RecallMultiSimStepThread.h"
 
+#include "HAL/RunnableThread.h"
 #include "System/Simulation/RecallMultiSimSubsystem.h"
 
 FRecallMultiSimStepThread::FRecallMultiSimStepThread(const TWeakObjectPtr<URecallMultiSimSubsystem>& InMultiSimSystem)
@@ -41,15 +42,13 @@ uint32 FRecallMultiSimStepThread::Run()
 			TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("FStepThread::Run"));
 			QUICK_SCOPE_CYCLE_COUNTER(Recall_MultiSimSystem_StepThread_Run);
 
-			FScopeLock StepLock(&StepGuard);
-
-			while (Step > 0)
+			while (Step.Load() > 0)
 			{
 				if (MultiSimSystem.IsValid())
 				{
 					MultiSimSystem->StepSimulation();
 				}
-				Step--;
+				Step = Step.Load() - 1;
 			}
 		}
 
@@ -87,15 +86,14 @@ void FRecallMultiSimStepThread::Exit()
 
 void FRecallMultiSimStepThread::Rollback_Step(int32 Count)
 {
-	Step = FMath::Max(Step, Step + Count);
+	Step = FMath::Max(Step.Load(), Step.Load() + Count);
 }
 
 void FRecallMultiSimStepThread::Simulation_Step(int32 Count)
 {
-	{
-		FScopeLock StepLock(&StepGuard);
-		Step += Count;
-	}
+	check(Step.Load()  == 0);
+	
+	Step = FMath::Max(Step.Load(), Step.Load() + Count);
 
 	if (TickEvent)
 	{
@@ -107,11 +105,11 @@ void FRecallMultiSimStepThread::WaitForStep() const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("FStepThread::WaitForStep"));
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_MultiSimSystem_StepThread_WaitForStep);
-
+	
 	FGenericPlatformProcess::ConditionalSleep([this]() { return IsStepDone(); });
 }
 
 bool FRecallMultiSimStepThread::IsStepDone() const
 {
-	return Step == 0;
+	return Step.Load() == 0;
 }

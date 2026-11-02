@@ -58,6 +58,18 @@ static TArray<FGameplayTag> GetPlayerControllerTagList()
 		Controller_Player2,
 		Controller_Player3,
 		Controller_Player4,
+		Controller_Player5,
+		Controller_Player6,
+		Controller_Player7,
+		Controller_Player8,
+		Controller_Player9,
+		Controller_Player10,
+		Controller_Player11,
+		Controller_Player12,
+		Controller_Player13,
+		Controller_Player14,
+		Controller_Player15,
+		Controller_Player16,
 	};
 }
 	
