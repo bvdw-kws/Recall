@@ -25,6 +25,7 @@ void URecallPlayerCameraTrait::BuildTemplate(FMassEntityTemplateBuildContext& Bu
 	SharedFragment.Settings = CameraSettings;
 
 	BuildContext.AddFragment<FRecallActorRepresentationFragment>();
+	BuildContext.AddTag<FRecallCullableActorRepresentationTag>();
 
 	BuildContext.AddConstSharedFragment(EntityManager.GetOrCreateConstSharedFragment(SharedFragment));
 }

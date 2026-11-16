@@ -19,6 +19,9 @@ class UMassEntityConfigAsset;
 // Tag to identify player controlled entity
 USTRUCT() struct FRecallPlayerControllerTag : public FMassTag { GENERATED_BODY() };
 
+// Tag to identify a controller that is a view: the entities around its camera are the ones that get rendered
+USTRUCT() struct RECALLSIMULATION_API FRecallViewControllerTag : public FMassTag { GENERATED_BODY() };
+
 USTRUCT()
 struct RECALLSIMULATION_API FRecallControllerFragment : public FMassFragment
 {

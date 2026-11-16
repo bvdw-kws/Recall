@@ -27,6 +27,7 @@ void URecallPlayerControllerTrait::BuildTemplate(FMassEntityTemplateBuildContext
 	
 	BuildContext.AddFragment<FRecallPlayerInputFragment>();
 	BuildContext.AddTag<FRecallPlayerControllerTag>();
+	BuildContext.AddTag<FRecallViewControllerTag>();
 
 	FRecallPlayerControllerSharedFragment SharedFragment;
 	SharedFragment.CameraEntityConfig = PlayerCameraEntityConfig;
@@ -42,6 +43,11 @@ void URecallAIControllerTrait::BuildTemplate(FMassEntityTemplateBuildContext& Bu
 	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
 
 	BuildContext.AddFragment<FRecallControllerFragment>();
+
+	if (bIsView)
+	{
+		BuildContext.AddTag<FRecallViewControllerTag>();
+	}
 
 	FRecallPlayerControllerSharedFragment SharedFragment;
 	SharedFragment.CameraEntityConfig = CameraEntityConfig;

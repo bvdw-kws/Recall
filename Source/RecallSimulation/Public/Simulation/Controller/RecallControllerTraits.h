@@ -37,4 +37,8 @@ public:
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMassEntityConfigAsset> CameraEntityConfig;
+
+	/** When enabled the entities around the camera of this controller are rendered, like a player controller. */
+	UPROPERTY(EditAnywhere)
+	bool bIsView = false;
 };

@@ -12,6 +12,7 @@
 #include "MassExecutionContext.h"
 #include "Representation/Actor/RecallActorMeshRepresentationTypes.h"
 #include "Simulation/Player/Camera/RecallPlayerCameraFragments.h"
+#include "Simulation/Player/Camera/RecallPlayerCameraProcessorGroupTypes.h"
 #include "Simulation/Representation/RecallActorRepresentationFragments.h"
 #include "Simulation/Transform/RecallTransformFragments.h"
 #include "System/Actor/RecallActorSubsystem.h"
@@ -117,6 +118,7 @@ URecallPlayerCameraFollowProcessor::URecallPlayerCameraFollowProcessor()
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
 	ProcessingPhase = EMassProcessingPhase::FrameEnd;
+	ExecutionOrder.ExecuteInGroup = Recall::Camera::ProcessorGroupNames::Follow;
 }
 
 void URecallPlayerCameraFollowProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& InEntityManager)

@@ -25,7 +25,10 @@ void URecallActorRepresentationTraitBase::BuildTemplate(FMassEntityTemplateBuild
 	FRecallActorRepresentationFragment& ActorFragment = BuildContext.AddFragment_GetRef<FRecallActorRepresentationFragment>();
 	ActorFragment.Offset = Offset;
 	ActorFragment.Scale = Scale;
-	
+
+	// The actor of these entities is spawned / released by URecallRenderedTagProcessor.
+	BuildContext.AddTag<FRecallCullableActorRepresentationTag>();
+
 	if (bUseActorScale)
 	{
 		BuildContext.GetMutableObjectFragmentInitializers().Add([this, &World](

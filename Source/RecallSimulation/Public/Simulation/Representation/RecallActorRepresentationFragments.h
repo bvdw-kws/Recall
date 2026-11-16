@@ -20,6 +20,18 @@ USTRUCT() struct FRecallSkeletalMeshActorRepresentationTag : public FMassTag { G
 
 USTRUCT() struct FRecallOverrideActorAnimationRepresentationTag : public FMassTag { GENERATED_BODY() };
 
+/**
+ * Tag set on entities whose actor representation is spawned and released based on the player cameras
+ * (see URecallRenderedTagProcessor). Every actor representation trait should add it.
+ */
+USTRUCT() struct RECALLSIMULATION_API FRecallCullableActorRepresentationTag : public FMassTag { GENERATED_BODY() };
+
+/**
+ * Tag set on entities that must have an actor representation. While present the actor exists and its transform is updated.
+ * Added and removed by URecallRenderedTagProcessor on cullable entities (computed in the simulation, never in the Render phase).
+ */
+USTRUCT() struct RECALLSIMULATION_API FRecallRenderedTag : public FMassTag { GENERATED_BODY() };
+
 USTRUCT()
 struct FRecallActorRepresentationFragment : public FMassFragment
 {
