@@ -251,6 +251,10 @@ private:
 	 * How many players are expected, and how many players are ready to start the game.
 	 */
 	void GetNumPlayersSyncedAndReady(int& OutNumExpected, int& OutNumSynced) const;
+
+	/** Logs (once per second) why the match is not starting yet, with the sync state of each player. */
+	void LogWaitingForPlayers(const FString& Reason);
+	double LastWaitingForPlayersLogTime = 0.0;
 	
 	/**
 	 * List of the names for all the playable characters.

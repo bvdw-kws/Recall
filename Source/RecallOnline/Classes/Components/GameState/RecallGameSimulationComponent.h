@@ -13,6 +13,7 @@
 #include "RecallGameSimulationComponent.generated.h"
 
 class ARecallPlayerControllerBase;
+class ARecallPlayerState_InGame;
 
 /**
  * Component to control the flow of the local game simulation.
@@ -66,6 +67,10 @@ public:
 protected:
 	/** Can the client restore its simulation state? */
 	virtual bool CanResumeSimulation() const;
+
+	/** Logs (once per second) why the simulation is not allowed to run yet. */
+	void LogWaitingToResume(const ARecallPlayerState_InGame& PlayerState, const TCHAR* Reason) const;
+	mutable double LastWaitingToResumeLogTime = 0.0;
 	
 protected:
 	/**

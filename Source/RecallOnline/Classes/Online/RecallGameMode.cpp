@@ -207,6 +207,7 @@ bool ARecallGameMode::ReadyToStartMatch_Implementation()
 	// Wait until everyone has finished traveling
 	if (NumTravellingPlayers > 0)
 	{
+		LogWaitingForPlayers(FString::Printf(TEXT("%d player(s) still travelling"), NumTravellingPlayers));
 		return false;
 	}
 
@@ -216,6 +217,7 @@ bool ARecallGameMode::ReadyToStartMatch_Implementation()
 
 	if (NumPlayersSynced < NumPlayersExpected)
 	{
+		LogWaitingForPlayers(FString::Printf(TEXT("%d/%d player(s) sync ready"), NumPlayersSynced, NumPlayersExpected));
 		return false;
 	}
 	
@@ -259,6 +261,32 @@ void ARecallGameMode::HandleMatchIsWaitingToStart()
 	if (GameEditorComponent.IsValid() && GameEditorComponent->ShouldOpenGameEditor())
 	{
 		GameEditorComponent->EnterGameEditorMode();
+	}
+}
+
+void ARecallGameMode::LogWaitingForPlayers(const FString& Reason)
+{
+	// Once per second max, this is called every tick while waiting.
+	const double Now = FPlatformTime::Seconds();
+	if (Now - LastWaitingForPlayersLogTime < 1.0)
+	{
+		return;
+	}
+	LastWaitingForPlayersLogTime = Now;
+
+	UE_LOG(LogRecallPlayer, Log, TEXT("%hs Waiting to start the match: %s"), __FUNCTION__, *Reason);
+
+	for (const APlayerState* PlayerState : GetInGameStateChecked()->PlayerArray)
+	{
+		const ARecallPlayerState_InGame* InGamePlState = Cast<ARecallPlayerState_InGame>(PlayerState);
+		if (!IsValid(InGamePlState) || InGamePlState->IsABot())
+		{
+			continue;
+		}
+
+		UE_LOG(LogRecallPlayer, Log, TEXT("%hs   Player '%s' (sim id '%s'): sync ready %d, bot %d"),
+			__FUNCTION__, *InGamePlState->GetPlayerName(), *InGamePlState->GetSimPlayerId(),
+			InGamePlState->IsSyncReady(), InGamePlState->IsABot());
 	}
 }
 

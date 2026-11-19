@@ -18,6 +18,7 @@
 #include "Online/Base/RecallPlayerControllerBase.h"
 #include "Online/RecallGameMode.h"
 #include "Online/RecallGameState_InGame.h"
+#include "Online/RecallPawn.h"
 #include "Online/RecallPlayerState_InGame.h"
 #include "System/Simulation/RecallSimulationControllerInterface.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
@@ -193,6 +194,20 @@ void URecallGameSimulationComponent::LaunchSimulation_Internal()
 	DeferredResumeSimulation();
 }
 
+void URecallGameSimulationComponent::LogWaitingToResume(const ARecallPlayerState_InGame& PlayerState, const TCHAR* Reason) const
+{
+	// Called every tick while waiting, log once per second at most.
+	const double Now = FPlatformTime::Seconds();
+	if (Now - LastWaitingToResumeLogTime < 1.0)
+	{
+		return;
+	}
+	LastWaitingToResumeLogTime = Now;
+
+	UE_LOG(LogPlayerController, Log, TEXT("%hs Waiting for local player '%s' before the simulation can run: %s"),
+		__FUNCTION__, *PlayerState.GetSimPlayerId(), Reason);
+}
+
 bool URecallGameSimulationComponent::CanResumeSimulation() const
 {
 	ARecallGameState_InGame* InGameState = GetGameStateChecked<ARecallGameState_InGame>();
@@ -206,7 +221,27 @@ bool URecallGameSimulationComponent::CanResumeSimulation() const
 		
 		if (!InGamePlState->HasActorBegunPlay() || InGamePlState->GetSimPlayerId().IsEmpty())
 		{
+			LogWaitingToResume(*InGamePlState, TEXT("player state has not begun play or has no sim player id"));
 			return false;
+		}
+
+		// A local player needs its pawn, it listens to the input phase and pushes the local inputs. Stepping the
+		// simulation without it would confirm frames that miss the local player's inputs.
+		// The joined flag is not used, it replicates separately and can arrive after the simulation launch.
+		if (!InGamePlState->IsABot())
+		{
+			const APawn* Pawn = InGamePlState->GetPawn();
+			bool bPawnReady = IsValid(Pawn) && Pawn->HasActorBegunPlay();
+			if (const ARecallPawn* RecallPawn = Cast<ARecallPawn>(Pawn))
+			{
+				bPawnReady = bPawnReady && RecallPawn->GetSimPlayerId() == InGamePlState->GetSimPlayerId();
+			}
+
+			if (!bPawnReady)
+			{
+				LogWaitingToResume(*InGamePlState, TEXT("pawn is missing, has not begun play or has no sim player id"));
+				return false;
+			}
 		}
 	}
 	
