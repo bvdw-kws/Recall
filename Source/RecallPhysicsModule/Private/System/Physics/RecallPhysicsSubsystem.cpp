@@ -11,7 +11,8 @@
 #include "Desync/RecallDesyncLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Landscape.h"
-#include "RecallPhysicsSnapshot.h"
+#include "RecallPhysicsSnapshotOps.h"
+#include "System/Physics/RecallPhysicsSnapshot.h"
 #include "Physics/JPRPhysicsBody.h"
 #include "Physics/JPRPhysicsObjectFactory.h"
 #include "Physics/JPRPhysicsLayerDataAsset.h"
@@ -31,6 +32,9 @@ void URecallPhysicsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	Collection.InitializeDependency<URecallEntitySubsystem>();
+
+	// The serial number is the Jolt BodyID, whose index must stay below MaxBodies.
+	Tracker.SetMaxSerialNumber(GetDefault<UJPRPhysicsSettings>()->MaxBodies - 1);
 
 	EntitySystem = UWorld::GetSubsystem<URecallEntitySubsystem>(GetWorld());
 	
@@ -71,12 +75,13 @@ void URecallPhysicsSubsystem::Start(const FRecallSimulationStartParams& Params)
 
 void URecallPhysicsSubsystem::Reset()
 {
-	SerialNumberGenerator = 0;
-
 	ReleasePhysicsObjects();
 
 	DeletePhysicsSystem();
 	CreatePhysicsSystem();
+	
+	Tracker.ResetSerialNumberGenerator();
+	Tracker.SetMaxSerialNumber(GetDefault<UJPRPhysicsSettings>()->MaxBodies - 1);
 }
 
 void URecallPhysicsSubsystem::Save(const FRecallSnapshotContext& Context, FInstancedStruct& OutSnapshot)
@@ -84,67 +89,15 @@ void URecallPhysicsSubsystem::Save(const FRecallSnapshotContext& Context, FInsta
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("URecallPhysicsSubsystem::Save"));
 	QUICK_SCOPE_CYCLE_COUNTER(Recall_Physics_Save);
 
-	{		
+	{
 		FScopeLock Lock(&HitEventGuard);
 		checkf(HitEvents.IsEmpty(), TEXT("Should be reset at the end of each frame"));
 	}
 
 	OutSnapshot.InitializeAs<FRecallPhysicsSnapshot>();
 
-	FRecallPhysicsSnapshot& Snasphot = OutSnapshot.GetMutable<FRecallPhysicsSnapshot>();
-	Snasphot.SerialNumberGenerator = SerialNumberGenerator;
-
-	constexpr int32 PhysicsSaveTaskCount = 3;
-	ParallelFor(PhysicsSaveTaskCount, [this, &Snasphot](int32 Index)
-		{
-			switch (Index)
-			{
-			case 0: // Save State
-			{
-				TArray<FRecallPhysicsBodyHandle> BodyHandles;
-				BodyRefMap.GenerateKeyArray(BodyHandles);
-				BodyHandles.Sort([](const FRecallPhysicsBodyHandle& Left, const FRecallPhysicsBodyHandle& Right)
-				{
-					return Left.SerialNumber < Right.SerialNumber;
-				});
-
-				TArray<TSharedPtr<FJPRPhysicsBody>> Bodies;
-				Bodies.Reserve(BodyHandles.Num());
-				for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
-				{
-					Bodies.Add(BodyRefMap.FindChecked(BodyHandle).Body);
-				}
-				Snasphot.Data = SavePhysicsState(Bodies);
-			}
-			break;
-
-			case 1: // Save Bodies
-			{
-				Snasphot.Bodies.Reserve(BodyRefMap.Num());
-
-				for (const TPair<FRecallPhysicsBodyHandle, FJPRPhysicsBodyRef>& PhysicsBodyRef : BodyRefMap)
-				{
-					if (!PhysicsBodyRef.Value.bRestoreBody)
-					{
-						continue;
-					}
-					
-					const FJPRPhysicsBodySnapshot BodySnapshot = TakeBodySnapshot(PhysicsBodyRef.Key);
-					Snasphot.Bodies.Add(PhysicsBodyRef.Key, BodySnapshot);
-				}
-			}
-			break;
-				
-			case 2: // Save Constrains
-				Snasphot.Constrains = ConstrainRefs;
-				break;
-				
-			default:
-				unimplemented();
-				break;
-			}
-		}
-	);
+	FRecallPhysicsSnapshotOps Ops(*this);
+	Tracker.Save(Ops, OutSnapshot.GetMutable<FRecallPhysicsSnapshot>());
 }
 
 void URecallPhysicsSubsystem::Restore(const FRecallSnapshotContext& Context, const FInstancedStruct& InSnapshot)
@@ -158,177 +111,21 @@ void URecallPhysicsSubsystem::Restore(const FRecallSnapshotContext& Context, con
 		return;
 	}
 
-	SerialNumberGenerator = InData->SerialNumberGenerator;
+	CheckPhysicsAccess();
 
-	TSet<FRecallPhysicsConstrainHandle> NewConstrains = InData->Constrains;
-	const TSet<FRecallPhysicsConstrainHandle> OldConstrains = ConstrainRefs;
-	
-	TSet<FRecallPhysicsBodyHandle> NewHandles;
-	InData->Bodies.GetKeys(NewHandles);
+	// Same guard as the create/release paths. It is recursive, CreateShape_Internal takes it again from inside Restore.
+	FScopeLock Lock(&DataGuard);
 
-	TArray<FRecallPhysicsBodyHandle> OldHandles;
-	BodyRefMap.GenerateKeyArray(OldHandles);
-
-	TSet<FRecallPhysicsBodyHandle> ReleasedHandles;
-	
-	for (const FRecallPhysicsBodyHandle& OldHandle : OldHandles)
-	{
-		// No need to take care of static bodies since they are not saved.
-		const FJPRPhysicsBodyRef& OldBodyRef = BodyRefMap[OldHandle];
-		if (!OldBodyRef.bRestoreBody)
-		{
-			checkf(!NewHandles.Contains(OldHandle),
-				TEXT("%hs Should not save bodies that must not be restored"), __FUNCTION__);
-			continue;
-		}
-		
-		// Keep existing bodies so they can be restored.
-		if (NewHandles.Contains(OldHandle))
-		{
-			const FJPRPhysicsBodyRef& NewBodySnapshot = BodyRefMap[OldHandle];
-			if (NewBodySnapshot.Shape == OldBodyRef.Shape && NewBodySnapshot.Params == OldBodyRef.Params)
-			{
-				NewHandles.Remove(OldHandle);
-				continue;
-			}			
-		}
-
-		// Destroy non-existing bodies
-		ReleaseBody_Internal(OldHandle);
-		ReleasedHandles.Add(OldHandle);
-	}
-
-	// Release deprecated constrains
-	for (const FRecallPhysicsConstrainHandle& ConstrainRef : OldConstrains)
-	{
-		if (NewConstrains.Contains(ConstrainRef))
-		{
-			if (!ReleasedHandles.Contains(ConstrainRef.Body1) && !ReleasedHandles.Contains(ConstrainRef.Body2))
-			{
-				NewConstrains.Remove(ConstrainRef);
-				continue;
-			}
-		}
-		
-		RemoveConstrainRef_Internal(ConstrainRef.Body1, ConstrainRef.Body2);
-	}
-
-	// Create non-existing bodies
-	for (FRecallPhysicsBodyHandle& NewHandle : NewHandles)
-	{
-		check(NewHandle.IsValid());
-		const FJPRPhysicsBodySnapshot& BodySnapshot = InData->Bodies[NewHandle];
-		const FJPRPhysicsShape& Shape = BodySnapshot.Shape.Get<FJPRPhysicsShape>();
-
-		CreateShape_Internal(BodySnapshot.Entity, BodySnapshot.Shape, Shape.FactoryClass, BodySnapshot.Params, NewHandle);
-	}
-
-	// Re-apply body settings
-	for (const TPair<FRecallPhysicsBodyHandle, FJPRPhysicsBodySnapshot>& RestorePair : InData->Bodies)
-	{
-		const FRecallPhysicsBodyHandle& Handle = RestorePair.Key;
-
-		const FJPRPhysicsBodyRef& BodyRef = BodyRefMap.FindChecked(Handle);
-		const TSharedPtr<FJPRPhysicsBody>& Body = BodyRef.Body;
-		check(Body.IsValid());
-		
-		const FJPRPhysicsBodySnapshot& BodySnapshot = RestorePair.Value;
-
-		if (BodySnapshot.bEnabled)
-		{
-			Body->Activate();
-		}
-		else
-		{
-			Body->Desactivate();
-		}
-
-		if (BodySnapshot.bUseLayerOverride)
-		{
-			SetLayerOverride(Handle, BodySnapshot.LayerOverride);
-		}
-		else if (BodyRef.LayerOverride.IsValid())
-		{
-			ClearLayerOverride(Handle);
-		}
-
-		if (BodySnapshot.bUseMotionTypeOverride)
-		{
-			SetMotionType(Handle, BodySnapshot.MotionTypeOverride);
-		}
-		else if (BodyRef.MotionTypeOverride.IsValid())
-		{
-			ResetMotionType(Handle);
-		}
-	}
-
-	// Create new constrains
-	for (const FRecallPhysicsConstrainHandle& ConstrainSnapshot : NewConstrains)
-	{
-		CreateFixedConstrain(ConstrainSnapshot.Body1, ConstrainSnapshot.Body2);
-	}
-
-	TArray<FRecallPhysicsBodyHandle> BodyHandles;
-	BodyRefMap.GenerateKeyArray(BodyHandles);
-	BodyHandles.Sort([](const FRecallPhysicsBodyHandle& Left, const FRecallPhysicsBodyHandle& Right)
-	{
-		return Left.SerialNumber < Right.SerialNumber;
-	});
-
-	TArray<TSharedPtr<FJPRPhysicsBody>> Bodies;
-	Bodies.Reserve(BodyHandles.Num());
-	for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
-	{
-		Bodies.Add(BodyRefMap.FindChecked(BodyHandle).Body);
-	}
-	RestorePhysicsState(InData->Data, Bodies);
-}
-
-FJPRPhysicsBodySnapshot URecallPhysicsSubsystem::TakeBodySnapshot(const FRecallPhysicsBodyHandle& Handle) const
-{
-	const FJPRPhysicsBodyRef& PhysicsBodyRef = BodyRefMap.FindChecked(Handle);
-	
-	FJPRPhysicsBodySnapshot BodySnapshot;
-	BodySnapshot.Entity = PhysicsBodyRef.Entity;
-	BodySnapshot.Shape = PhysicsBodyRef.Shape;
-	BodySnapshot.Params = PhysicsBodyRef.Params;
-
-	if (ensure(PhysicsBodyRef.Body.IsValid()))
-	{
-		BodySnapshot.bEnabled = PhysicsBodyRef.Body->IsEnabled();
-	}
-
-	if (PhysicsBodyRef.LayerOverride.IsValid())
-	{
-		BodySnapshot.bUseLayerOverride = true;
-		BodySnapshot.LayerOverride = *PhysicsBodyRef.LayerOverride.Get();
-	}
-
-	if (PhysicsBodyRef.MotionTypeOverride.IsValid())
-	{
-		BodySnapshot.bUseMotionTypeOverride = true;
-		BodySnapshot.MotionTypeOverride = *PhysicsBodyRef.MotionTypeOverride.Get();
-	}
-
-	return BodySnapshot;
+	FRecallPhysicsSnapshotOps Ops(*this);
+	Tracker.Restore(Ops, *InData);
 }
 
 void URecallPhysicsSubsystem::ReleasePhysicsObjects()
 {
 	CheckPhysicsAccess();
 	
-	for (auto It = ConstrainRefs.CreateConstIterator(); It; ++It)
-	{
-		RemoveAllConstrains(It->Body1, It->Body2);
-	}
-	check(ConstrainRefs.IsEmpty());
-	
-	for (auto It = BodyRefMap.CreateConstIterator(); It; ++It)
-	{
-		ReleaseBody_Internal(It.Key(), true);
-	}
-	check(BodyHandleMap.IsEmpty());
-	check(BodyRefMap.IsEmpty());
+	FRecallPhysicsSnapshotOps Ops(*this);
+	Tracker.ReleaseAll(Ops);
 }
 
 void URecallPhysicsSubsystem::TickPhysics(float DeltaTime)
@@ -347,7 +144,7 @@ void URecallPhysicsSubsystem::TickPhysics(float DeltaTime)
 bool URecallPhysicsSubsystem::ShouldGenerateHitEvent(const uint32 BodyID) const
 {
 	// Some custom colliders may not be registered in this map but still generate hit events
-	if (const FRecallPhysicsBodyHandle* BodyHandlePtr = BodyHandleMap.Find(BodyID))
+	if (const FRecallPhysicsBodyHandle* BodyHandlePtr = Tracker.FindHandle(BodyID))
 	{
 		const FConstRecallPhysicsBodyView BodyPtr = GetBody(*BodyHandlePtr);
 		if (BodyPtr.IsValid() && BodyPtr.Pin()->DoesTriggerHitEvents() == false)
@@ -361,9 +158,9 @@ bool URecallPhysicsSubsystem::ShouldGenerateHitEvent(const uint32 BodyID) const
 
 bool URecallPhysicsSubsystem::ShouldRestorePhysicsBody(const uint32 BodyID) const
 {
-	if (const FRecallPhysicsBodyHandle* BodyHandlePtr = BodyHandleMap.Find(BodyID))
+	if (const FRecallPhysicsBodyHandle* BodyHandlePtr = Tracker.FindHandle(BodyID))
 	{
-		if (const FJPRPhysicsBodyRef* BodyRefPtr = BodyRefMap.Find(*BodyHandlePtr))
+		if (const FRecallPhysicsBodyRef* BodyRefPtr = Tracker.FindBodyRef(*BodyHandlePtr))
 		{
 			// Only restore bodies that are marked for restoration
 			// Static entities without mutable flag should not be restored
@@ -385,7 +182,7 @@ void URecallPhysicsSubsystem::GenerateHitEvents(const TSet<FRecallPhysicsBodyHan
 	auto TryPushHitEvent = [&](uint32 HitID, const uint32 Body1ID, const uint32 Body2ID, const FVector& Velocity,
 		const FVector& ImpactPoint, const FVector& ImpactNormal, bool bHitStatic, bool bHitSensor)
 	{
-		const FRecallPhysicsBodyHandle* Body1HandlePtr = BodyHandleMap.Find(Body1ID);
+		const FRecallPhysicsBodyHandle* Body1HandlePtr = Tracker.FindHandle(Body1ID);
 
 		if (Body1HandlePtr == nullptr || !GeneratesHitEventsBodyHandles.Contains(*Body1HandlePtr))
 		{
@@ -400,14 +197,14 @@ void URecallPhysicsSubsystem::GenerateHitEvents(const TSet<FRecallPhysicsBodyHan
 		FRecallPhysicsHitEvent HitEvent;
 		HitEvent.HitID = HitID;
 
-		if (const FRecallPhysicsBodyHandle* Body2HandlePtr = BodyHandleMap.Find(Body2ID))
+		if (const FRecallPhysicsBodyHandle* Body2HandlePtr = Tracker.FindHandle(Body2ID))
 		{
 			HitEvent.ColliderBodyHandle = *Body2HandlePtr;
 
-			if (const FJPRPhysicsBodyRef* Body2Ref = BodyRefMap.Find(*Body2HandlePtr))
+			if (const FRecallPhysicsBodyRef* Body2Ref = Tracker.FindBodyRef(*Body2HandlePtr))
 			{
 				// Prevent the entity from detecting hit with itself
-				const FJPRPhysicsBodyRef* Body1Ref = BodyRefMap.Find(*Body1HandlePtr);
+				const FRecallPhysicsBodyRef* Body1Ref = Tracker.FindBodyRef(*Body1HandlePtr);
 				if (Body1Ref != nullptr && Body1Ref->Entity == Body2Ref->Entity)
 				{
 					return;
@@ -551,7 +348,11 @@ FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Inter
 	}
 
 	constexpr FMassEntityHandle StaticDummyEntity;
-	const FRecallPhysicsBodyHandle Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
+	const FRecallPhysicsBodyHandle Handle = Tracker.AllocateHandle();
+	if (!ensureMsgf(Handle.IsValid(), TEXT("%hs No free physics body ID (MaxBodies=%u)"), __FUNCTION__, GetDefault<UJPRPhysicsSettings>()->MaxBodies))
+	{
+		return Handle;
+	}
 
 	const TSharedPtr<FJPRPhysicsBody> Body = CreateBodyFromShape(Handle.SerialNumber, Shape, FactoryClass, Params);
 	if (Body.IsValid())
@@ -560,8 +361,7 @@ FRecallPhysicsBodyHandle URecallPhysicsSubsystem::CreateMutableStaticShape_Inter
 		Body->Activate();
 	}
 
-	BodyRefMap.Add(Handle, FJPRPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
-	BodyHandleMap.Add(Handle.SerialNumber, Handle);
+	Tracker.RegisterBody(Handle, FRecallPhysicsBodyRef{ StaticDummyEntity, Body, Shape, Params });
 
 	return Handle;
 }
@@ -597,13 +397,16 @@ void URecallPhysicsSubsystem::CreateShape_Internal(const FMassEntityHandle& Enti
 	
 	if (!Handle.IsValid())
 	{
-		Handle = FRecallPhysicsBodyHandle{ ++SerialNumberGenerator };
+		Handle = Tracker.AllocateHandle();
+		if (!ensureMsgf(Handle.IsValid(), TEXT("%hs No free physics body ID (MaxBodies=%u)"), __FUNCTION__, GetDefault<UJPRPhysicsSettings>()->MaxBodies))
+		{
+			return;
+		}
 	}
 
 	const TSharedPtr<FJPRPhysicsBody> Body = CreateBodyFromShape(Handle.SerialNumber, Shape, FactoryClass, Params);
 
-	BodyRefMap.Add(Handle, FJPRPhysicsBodyRef{ Entity, Body, Shape, Params, bRestoreBody });
-	BodyHandleMap.Add(Handle.SerialNumber, Handle);
+	Tracker.RegisterBody(Handle, FRecallPhysicsBodyRef{ Entity, Body, Shape, Params, bRestoreBody });
 }
 
 int32 URecallPhysicsSubsystem::GetNumPendingContactEvents() const
@@ -677,19 +480,15 @@ void URecallPhysicsSubsystem::RemoveAllConstrains(const FRecallPhysicsBodyHandle
 
 void URecallPhysicsSubsystem::AddConstrainRef_Internal(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2)
 {
-	const FRecallPhysicsConstrainHandle NewHandle(Handle1, Handle2);
-	check(!ConstrainRefs.Contains(NewHandle));
-	ConstrainRefs.Add(NewHandle);
+	Tracker.AddConstrainRef(Handle1, Handle2);
 }
 
 void URecallPhysicsSubsystem::RemoveConstrainRef_Internal(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2)
 {
-	const FRecallPhysicsConstrainHandle Handle(Handle1, Handle2);
-	check(ConstrainRefs.Contains(Handle));
-	ConstrainRefs.Remove(Handle);
+	Tracker.RemoveConstrainRef(Handle1, Handle2);
 }
 
-void URecallPhysicsSubsystem::ReleaseBody(const FRecallPhysicsBodyHandle& Handle)
+void URecallPhysicsSubsystem::ReleaseBody(FRecallPhysicsBodyHandle& Handle)
 {
 	Recall::Simulation::Utils::CheckSimulationProcessingPhase(this);
 
@@ -697,21 +496,15 @@ void URecallPhysicsSubsystem::ReleaseBody(const FRecallPhysicsBodyHandle& Handle
 
 	FScopeLock Lock(&DataGuard);
 	ReleaseBody_Internal(Handle);
+	Handle = FRecallPhysicsBodyHandle::Invalid();
 }
 
 void URecallPhysicsSubsystem::ReleaseBody_Internal(const FRecallPhysicsBodyHandle& Handle, bool bCleanUp /*= false*/)
 {
 	CheckPhysicsAccess();
-	
-	FJPRPhysicsBodyRef BodyRef;
-	if (BodyRefMap.RemoveAndCopyValue(Handle, BodyRef))
-	{
-		if (ensure(BodyRef.Body.IsValid()))
-		{
-			BodyHandleMap.Remove(BodyRef.Body->GetBodyID());
-			BodyRef.Body->ReleasePhysicsObject();
-		}
-	}
+
+	FRecallPhysicsSnapshotOps Ops(*this);
+	Tracker.ReleaseBody(Ops, Handle);
 }
 
 FRecallPhysicsBodyView URecallPhysicsSubsystem::GetMutableBody(const FRecallPhysicsBodyHandle& Handle)
@@ -722,7 +515,7 @@ FRecallPhysicsBodyView URecallPhysicsSubsystem::GetMutableBody(const FRecallPhys
 
 	if (Handle.IsValid())
 	{
-		if (const FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+		if (const FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 		{
 			return FRecallPhysicsBodyView(BodyRef->Body.ToWeakPtr());
 		}
@@ -737,7 +530,7 @@ FConstRecallPhysicsBodyView URecallPhysicsSubsystem::GetBody(const FRecallPhysic
 	
 	if (Handle.IsValid())
 	{
-		if (const FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+		if (const FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 		{
 			return FConstRecallPhysicsBodyView(BodyRef->Body.ToWeakPtr());
 		}
@@ -756,7 +549,7 @@ void URecallPhysicsSubsystem::SetLayerOverride(const FRecallPhysicsBodyHandle& H
 	CheckPhysicsAccess();
 	
 	FScopeLock Lock(&DataGuard);
-	if (FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+	if (FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 	{
 		if (BodyRef->LayerOverride.IsValid() && *BodyRef->LayerOverride.Get() == Layer)
 		{
@@ -775,7 +568,7 @@ void URecallPhysicsSubsystem::SetLayerOverride(const FRecallPhysicsBodyHandle& H
 bool URecallPhysicsSubsystem::HasLayerOverride(const FRecallPhysicsBodyHandle& Handle) const
 {
 	FScopeLock Lock(&DataGuard);
-	if (const FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+	if (const FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 	{
 		return BodyRef->LayerOverride.IsValid();
 	}
@@ -788,7 +581,7 @@ void URecallPhysicsSubsystem::ClearLayerOverride(const FRecallPhysicsBodyHandle&
 	CheckPhysicsAccess();
 	
 	FScopeLock Lock(&DataGuard);
-	if (FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+	if (FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 	{
 		if (!BodyRef->LayerOverride.IsValid())
 		{
@@ -809,7 +602,7 @@ void URecallPhysicsSubsystem::ClearLayerOverride(const FRecallPhysicsBodyHandle&
 void URecallPhysicsSubsystem::SetMotionType(const FRecallPhysicsBodyHandle& Handle, EJPRPhysicsMotionType MotionType, EJPRPhysicsActivation ActivationMode /*= EJPRPhysicsActivation::Activate*/)
 {
 	FScopeLock Lock(&DataGuard);
-	if (FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+	if (FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 	{
 		if (BodyRef->Body.IsValid())
 		{
@@ -842,7 +635,7 @@ void URecallPhysicsSubsystem::SetMotionType(const FRecallPhysicsBodyHandle& Hand
 void URecallPhysicsSubsystem::ResetMotionType(const FRecallPhysicsBodyHandle& Handle)
 {
 	FScopeLock Lock(&DataGuard);
-	if (FJPRPhysicsBodyRef* BodyRef = BodyRefMap.Find(Handle))
+	if (FRecallPhysicsBodyRef* BodyRef = Tracker.FindBodyRef(Handle))
 	{
 		if (BodyRef->MotionTypeOverride.IsValid())
 		{

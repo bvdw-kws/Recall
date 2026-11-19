@@ -12,6 +12,9 @@ public class RecallTestSuite : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		// The physics tests do a lot of Jolt work and must not leak JPH::uint64/int64 across translation units of a unity build.
+		bUseUnity = false;
+
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
@@ -20,6 +23,11 @@ public class RecallTestSuite : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
+			"JoltPhysics",
+			"JoltPhysicsRuntime",
+			"JoltPhysicsRuntimeCore",
+			"MassEntity",
+			"RecallPhysicsModule",
 		});
 	}
 }

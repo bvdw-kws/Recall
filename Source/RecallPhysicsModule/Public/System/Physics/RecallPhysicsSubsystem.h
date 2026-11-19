@@ -9,21 +9,19 @@
 #include "System/JPRPhysicsSubsystem.h"
 #include "System/Interface/RecallSimulationReactSystemInterface.h"
 #include "Mass/ExternalSubsystemTraits.h"
-#include "Physics/RecallPhysicsBodyHandle.h"
-#include "Physics/RecallPhysicsObjects.h"
-#include "Physics/RecallPhysicsConstrainHandle.h"
 #include "Physics/RecallPhysicsHitEvent.h"
 #include "Physics/RecallPhysicsTypes.h"
-#include "Physics/JPRPhysicsShapeTypes.h"
-#include "StructUtils/InstancedStruct.h"
-#include "Mass/EntityHandle.h"
+#include "System/Physics/RecallPhysicsBodyTracker.h"
 
 #include "RecallPhysicsSubsystem.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRecallPhysics, Log, All);
 
 class UJPRPhysicsObjectFactory;
-struct FJPRPhysicsBodySnapshot;
+class FRecallPhysicsSnapshotOps;
+class FRecallPhysicsBodyView;
+class FConstRecallPhysicsBodyView;
+struct FMassEntityHandle;
 
 UCLASS()
 class RECALLPHYSICSMODULE_API URecallPhysicsSubsystem : public UJPRPhysicsSubsystem, public IRecallSimulationReactSystemInterface
@@ -57,7 +55,8 @@ public:
 	void CreateFixedConstrain(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
 	void RemoveAllConstrains(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
 
-	void ReleaseBody(const FRecallPhysicsBodyHandle& Handle);
+	/** Releases the body and invalidates the handle of the caller. */
+	void ReleaseBody(FRecallPhysicsBodyHandle& Handle);
 	FRecallPhysicsBodyView GetMutableBody(const FRecallPhysicsBodyHandle& Handle);
 	FConstRecallPhysicsBodyView GetBody(const FRecallPhysicsBodyHandle& Handle) const;
 
@@ -126,25 +125,11 @@ protected:
 	void CheckSimulationProcessingPhase() const;
 	
 protected:
-	// Our physics bodies's serial number generator.
-	UPROPERTY(VisibleAnywhere, Transient)
-	uint32 SerialNumberGenerator{ 0 };
+	// Production IRecallPhysicsBodyOps: needs the protected creation and Jolt entry points.
+	friend class FRecallPhysicsSnapshotOps;
 
-protected:
-	struct FJPRPhysicsBodyRef
-	{
-		FMassEntityHandle Entity;
-		TSharedPtr<FJPRPhysicsBody> Body;
-		FInstancedStruct Shape;
-		FJPRPhysicsBodyParameters Params;
-		bool bRestoreBody = true;
-		TUniquePtr<uint16> LayerOverride;
-		TUniquePtr<EJPRPhysicsMotionType> MotionTypeOverride;
-	};
-	TMap<FRecallPhysicsBodyHandle, FJPRPhysicsBodyRef> BodyRefMap;
-	TMap<uint32, FRecallPhysicsBodyHandle> BodyHandleMap;
-
-	TSet<FRecallPhysicsConstrainHandle> ConstrainRefs;
+	// Owns the handle -> body bookkeeping (body refs, constraints, serial number generator) and the snapshot diff logic.
+	FRecallPhysicsBodyTracker Tracker;
 
 	void AddConstrainRef_Internal(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
 	void RemoveConstrainRef_Internal(const FRecallPhysicsBodyHandle& Handle1, const FRecallPhysicsBodyHandle& Handle2);
@@ -171,9 +156,6 @@ protected:
 	void ReleaseBody_Internal(const FRecallPhysicsBodyHandle& Handle, bool bCleanUp = false);
 
 	void OnActorsInitialized(const FActorsInitializedParams& Params);
-
-	FJPRPhysicsBodySnapshot TakeBodySnapshot(const FRecallPhysicsBodyHandle& Handle) const;
-
 };
 
 template<>

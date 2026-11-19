@@ -7,6 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Mass/EntityHandle.h"
 #include "Physics/RecallPhysicsBodyHandle.h"
 #include "Physics/RecallPhysicsConstrainHandle.h"
 #include "Physics/RecallPhysicsTypes.h"
