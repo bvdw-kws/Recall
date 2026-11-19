@@ -11,6 +11,7 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/MemoryWriter.h"
+#include "UObject/GarbageCollection.h"
 #include "StateTree.h"
 
 //----------------------------------------------------------------------//
@@ -241,6 +242,11 @@ constexpr int32 RecallStateTreeInstancePerThread = 20;
 void FRecallStateTreeInstanceDataSnapshot::GetInstanceDataArray(UObject& InOwner, TArray<FRecallStateTreeInstanceDataItem, TFixedAllocator<RECALL_STATE_TREE_INSTANCE_MAX>>& InstanceDataArray) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("FRecallStateTreeInstanceDataSnapshot::GetInstanceDataArray"));
+
+	// Restoring resolves objects by name (state tree path, property bag types) with FindObject, from the
+	// step thread and the ParallelFor workers below. FindObject is illegal while the game thread is garbage
+	// collecting, so block GC until the restore is complete.
+	FGCScopeGuard GCScopeGuard;
 	
 	InstanceDataArray.SetNumUninitialized(ItemSnapshots.Num());
 
