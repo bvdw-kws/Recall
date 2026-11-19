@@ -70,7 +70,6 @@ protected:
 
 	/** Logs (once per second) why the simulation is not allowed to run yet. */
 	void LogWaitingToResume(const ARecallPlayerState_InGame& PlayerState, const TCHAR* Reason) const;
-	mutable double LastWaitingToResumeLogTime = 0.0;
 	
 protected:
 	/**

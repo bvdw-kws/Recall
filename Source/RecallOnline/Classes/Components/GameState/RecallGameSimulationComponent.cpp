@@ -23,6 +23,12 @@
 #include "System/Simulation/RecallSimulationControllerInterface.h"
 #include "System/Synchronization/RecallSynchronizationTypes.h"
 
+namespace
+{
+	/** Throttles the waiting log, reset on begin play. */
+	double LastWaitingToResumeLogTime = 0.0;
+}
+
 template<typename T=APlayerController>
 void ForEachPlayerController(const UWorld* World, TFunctionRef< void(T& /*PlayerController*/) > ExecuteFunction)
 {
@@ -45,6 +51,8 @@ URecallGameSimulationComponent::URecallGameSimulationComponent(const FObjectInit
 void URecallGameSimulationComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	LastWaitingToResumeLogTime = 0.0;
 	
 	SimulationController = Recall::Frontend::Utils::Get<IRecallSimulationControllerInterface>(this);
 

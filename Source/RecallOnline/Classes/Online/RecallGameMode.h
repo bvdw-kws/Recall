@@ -254,7 +254,6 @@ private:
 
 	/** Logs (once per second) why the match is not starting yet, with the sync state of each player. */
 	void LogWaitingForPlayers(const FString& Reason);
-	double LastWaitingForPlayersLogTime = 0.0;
 	
 	/**
 	 * List of the names for all the playable characters.

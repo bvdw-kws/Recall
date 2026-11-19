@@ -32,6 +32,12 @@
 #include "Utility/Gameplay/RecallGameplayStatics.h"
 #include "Utility/Player/RecallPlayerUtils.h"
 
+namespace
+{
+	/** Throttles the waiting logs, reset on begin play. */
+	double LastWaitingForPlayersLogTime = 0.0;
+}
+
 ARecallGameMode::ARecallGameMode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -97,6 +103,8 @@ void ARecallGameMode::PostInitializeComponents()
 void ARecallGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	LastWaitingForPlayersLogTime = 0.0;
 	
 	Recall::Frontend::Utils::RegisterGlobalObserver<IRecallGameReactInterface>(this);
 }
@@ -266,7 +274,7 @@ void ARecallGameMode::HandleMatchIsWaitingToStart()
 
 void ARecallGameMode::LogWaitingForPlayers(const FString& Reason)
 {
-	// Once per second max, this is called every tick while waiting.
+	// Called every tick while waiting, log once per second at most.
 	const double Now = FPlatformTime::Seconds();
 	if (Now - LastWaitingForPlayersLogTime < 1.0)
 	{
