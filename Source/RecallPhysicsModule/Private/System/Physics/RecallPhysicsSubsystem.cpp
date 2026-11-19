@@ -285,6 +285,11 @@ void URecallPhysicsSubsystem::GenerateHitEvents(const TSet<FRecallPhysicsBodyHan
 	for (const FRecallPhysicsBodyHandle& BodyHandle : BodyHandles)
 	{
 		const TArray<FRecallPhysicsHitEvent>& Hits = HitEvents[BodyHandle];
+		if (Hits.IsEmpty())
+		{
+			// Bodies without hits are the vast majority, logging them makes the desync log huge.
+			continue;
+		}
 
 		RECALL_DESYNC_LOG_CONTEXT(this, FString::Printf(TEXT("Body<%d> hit count: %d, "), BodyHandle.SerialNumber, Hits.Num()));
 		for (const FRecallPhysicsHitEvent& Hit : Hits)

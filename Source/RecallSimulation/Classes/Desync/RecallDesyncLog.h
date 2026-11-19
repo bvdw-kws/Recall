@@ -21,6 +21,9 @@ namespace Recall::Desync
 
 extern RECALLSIMULATION_API void Log(const UObject* WorldContextObject, const FString& Log, const FString& Function);
 extern RECALLSIMULATION_API FString Conv_BoolToString(bool Value);
+
+/** True when the cvar recall.desync.VerboseEntityLog is set. Guards the per-entity logs, which produce most of the log volume. */
+extern RECALLSIMULATION_API bool IsVerboseEntityLogEnabled();
 	
 } // Recall::Desync
 

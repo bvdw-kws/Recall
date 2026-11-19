@@ -27,6 +27,11 @@
 static void ExecuteDumpPhysicsObject(FMassEntityQuery& EntityQuery, FMassExecutionContext& Context, const FString& ContextString)
 {
 #if RECALL_DESYNC_LOG
+	if (!Recall::Desync::IsVerboseEntityLogEnabled())
+	{
+		return;
+	}
+
 	EntityQuery.ForEachEntityChunk(Context, ([&ContextString](FMassExecutionContext& Context)
 	{
 		const FMassEntityManager& EntityManager = Context.GetEntityManagerChecked();

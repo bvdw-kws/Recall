@@ -10,7 +10,13 @@
 #include "MassArchetypeTypes.h"
 #include "Mass/EntityHandle.h"
 
-#define WITH_RECALL_ENTITY_SNAPSHOT_DEBUG ((UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT) && 0)
+// Define RECALL_ENTITY_SNAPSHOT_DEBUG_ENABLED (see RecallSimulation.Build.cs) to check that saving and restoring a
+// snapshot keeps the archetype and chunk order of the entities.
+#ifndef RECALL_ENTITY_SNAPSHOT_DEBUG_ENABLED
+	#define RECALL_ENTITY_SNAPSHOT_DEBUG_ENABLED 0
+#endif // #ifndef RECALL_ENTITY_SNAPSHOT_DEBUG_ENABLED
+
+#define WITH_RECALL_ENTITY_SNAPSHOT_DEBUG ((UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT) && RECALL_ENTITY_SNAPSHOT_DEBUG_ENABLED)
 
 struct FRecallArchetypeSnapshot;
 

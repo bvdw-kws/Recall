@@ -202,11 +202,15 @@ bool URecallAssetManagerSubsystem::IsAssetLoaded(const FRecallAssetLoadHandle& H
 		{
 			const bool bResult = Frame >= RequestPtr->AsyncEndFrame;
 #if RECALL_DESYNC_LOG
-			RECALL_DESYNC_LOG_STR(this, IsAssetLoaded,
-				FString::Printf(TEXT("%s (Handle: %u, Frame: %d, AsyncStartFrame: %d, AsyncEndFrame: %d, Result: %s)"),
-					*SoftObjectPtr->ToString(), Handle.SerialNumber, Frame,
-					RequestPtr->AsyncStartFrame, RequestPtr->AsyncEndFrame,
-					*Recall::Desync::Conv_BoolToString(bResult)));
+			// Only log once loaded, the frame it finished at is what has to match (polling every frame is too noisy).
+			if (bResult)
+			{
+				RECALL_DESYNC_LOG_STR(this, IsAssetLoaded,
+					FString::Printf(TEXT("%s (Handle: %u, Frame: %d, AsyncStartFrame: %d, AsyncEndFrame: %d, Result: %s)"),
+						*SoftObjectPtr->ToString(), Handle.SerialNumber, Frame,
+						RequestPtr->AsyncStartFrame, RequestPtr->AsyncEndFrame,
+						*Recall::Desync::Conv_BoolToString(bResult)));
+			}
 #endif // RECALL_DESYNC_LOG
 			return bResult;
 		}

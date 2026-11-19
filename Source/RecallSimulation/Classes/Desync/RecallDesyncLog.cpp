@@ -30,6 +30,17 @@ FString Conv_BoolToString(bool Value)
 {
 	return UKismetStringLibrary::Conv_BoolToString(Value);
 }
+
+static TAutoConsoleVariable<bool> CVarVerboseEntityLog(
+	TEXT("recall.desync.VerboseEntityLog"),
+	false,
+	TEXT("Log every entity of the Movement and PhysicsObject processors in the desync log (very large logs)."),
+	ECVF_Default);
+
+bool IsVerboseEntityLogEnabled()
+{
+	return CVarVerboseEntityLog.GetValueOnAnyThread();
+}
 } // Recall::Desync
 
 #endif // RECALL_DESYNC_LOG
