@@ -19,6 +19,7 @@ public class RecallTestSuite : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"RecallCore",
 			"RecallOnline",
 		});
 

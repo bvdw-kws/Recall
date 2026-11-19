@@ -84,6 +84,12 @@ void ARecallPlayerController::Tick(float DeltaSeconds)
 			if (bUseGameSimulationMousePosition)
 			{
 				GetMousePosition(CurrentInput.MousePosition.X, CurrentInput.MousePosition.Y);
+
+				FVector MouseWorldPosition;
+				if (GetGameSimulationMouseWorldPosition(MouseWorldPosition))
+				{
+					CurrentInput.MouseWorldPosition = MouseWorldPosition;
+				}
 			}
 
 			PushInput(CurrentInput);
@@ -100,6 +106,42 @@ void ARecallPlayerController::Tick(float DeltaSeconds)
 			ClearCurrentInput();
 		}
 	}
+}
+
+bool ARecallPlayerController::GetGameSimulationMouseWorldPosition(FVector& OutWorldPosition) const
+{
+	return DeprojectMouseToHorizontalPlane(GameSimulationMousePlaneZ, OutWorldPosition);
+}
+
+bool ARecallPlayerController::DeprojectMouseToHorizontalPlane(double PlaneZ, FVector& OutWorldPosition) const
+{
+	float MouseX = 0.f, MouseY = 0.f;
+	if (!GetMousePosition(MouseX, MouseY))
+	{
+		return false;
+	}
+
+	FVector RayOrigin = FVector::ZeroVector, RayDirection = FVector::ZeroVector;
+	if (!DeprojectScreenPositionToWorld(MouseX, MouseY, RayOrigin, RayDirection))
+	{
+		return false;
+	}
+
+	// Ray parallel to the plane
+	if (FMath::IsNearlyZero(RayDirection.Z))
+	{
+		return false;
+	}
+
+	// Plane behind the camera
+	const double Distance = (PlaneZ - RayOrigin.Z) / RayDirection.Z;
+	if (Distance < 0.0)
+	{
+		return false;
+	}
+
+	OutWorldPosition = RayOrigin + RayDirection * Distance;
+	return true;
 }
 
 void ARecallPlayerController::ReceivedPlayer()

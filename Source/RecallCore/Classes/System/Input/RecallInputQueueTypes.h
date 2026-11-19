@@ -77,7 +77,15 @@ struct RECALLCORE_API FRecallInput
 
 	UPROPERTY(VisibleAnywhere)
 	FVector2D_NetQuantize MousePosition = FVector2D_NetQuantizeDirection::ZeroVector;
-	
+
+	/**
+	 * Mouse position projected in world space (1cm precision).
+	 * Unlike MousePosition (screen space, relative to the local viewport), this is valid for every peer
+	 * even when players look at different areas of the world.
+	 */
+	UPROPERTY(VisibleAnywhere)
+	FVector_NetQuantize MouseWorldPosition = FVector_NetQuantize(ForceInit);
+
 	UPROPERTY(VisibleAnywhere)
 	FString Options;
 

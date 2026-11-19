@@ -90,9 +90,32 @@ protected:
 	//~ End APlayerController Interface
 
 protected:
+	/**
+	 * Send the mouse position to the game simulation.
+	 * Both the screen position and its world position (see GetGameSimulationMouseWorldPosition) are sent.
+	 */
 	UPROPERTY(EditDefaultsOnly, Category="Input|Playing")
 	bool bUseGameSimulationMousePosition = false;
-	
+
+	/**
+	 * Height of the horizontal plane the mouse is projected onto to get its world position.
+	 * Used by the default GetGameSimulationMouseWorldPosition.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category="Input|Playing", meta=(EditCondition="bUseGameSimulationMousePosition"))
+	double GameSimulationMousePlaneZ = 0.0;
+
+	/**
+	 * Get the mouse position in world space, to send to the game simulation.
+	 * Needed because screen positions are only meaningful for the local viewport.
+	 * @return false if the mouse can't be projected, the previous world position is then kept.
+	 */
+	virtual bool GetGameSimulationMouseWorldPosition(FVector& OutWorldPosition) const;
+
+	/**
+	 * Project the mouse on a horizontal plane at the given height.
+	 */
+	bool DeprojectMouseToHorizontalPlane(double PlaneZ, FVector& OutWorldPosition) const;
+
 	UPROPERTY(EditDefaultsOnly, Category="Input|Playing")
 	TObjectPtr<UCurveFloat> LeftStickRemappingCurve;
 

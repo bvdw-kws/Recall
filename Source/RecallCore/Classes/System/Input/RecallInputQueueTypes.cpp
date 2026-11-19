@@ -31,13 +31,14 @@ bool FRecallInput::operator==(const FRecallInput& Other) const
 		&& LeftStickAxis == Other.LeftStickAxis
 		&& RightStickAxis == Other.RightStickAxis
 		&& MousePosition == Other.MousePosition
+		&& MouseWorldPosition == Other.MouseWorldPosition
 		&& Options == Other.Options;
 }
 
 FString FRecallInput::ToString() const
 {
-	return FString::Printf(TEXT("InputCommand: %d, LS: %s, RS: %s, Mouse: %s, AxisCount: %d, Options: %s"),
-		InputCommand, *LeftStickAxis.ToString(), *RightStickAxis.ToString(), *MousePosition.ToString(), AxisInputMap.Num(), *Options);
+	return FString::Printf(TEXT("InputCommand: %d, LS: %s, RS: %s, Mouse: %s, MouseWorld: %s, AxisCount: %d, Options: %s"),
+		InputCommand, *LeftStickAxis.ToString(), *RightStickAxis.ToString(), *MousePosition.ToString(), *MouseWorldPosition.ToString(), AxisInputMap.Num(), *Options);
 }
 
 static void SerializeAxisInputCommands(TMap<uint16, FVector2D_NetQuantizeDirection>& AxisInputMap,
@@ -78,6 +79,7 @@ bool FRecallInput::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOut
 	LeftStickAxis.NetSerialize(Ar, Map, bOutSuccess);
 	RightStickAxis.NetSerialize(Ar, Map, bOutSuccess);
 	MousePosition.NetSerialize(Ar, Map, bOutSuccess);
+	MouseWorldPosition.NetSerialize(Ar, Map, bOutSuccess);
 
 	SerializeAxisInputCommands(AxisInputMap, Ar, Map, bOutSuccess);
 	
@@ -122,6 +124,7 @@ bool FRecallInput::NetSerializeFromPrevious(const FRecallInput& PreviousInput, F
 	NetSerializeInputParameterFromPrevious(PreviousInput.LeftStickAxis, LeftStickAxis, Ar, Map, bOutSuccess);
 	NetSerializeInputParameterFromPrevious(PreviousInput.RightStickAxis, RightStickAxis, Ar, Map, bOutSuccess);
 	NetSerializeInputParameterFromPrevious(PreviousInput.MousePosition, MousePosition, Ar, Map, bOutSuccess);
+	NetSerializeInputParameterFromPrevious(PreviousInput.MouseWorldPosition, MouseWorldPosition, Ar, Map, bOutSuccess);
 	SerializeAxisInputCommands(AxisInputMap, Ar, Map, bOutSuccess); // TODO
 	SerializeInputParameterFromPrevious(PreviousInput.Options, Options, Ar, Map, bOutSuccess);
 
